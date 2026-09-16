@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảo Hiểm PJICO Trực Tuyến - Tổng Công ty Cổ phần Bảo hiểm Petrolimex</title>
+    <meta name="description" content="Kênh cấp đơn bảo hiểm trực tuyến chính hãng PJICO Petrolimex. Cấp đơn gói cơ bản xe máy, ô tô qua mã QR, hỗ trợ Zalo 0906.069.368 & 0835.311.985.">
+    <!-- Favicon chuẩn PJICO -->
+    <link rel="icon" type="image/png" href="https://www.pjico.com.vn/wp-content/uploads/2024/06/favicon.png">
+    
+    <!-- Google Font chuẩn PJICO: Source Sans Pro (Source Sans 3) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Source Sans 3"', '"Source Sans Pro"', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
+                    colors: {
+                        pjico: {
+                            blue: '#002B70',        /* Xanh dương đậm chuẩn nhận diện PJICO */
+                            brandblue: '#004B93',   /* Xanh Petrolimex */
+                            lightblue: '#0083CA',   /* Xanh sáng Petrolimex */
+                            orange: '#F58220',      /* Cam chuẩn mã màu PJICO #F58220 */
+                            hoverorange: '#DE6E0F',
+                            bglight: '#F5F5F5',     /* Nền xám nhạt chuẩn pjico.com.vn */
+                            textdark: '#171C21',    /* Màu chữ đậm chuẩn PJICO */
+                            textgray: '#545454',    /* Màu chữ phụ chuẩn PJICO */
+                            border: '#E5E7EB'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { 
+            font-family: 'Source Sans 3', 'Source Sans Pro', Arial, sans-serif; 
+            color: #171C21;
+            background-color: #F5F5F5;
+        }
+
+        /* Banner Carousel: Chiếm 1/3 màn hình máy tính (~340px), rộng rãi, không chèn ép, không đè chữ */
+        @media (min-width: 1024px) {
+            .pjico-banner-box {
+                min-height: 320px;
+            }
+        }
+
+        .tab-btn-active {
+            background-color: #002B70 !important;
+            color: #ffffff !important;
+            border-color: #002B70 !important;
+            box-shadow: 0 4px 12px rgba(0, 43, 112, 0.25);
+        }
+
+        /* Menu block hover effect */
+        .menu-block-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .menu-block-btn:hover {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-pjico-orange selection:text-white">
+
+    <!-- 1. TOP BAR THÔNG TIN ƯU ĐÃI & HOTLINE CHUẨN PJICO -->
+    <div class="bg-[#002B70] text-white text-xs py-2 border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-2">
+            <!-- Ưu đãi mã giới thiệu -->
+            <div class="flex items-center gap-2">
+                <span class="bg-[#F58220] text-white text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wide animate-pulse">Ưu đãi</span>
+                <span class="text-slate-200">Nhập mã giới thiệu <strong class="text-amber-300 font-mono font-bold">KTTT_2409000022</strong> trên App My PJICO để nhận quà!</span>
+                <button onclick="copyReferralCode()" class="text-amber-300 hover:text-white underline font-bold cursor-pointer ml-1">Sao chép</button>
+            </div>
+
+            <!-- Hotline & 2 Số Zalo Đại lý -->
+            <div class="flex items-center flex-wrap gap-4 text-slate-200">
+                <div class="flex items-center gap-1.5">
+                    <i data-lucide="phone-call" class="w-3.5 h-3.5 text-[#F58220]"></i>
+                    <span>Tổng đài 24/7: <a href="tel:1900545455" class="font-bold text-white hover:text-amber-300 font-mono">1900 54 54 55</a></span>
+                </div>
+                <div class="hidden sm:flex items-center gap-3 border-l border-white/20 pl-3">
+                    <a href="https://zalo.me/0906069368" target="_blank" class="hover:text-amber-300 flex items-center gap-1">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>Người cấp đơn: <strong class="text-white font-mono">0906.069.368</strong></span>
+                    </a>
+                    <a href="https://zalo.me/0835311985" target="_blank" class="hover:text-amber-300 flex items-center gap-1">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>ĐL Hoàng Thị Xuân: <strong class="text-white font-mono">0835.311.985</strong></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. HEADER CHÍNH: BỐ TRÍ LOGO & MENU ĐÁNH KHỐI NỔI BẬT THEO YÊU CẦU -->
+    <header class="sticky top-0 z-40 bg-white shadow-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo PJICO chuẩn web chính thức -->
+            <a href="#" class="flex items-center gap-3 flex-shrink-0">
+                <img src="https://www.pjico.com.vn/wp-content/uploads/2024/06/logo.png" 
+                     alt="Logo Bảo Hiểm PJICO" 
+                     class="h-11 sm:h-12 w-auto object-contain"
+                     onerror="this.src='https://www.pjico.com.vn/wp-content/themes/pjico/images/logo-footer.png';">
+                <div class="hidden sm:flex flex-col border-l border-slate-200 pl-3">
+                    <span class="text-[11px] font-black tracking-wider text-[#002B70] uppercase">Tổng Công ty Cổ phần</span>
+                    <span class="text-xs font-bold text-[#F58220] tracking-tight">Bảo Hiểm Petrolimex (PJICO)</span>
+                </div>
+            </a>
+
+            <!-- NAVIGATION ĐÁNH KHỐI NỔI BẬT (KHỐI MÀU RIÊNG TƯƠNG TỰ NÚT MUA HÀNG) -->
+            <nav class="hidden lg:flex items-center space-x-2.5">
+                <!-- Khối 1: Sản Phẩm Bảo Hiểm (Khối Xanh Dương Nhẹ) -->
+                <a href="#san-pham" class="menu-block-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-[#002B70] border border-blue-200 hover:bg-[#002B70] hover:text-white shadow-sm">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                    <span>Sản Phẩm</span>
+                </a>
+
+                <!-- Khối 2: Mua Nhanh QR (Khối Tím / Indigo) -->
+                <a href="#cum-huong-dan" onclick="switchGuideTab('qr')" class="menu-block-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-700 hover:text-white shadow-sm">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    <span>Mua Nhanh QR</span>
+                </a>
+
+                <!-- Khối 3: Tra Cứu GCN Tích Xanh (Khối Xanh Ngọc Emerald Nổi Bật) -->
+                <a href="#cum-huong-dan" onclick="switchGuideTab('gcn')" class="menu-block-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-600 hover:text-white shadow-sm">
+                    <i data-lucide="badge-check" class="w-4 h-4 text-emerald-600 group-hover:text-white"></i>
+                    <span>Tra Cứu GCN Tích Xanh</span>
+                </a>
+
+                <!-- Khối 4: Bồi Thường 24/7 (Khối Đỏ Khẩn Cấp) -->
+                <a href="#cum-huong-dan" onclick="switchGuideTab('boi-thuong')" class="menu-block-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-600 hover:text-white shadow-sm">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i>
+                    <span>Xử Lý Tai Nạn</span>
+                </a>
+
+                <!-- Khối 5: App My PJICO (Khối Hổ Phách Amber) -->
+                <a href="#cum-huong-dan" onclick="switchGuideTab('app')" class="menu-block-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-500 hover:text-white shadow-sm">
+                    <i data-lucide="smartphone" class="w-4 h-4 text-amber-600"></i>
+                    <span>App My PJICO</span>
+                </a>
+            </nav>
+
+            <!-- Nút Mua Hàng Màu Cam Chuẩn PJICO -->
+            <div class="flex items-center gap-2">
+                <a href="#san-pham" class="bg-[#F58220] hover:bg-[#DE6E0F] text-white font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 uppercase tracking-wide">
+                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    <span>Mua Bảo Hiểm</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 3. PHẦN QUẢNG BÁ ĐỘNG DƯỚI THANH MENU (CAROUSEL ĐÃ SỬA LỖI ĐÈ CHỮ, ĐỦ CHỖ HIỂN THỊ, CHIẾM 1/3 MÀN HÌNH MÁY TÍNH) -->
+    <section class="bg-gradient-to-r from-[#001D4D] via-[#002B70] to-[#003B8A] text-white border-b-4 border-[#F58220] relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+            <!-- Box bọc carousel với chiều cao thoải mái ~330px trên desktop -->
+            <div class="pjico-banner-box relative rounded-2xl bg-white/5 border border-white/15 p-5 sm:p-7 flex items-center shadow-xl">
+                
+                <!-- SLIDE 1: App My PJICO & Mã Nhập Voucher (Mặc định hiển thị) -->
+                <div id="slide-0" class="w-full flex flex-col lg:flex-row items-center justify-between gap-6">
+                    <div class="w-full lg:w-3/5 space-y-2.5">
+                        <div class="inline-flex items-center gap-2 bg-[#F58220]/20 border border-[#F58220] text-amber-300 text-xs px-3 py-1 rounded-full font-bold">
+                            <i data-lucide="smartphone" class="w-4 h-4"></i> Ứng Dụng Di Động Chính Thức My PJICO
+                        </div>
+                        <h2 class="text-xl sm:text-3xl font-black leading-tight text-white">
+                            Quản Lý Bảo Hiểm Trong Tầm Tay <br class="hidden sm:inline">
+                            <span class="text-amber-400">Nhập Mã Giới Thiệu Nhận Ngay Voucher!</span>
+                        </h2>
+                        <p class="text-slate-200 text-xs sm:text-sm leading-relaxed max-w-xl">
+                            Cài đặt ứng dụng <strong>My PJICO</strong> trên iOS & Android để tự mua bảo hiểm, lưu thẻ GCN điện tử, khai báo tai nạn online không giấy tờ và tìm kiếm cứu hộ 24/7.
+                        </p>
+                        <!-- Các liên kết và ô mã giới thiệu đầy đủ, không bị cắt -->
+                        <div class="pt-2 flex flex-wrap items-center gap-3">
+                            <div class="flex items-center bg-white/15 backdrop-blur px-3 py-1.5 rounded-xl border border-white/20">
+                                <span class="text-xs text-slate-300 mr-2">Mã Giới Thiệu:</span>
+                                <span class="font-mono font-black text-amber-300 text-sm tracking-wider select-all">KTTT_2409000022</span>
+                                <button onclick="copyReferralCode()" class="ml-2 bg-[#F58220] hover:bg-orange-600 text-white p-1 rounded transition" title="Sao chép">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                            <button onclick="switchGuideTab('app'); document.getElementById('cum-huong-dan').scrollIntoView({behavior:'smooth'});" class="bg-white text-[#002B70] hover:bg-slate-100 font-black text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shadow">
+                                <i data-lucide="arrow-down-circle" class="w-4 h-4"></i> Xem Hướng Dẫn Cài App
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Visual bên phải: QR Tải App Nhỏ Gọn Opaque 100% -->
+                    <div class="w-full lg:w-2/5 flex items-center justify-center lg:justify-end">
+                        <div class="bg-white text-slate-900 p-4 rounded-2xl shadow-xl flex items-center gap-4 border border-amber-300/80 max-w-xs">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=https://mypjico.vn" alt="QR Tải App My PJICO" class="w-24 h-24 rounded-lg shadow-sm border border-slate-200 flex-shrink-0">
+                            <div class="space-y-1">
+                                <span class="bg-blue-100 text-[#002B70] text-[10px] font-black px-2 py-0.5 rounded uppercase">Quét Tải Nhanh</span>
+                                <h4 class="font-extrabold text-xs text-slate-900 leading-snug">App My PJICO</h4>
+                                <p class="text-[11px] text-slate-500 leading-tight">Mở Camera điện thoại quét mã để tải trên iOS & Android</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 2: Cấp Đơn Siêu Tốc & Tra Cứu Tích Xanh (Ẩn mặc định, KHÔNG ĐÈ LÊN SLIDE 1) -->
+                <div id="slide-1" class="w-full flex-col lg:flex-row items-center justify-between gap-6 hidden">
+                    <div class="w-full lg:w-3/5 space-y-2.5">
+                        <div class="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-400 text-emerald-300 text-xs px-3 py-1 rounded-full font-bold">
+                            <i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i> Tra Cứu GCN Hợp Lệ Tại hotro.pjico.com.vn/gcn
+                        </div>
+                        <h2 class="text-xl sm:text-3xl font-black leading-tight text-white">
+                            Giấy Chứng Nhận Điện Tử Chuẩn Luật <br class="hidden sm:inline">
+                            <span class="text-emerald-400">Hiển Thị Tích Xanh Thông Báo Xác Thực</span>
+                        </h2>
+                        <p class="text-slate-200 text-xs sm:text-sm leading-relaxed max-w-xl">
+                            Cấp đơn tự động trong 3 - 5 phút cho xe máy & ô tô. Nhận mã QR động lưu trên điện thoại, CSGT quét kiểm tra trong 3 giây. Hợp chuẩn Nghị định 67/2023/NĐ-CP.
+                        </p>
+                        <!-- Các nút liên kết hiển thị đầy đủ, không bị thiếu -->
+                        <div class="pt-2 flex flex-wrap items-center gap-3">
+                            <a href="#san-pham" class="bg-[#F58220] hover:bg-orange-600 text-white font-black text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow">
+                                <i data-lucide="qr-code" class="w-4 h-4"></i> Chọn Gói Quét QR Ngay
+                            </a>
+                            <a href="https://hotro.pjico.com.vn/gcn" target="_blank" class="bg-white text-[#002B70] hover:bg-slate-100 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow">
+                                <i data-lucide="external-link" class="w-4 h-4 text-emerald-600"></i> Cổng Tra Cứu PJICO Tích Xanh
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Visual bên phải: Badge Tích Xanh Opaque 100% -->
+                    <div class="w-full lg:w-2/5 flex items-center justify-center lg:justify-end">
+                        <div class="bg-white text-slate-900 p-4 rounded-2xl shadow-xl flex items-center gap-4 max-w-xs border-2 border-emerald-500">
+                            <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                <i data-lucide="check-check" class="w-8 h-8 stroke-[3]"></i>
+                            </div>
+                            <div class="text-xs space-y-0.5">
+                                <span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">TÍCH XANH HỢP LỆ</span>
+                                <p class="font-extrabold text-slate-900">Bảo Hiểm PJICO</p>
+                                <p class="text-[11px] text-slate-500">Bộ Tài Chính & Bộ Công An công nhận</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút Prev / Next Carousel -->
+                <button onclick="prevSlide()" class="absolute -left-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white text-white hover:text-[#002B70] p-2 rounded-full z-20 shadow-md transition" title="Slide trước">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+                <button onclick="nextSlide()" class="absolute -right-3 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white text-white hover:text-[#002B70] p-2 rounded-full z-20 shadow-md transition" title="Slide sau">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Indicator Dots (Nằm ngay ngắn ở góc dưới) -->
+                <div class="absolute bottom-2.5 right-6 flex items-center gap-2 z-20">
+                    <button onclick="setSlide(0)" id="dot-0" class="w-6 h-2 rounded-full bg-[#F58220] transition-all"></button>
+                    <button onclick="setSlide(1)" id="dot-1" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white transition-all"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. DANH MỤC SẢN PHẨM & LUỒNG TƯƠNG TÁC (CHỌN SẢN PHẨM -> HIỆN PHƯƠNG THỨC MUA) -->
+    <section id="san-pham" class="py-14 sm:py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <span class="text-xs font-black uppercase tracking-wider text-[#F58220] bg-orange-50 px-3 py-1 rounded-full">Danh Mục Bảo Hiểm PJICO</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-[#002B70] mt-2">
+                    Chọn Sản Phẩm Bạn Đang Quan Tâm
+                </h2>
+                <p class="text-[#545454] mt-2 text-xs sm:text-sm">
+                    Nhấp vào từng sản phẩm để xem chi tiết gói và mở <strong>phương thức mua trực tiếp</strong> (quét mã QR cấp tốc hoặc gửi yêu cầu đại lý qua Zalo / App My PJICO).
+                </p>
+            </div>
+
+            <!-- Product Cards Grid (Tông màu & viền đồng nhất như PJICO) -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- 1. Gói Cơ Bản Xe Máy (Mua Nhanh QR) -->
+                <div onclick="selectProduct('xemay')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-[#002B70] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase">
+                        Bắt buộc Luật
+                    </div>
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#002B70] flex items-center justify-center mb-3 group-hover:bg-[#002B70] group-hover:text-white transition">
+                            <i data-lucide="bike" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-[#002B70] transition leading-tight">
+                            Gói Cơ Bản Xe Máy
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">TNDS Bắt buộc + Tai nạn Lái xe & Người ngồi trên xe.</p>
+                        
+                        <div class="my-3 p-2.5 bg-blue-50/60 rounded-xl border border-blue-100">
+                            <span class="text-[11px] text-slate-500 block">Trách nhiệm bồi thường:</span>
+                            <span class="text-sm font-black text-[#002B70]">150 Triệu đ/người/vụ</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Phí chỉ từ <strong>~86.000 đ/năm</strong></span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-[#002B70] hover:bg-[#004B93] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm">
+                            <i data-lucide="qr-code" class="w-4 h-4 text-amber-400"></i>
+                            <span>Xem Chi Tiết & Quét QR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Gói Cơ Bản Ô Tô (Mua Nhanh QR) -->
+                <div onclick="selectProduct('oto')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-[#F58220] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-[#F58220] text-white text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase">
+                        Xét Đăng Kiểm
+                    </div>
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-orange-50 text-[#F58220] flex items-center justify-center mb-3 group-hover:bg-[#F58220] group-hover:text-white transition">
+                            <i data-lucide="car" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-[#F58220] transition leading-tight">
+                            Gói Cơ Bản Ô Tô
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">TNDS Bắt buộc ô tô + Bảo hiểm Lái xe & Người ngồi theo số chỗ.</p>
+                        
+                        <div class="my-3 p-2.5 bg-orange-50/60 rounded-xl border border-orange-100">
+                            <span class="text-[11px] text-slate-500 block">Trách nhiệm bồi thường:</span>
+                            <span class="text-sm font-black text-[#F58220]">150 Triệu đ/người/vụ</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Phí từ <strong>480.700 đ/năm</strong> (+người)</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-[#F58220] hover:bg-orange-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm">
+                            <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            <span>Xem Chi Tiết & Quét QR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Bảo hiểm Vật chất ô tô (Thân vỏ) -->
+                <div onclick="selectProduct('vatchat')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-[#002B70] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-3 group-hover:bg-[#002B70] group-hover:text-white transition">
+                            <i data-lucide="shield" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-[#002B70] transition leading-tight">
+                            Vật Chất Xe Ô Tô (Thân Vỏ)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Đâm va, trầy xước, ngập nước (thủy kích), mất cắp bộ phận, cứu hộ 24/7.</p>
+                        
+                        <div class="my-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="text-[11px] text-slate-500 block">Quyền lợi:</span>
+                            <span class="text-sm font-black text-slate-800">100% Giá Trị Tổn Thất</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Báo giá theo đời xe & giá trị xe</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-slate-800 group-hover:bg-[#002B70] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Báo Giá Zalo / App</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Bảo hiểm Bệnh Ung Thư (PinkCare) -->
+                <div onclick="selectProduct('ungthu')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-pink-500 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center mb-3 group-hover:bg-pink-600 group-hover:text-white transition">
+                            <i data-lucide="activity" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-pink-600 transition leading-tight">
+                            Bảo Hiểm Bệnh Ung Thư
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">PinkCare chi trả ngay số tiền lớn khi phát hiện bệnh theo giai đoạn.</p>
+                        
+                        <div class="my-3 p-2.5 bg-pink-50/50 rounded-xl border border-pink-100">
+                            <span class="text-[11px] text-slate-500 block">Quyền lợi chi trả:</span>
+                            <span class="text-sm font-black text-pink-600">Lên đến 1 Tỷ Đồng</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Không cần khám sức khỏe trước</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-slate-800 group-hover:bg-pink-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Đăng Ký Zalo / App</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. Bảo hiểm Bệnh Hiểm Nghèo -->
+                <div onclick="selectProduct('hiemngheo')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-purple-600 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:bg-purple-600 group-hover:text-white transition">
+                            <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-purple-600 transition leading-tight">
+                            Bảo Hiểm Bệnh Hiểm Nghèo
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Bảo vệ trước đột quỵ, nhồi máu cơ tim, suy thận... Bảo lãnh viện phí.</p>
+                        
+                        <div class="my-3 p-2.5 bg-purple-50/50 rounded-xl border border-purple-100">
+                            <span class="text-[11px] text-slate-500 block">Bảo lãnh:</span>
+                            <span class="text-sm font-black text-purple-700">Hàng Trăm Triệu Đồng</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Mạng lưới bệnh viện toàn quốc</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-slate-800 group-hover:bg-purple-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Đăng Ký Zalo / App</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 6. Du Lịch Quốc Tế (Xin Visa) -->
+                <div onclick="selectProduct('dulich_qt')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-indigo-600 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition">
+                            <i data-lucide="plane" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-indigo-600 transition leading-tight">
+                            Du Lịch Quốc Tế (Xin Visa)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Đạt chuẩn nộp Visa Schengen (Châu Âu), Mỹ, Nhật, Hàn, Úc. Cứu hộ SOS.</p>
+                        
+                        <div class="my-3 p-2.5 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                            <span class="text-[11px] text-slate-500 block">Hạn mức chi trả:</span>
+                            <span class="text-sm font-black text-indigo-700">Đến 50.000 EUR/USD</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Bồi thường trễ chuyến, mất hành lý</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-slate-800 group-hover:bg-indigo-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Cấp Đơn Zalo / App</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7. Du Lịch Trong Nước -->
+                <div onclick="selectProduct('dulich_nd')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-cyan-600 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-3 group-hover:bg-cyan-600 group-hover:text-white transition">
+                            <i data-lucide="map-pin" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-cyan-600 transition leading-tight">
+                            Du Lịch Trong Nước
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Bảo vệ chi phí y tế tai nạn, ngộ độc thức ăn cho cá nhân và đoàn du lịch.</p>
+                        
+                        <div class="my-3 p-2.5 bg-cyan-50/50 rounded-xl border border-cyan-100">
+                            <span class="text-[11px] text-slate-500 block">Mức phí:</span>
+                            <span class="text-sm font-black text-cyan-700">Từ 1.500 đ/người/ngày</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Cấp đơn cấp tốc cho đoàn</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-slate-800 group-hover:bg-cyan-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Cấp Đơn Zalo / App</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 8. Bảo hiểm Nhà ở tư nhân & Chung cư -->
+                <div onclick="selectProduct('nha')" class="group cursor-pointer bg-white border-2 border-slate-200 hover:border-amber-600 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3 group-hover:bg-amber-600 group-hover:text-white transition">
+                            <i data-lucide="home" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-black text-base text-slate-900 group-hover:text-amber-600 transition leading-tight">
+                            Nhà Ở Tư Nhân & Chung Cư
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Bảo vệ khung nhà và tài sản bên trong trước cháy nổ, sét đánh, tràn nước.</p>
+                        
+                        <div class="my-3 p-2.5 bg-amber-50/50 rounded-xl border border-amber-100">
+                            <span class="text-[11px] text-slate-500 block">Bảo vệ tài sản:</span>
+                            <span class="text-sm font-black text-amber-700">Lên đến Hàng Tỷ Đồng</span>
+                            <span class="text-[11px] text-slate-600 block mt-0.5">Phí chỉ từ vài trăm nghìn/năm</span>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button class="w-full bg-slate-800 group-hover:bg-amber-600 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Cấp Đơn Zalo / App</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- KHU VỰC HIỂN THỊ PHƯƠNG THỨC MUA KHI KHÁCH KÍCH VÀO SẢN PHẨM -->
+            <div id="product-action-box" class="mt-12 scroll-mt-24 hidden">
+                <div class="bg-[#F5F5F5] border-2 border-[#002B70] rounded-3xl p-6 sm:p-10 shadow-xl relative">
+                    <!-- Nút đóng -->
+                    <button onclick="closeProductActionBox()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-200 transition">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+
+                    <div class="max-w-4xl mx-auto">
+                        <!-- Tiêu đề sản phẩm đang chọn -->
+                        <div class="text-center mb-6">
+                            <span id="action-badge" class="text-[11px] font-black uppercase px-3 py-1 rounded-full bg-blue-100 text-[#002B70]">
+                                Đang xem gói bảo hiểm
+                            </span>
+                            <h3 id="action-title" class="text-2xl sm:text-3xl font-black text-[#002B70] mt-2">Tên Sản Phẩm</h3>
+                            <p id="action-desc" class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl mx-auto">Mô tả sản phẩm</p>
+                        </div>
+
+                        <!-- KHỐI 1: NẾU LÀ SẢN PHẨM MUA NHANH (XE MÁY / Ô TÔ) -> HIỆN QRCODE CỦA 2 ĐẠI LÝ -->
+                        <div id="action-qr-mode" class="space-y-6">
+                            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm text-center">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-3">
+                                    Vui lòng chọn Mã QR của Đại lý bạn muốn cấp đơn:
+                                </span>
+                                
+                                <div class="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                                    <!-- QR Người Cấp Đơn Chính -->
+                                    <div class="p-4 rounded-2xl border-2 border-[#002B70] bg-blue-50/40 flex flex-col items-center justify-between text-center">
+                                        <div>
+                                            <span class="bg-[#002B70] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Kênh Cấp Đơn Chính</span>
+                                            <h4 class="font-extrabold text-sm text-slate-900 mt-1">Người Cấp Đơn</h4>
+                                            <p class="text-xs text-[#002B70] font-mono font-bold">Zalo: 0906.069.368</p>
+                                        </div>
+                                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 my-3 shadow-sm">
+                                            <img id="qr-img-chinh" src="qr_xemay_tnds.png" alt="Mã QR Kênh Chính" class="w-36 h-36 rounded-lg">
+                                        </div>
+                                        <div class="w-full space-y-1.5">
+                                            <a id="link-direct-chinh" href="#" target="_blank" class="w-full bg-[#002B70] hover:bg-[#004B93] text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                                                <span>Mở Trang Mua Trực Tiếp</span>
+                                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                            <a id="link-pdf-chinh" href="#" target="_blank" class="w-full bg-white hover:bg-slate-100 text-slate-700 font-semibold py-1.5 px-2 rounded-lg text-[11px] border border-slate-200 flex items-center justify-center gap-1 transition">
+                                                <i data-lucide="file-down" class="w-3 h-3"></i> Tải PDF Hướng dẫn gốc
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- QR Đại Lý Hoàng Thị Xuân -->
+                                    <div class="p-4 rounded-2xl border-2 border-emerald-500 bg-emerald-50/40 flex flex-col items-center justify-between text-center">
+                                        <div>
+                                            <span class="bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Đại Lý Uy Tín</span>
+                                            <h4 class="font-extrabold text-sm text-slate-900 mt-1">ĐL Hoàng Thị Xuân</h4>
+                                            <p class="text-xs text-emerald-700 font-mono font-bold">Zalo: 0835.311.985</p>
+                                        </div>
+                                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 my-3 shadow-sm">
+                                            <img id="qr-img-xuan" src="qr_xemay_xuan.png" alt="Mã QR ĐL Xuân" class="w-36 h-36 rounded-lg">
+                                        </div>
+                                        <div class="w-full space-y-1.5">
+                                            <a id="link-direct-xuan" href="#" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                                                <span>Mở Trang Mua Trực Tiếp</span>
+                                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                            <a id="link-pdf-xuan" href="#" target="_blank" class="w-full bg-white hover:bg-slate-100 text-slate-700 font-semibold py-1.5 px-2 rounded-lg text-[11px] border border-slate-200 flex items-center justify-center gap-1 transition">
+                                                <i data-lucide="file-down" class="w-3 h-3"></i> Tải PDF Hướng dẫn gốc
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-center justify-center gap-2">
+                                    <i data-lucide="camera" class="w-4 h-4 text-[#F58220] flex-shrink-0"></i>
+                                    <span>Mở Camera điện thoại hoặc Zalo để quét mã QR trên ➔ Hỗ trợ <strong>quét ảnh OCR CCCD và Cà vẹt xe</strong> để tự động điền không cần gõ phím!</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KHỐI 2: NẾU LÀ SẢN PHẨM KHÁC -> FORM GỬI QUA ZALO HOẶC MUA TRÊN APP -->
+                        <div id="action-other-mode" class="space-y-6 hidden">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- Cách 1: Gửi yêu cầu qua Zalo -->
+                                <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <span class="bg-blue-100 text-[#002B70] text-[10px] font-black px-2 py-0.5 rounded uppercase">Cách 1: Nhanh Gọn</span>
+                                        <h4 class="font-extrabold text-base text-slate-900 mt-2">Gửi Yêu Cầu Cấp Đơn Qua Zalo</h4>
+                                        <p class="text-xs text-slate-500 mt-1">Đại lý sẽ liên hệ tư vấn báo giá chiết khấu tốt nhất và cấp đơn trực tiếp gửi qua Zalo/Email cho bạn.</p>
+
+                                        <div class="space-y-3 my-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">Chọn đại lý nhận yêu cầu:</label>
+                                                <select id="quickAgentSelect" class="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-slate-50 font-semibold">
+                                                    <option value="0906069368">Người Cấp Đơn Chính (Zalo: 0906.069.368)</option>
+                                                    <option value="0835311985">Đại Lý Hoàng Thị Xuân (Zalo: 0835.311.985)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <input id="quickCustomerName" type="text" placeholder="Họ và tên của bạn" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+                                            </div>
+                                            <div>
+                                                <input id="quickCustomerPhone" type="tel" placeholder="Số điện thoại / Zalo" class="w-full text-xs p-2.5 rounded-lg border border-slate-300">
+                                            </div>
+                                            <div>
+                                                <textarea id="quickCustomerNote" rows="2" placeholder="Ghi chú (Biển số xe, dòng xe, ngày khởi hành...)" class="w-full text-xs p-2.5 rounded-lg border border-slate-300"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onclick="sendQuickZalo()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow transition">
+                                        <i data-lucide="send" class="w-4 h-4"></i> Gửi Tin Nhắn Zalo Cấp Đơn Ngay
+                                    </button>
+                                </div>
+
+                                <!-- Cách 2: Tự Mua Trên App My PJICO -->
+                                <div class="bg-gradient-to-br from-[#002B70] to-[#001A44] text-white rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+                                    <div>
+                                        <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase">Cách 2: Tự Mua Chủ Động</span>
+                                        <h4 class="font-extrabold text-base text-white mt-2">Mua Trực Tiếp Trên App My PJICO</h4>
+                                        <p class="text-xs text-slate-300 mt-1">Cài app chính thức của PJICO trên điện thoại để nhận voucher ưu đãi và chủ động mua bất kỳ sản phẩm nào.</p>
+
+                                        <div class="my-4 p-3 bg-white/10 rounded-xl border border-white/20 text-xs space-y-2">
+                                            <p class="text-amber-300 font-bold">4 Bước Thao Tác Đơn Giản:</p>
+                                            <p>1. Tải app <strong>"My PJICO"</strong> trên App Store hoặc Google Play.</p>
+                                            <p>2. Đăng ký tài khoản bằng SĐT của bạn.</p>
+                                            <p>3. Tại ô Mã giới thiệu, nhập: <span class="font-mono font-black text-amber-300 bg-slate-900 px-1.5 py-0.5 rounded">KTTT_2409000022</span></p>
+                                            <p>4. Chọn sản phẩm & áp dụng voucher để thanh toán.</p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 flex items-center gap-2">
+                                        <button onclick="copyReferralCode()" class="flex-1 bg-[#F58220] hover:bg-orange-600 text-white font-black py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition">
+                                            <i data-lucide="copy" class="w-4 h-4"></i> Sao Chép Mã Giới Thiệu
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. KHỐI CỤM HƯỚNG DẪN & BỒI THƯỜNG (CHIA THÀNH CÁC CỤM - ẤN VÀO CỤM NÀO HIỆN CHI TIẾT NỘI DUNG ĐÓ) -->
+    <section id="cum-huong-dan" class="py-16 bg-[#F5F5F5] border-t border-slate-200 scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <span class="text-xs font-black uppercase tracking-wider text-[#002B70] bg-blue-100 px-3 py-1 rounded-full">Trung Tâm Hướng Dẫn & Hỗ Trợ</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-[#002B70] mt-2">
+                    Cẩm Nang Hướng Dẫn & Xử Lý Sự Cố
+                </h2>
+                <p class="text-slate-600 mt-2 text-xs sm:text-sm">
+                    Nhấp chọn từng <strong>Cụm nội dung</strong> bên dưới để xem quy trình chi tiết:
+                </p>
+            </div>
+
+            <!-- Cụm Tabs Selector (4 Cụm lớn) -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+                <!-- Cụm 1 -->
+                <button onclick="switchGuideTab('qr')" id="tab-btn-qr" class="guide-tab-btn tab-btn-active bg-white border-2 border-slate-200 text-slate-700 font-bold p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 transition hover:border-[#002B70]">
+                    <i data-lucide="qr-code" class="w-6 h-6 text-[#F58220]"></i>
+                    <span class="text-xs sm:text-sm">Cụm 1: Mua Nhanh QR (OCR)</span>
+                </button>
+
+                <!-- Cụm 2 -->
+                <button onclick="switchGuideTab('gcn')" id="tab-btn-gcn" class="guide-tab-btn bg-white border-2 border-slate-200 text-slate-700 font-bold p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 transition hover:border-[#002B70]">
+                    <i data-lucide="badge-check" class="w-6 h-6 text-emerald-500"></i>
+                    <span class="text-xs sm:text-sm">Cụm 2: Tra Cứu GCN Tích Xanh</span>
+                </button>
+
+                <!-- Cụm 3 -->
+                <button onclick="switchGuideTab('boi-thuong')" id="tab-btn-boi-thuong" class="guide-tab-btn bg-white border-2 border-slate-200 text-slate-700 font-bold p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 transition hover:border-[#002B70]">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-red-500"></i>
+                    <span class="text-xs sm:text-sm">Cụm 3: Xử Lý Tai Nạn 24/7</span>
+                </button>
+
+                <!-- Cụm 4 -->
+                <button onclick="switchGuideTab('app')" id="tab-btn-app" class="guide-tab-btn bg-white border-2 border-slate-200 text-slate-700 font-bold p-4 rounded-2xl flex flex-col items-center justify-center text-center gap-2 transition hover:border-[#002B70]">
+                    <i data-lucide="gift" class="w-6 h-6 text-amber-500"></i>
+                    <span class="text-xs sm:text-sm">Cụm 4: Cài App & Nhận Quà</span>
+                </button>
+            </div>
+
+            <!-- NỘI DUNG CHI TIẾT TỪNG CỤM -->
+
+            <!-- CHI TIẾT CỤM 1: HƯỚNG DẪN MUA BẢO HIỂM NHANH BẰNG MÃ QR (CÔNG NGHỆ OCR) -->
+            <div id="guide-content-qr" class="guide-content-panel bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-black text-[#F58220] uppercase">Cụm 1: Mua Nhanh Siêu Tốc</span>
+                        <h3 class="text-xl sm:text-2xl font-black text-[#002B70] mt-1">
+                            Quy Trình 4 Bước Mua Qua Mã QR (Tích Hợp Quét Ảnh OCR Tự Động)
+                        </h3>
+                    </div>
+                    <span class="hidden sm:inline bg-blue-50 text-[#002B70] text-xs font-bold px-3 py-1 rounded-full">Không cần gõ phím</span>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-blue-100 text-[#002B70] flex items-center justify-center font-black text-base mb-3">1</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Quét Mã QR Code</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Mở ứng dụng <strong>Zalo</strong> hoặc <strong>Camera điện thoại</strong>, quét mã QR gói xe máy hoặc ô tô của đại lý để vào trang cấp đơn chính hãng PJICO.
+                        </p>
+                    </div>
+
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-orange-100 text-[#F58220] flex items-center justify-center font-black text-base mb-3">2</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Quét OCR Không Cần Gõ Chữ</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Bấm chọn <strong>Chụp ảnh CCCD</strong> (tự nhận diện Tên, Số CCCD, Địa chỉ). Bấm <strong>Chụp ảnh Đăng ký xe</strong> (tự nhận diện Biển số xe, Số khung).
+                        </p>
+                    </div>
+
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-black text-base mb-3">3</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Tích Chọn Gói & Thanh Toán</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Tích chọn gói <strong>"Tai nạn người ngồi trên xe"</strong>. Bấm <strong>"Gửi"</strong>, hệ thống tự động tính phí và hiện mã VietQR thanh toán trong 30 giây.
+                        </p>
+                    </div>
+
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-black text-base mb-3">4</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Nhận GCN Trong 5 Phút</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Hệ thống gửi file Giấy chứng nhận điện tử (PDF có mã QR) qua Email của bạn. Lưu trên điện thoại hoặc in ra dán vào bằng lái xe để xuất trình.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHI TIẾT CỤM 2: HƯỚNG DẪN TRA CỨU GIẤY CHỨNG NHẬN (TÍCH XANH THÔNG BÁO) -->
+            <div id="guide-content-gcn" class="guide-content-panel bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6 hidden">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-black text-emerald-600 uppercase">Cụm 2: Xác Thực Chính Hãng</span>
+                    <h3 class="text-xl sm:text-2xl font-black text-[#002B70] mt-1">
+                        Hướng Dẫn Tra Cứu Giấy Chứng Nhận Hiển Thị Tích Xanh
+                    </h3>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-8 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                            Để an tâm 100% Giấy chứng nhận của bạn đã được ghi nhận trên cơ sở dữ liệu quốc gia của Tổng Công ty Bảo hiểm PJICO, bạn có 2 cách tra cứu:
+                        </p>
+
+                        <div class="p-4 bg-[#F5F5F5] rounded-2xl border border-slate-200 space-y-3 text-xs sm:text-sm">
+                            <div class="flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">1</span>
+                                <div>
+                                    <strong class="text-slate-900">Cách 1: Quét mã QRcode in trên Giấy chứng nhận</strong>
+                                    <p class="text-slate-500 text-xs mt-0.5">Dùng Camera hoặc Zalo quét mã QR ở góc GCN để mở trang chứng thực có <strong>Dấu Tích Xanh Hợp Lệ</strong>.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <span class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold flex-shrink-0 text-xs">2</span>
+                                <div>
+                                    <strong class="text-slate-900">Cách 2: Nhập số đơn BH tại cổng tra cứu chính thức</strong>
+                                    <p class="text-slate-500 text-xs mt-0.5">Truy cập website: <a href="https://hotro.pjico.com.vn/gcn" target="_blank" class="text-[#002B70] underline font-bold font-mono">https://hotro.pjico.com.vn/gcn</a> ➔ Nhập <strong>"Số đơn BH"</strong> và Mã Captcha để tra cứu.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LƯU Ý QUAN TRỌNG VỀ ZALO -->
+                        <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 text-xs sm:text-sm text-amber-900 space-y-1">
+                            <strong class="text-amber-800 flex items-center gap-1">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-[#F58220]"></i> LƯU Ý QUAN TRỌNG VỀ ZALO:
+                            </strong>
+                            <p class="leading-relaxed">
+                                Ứng dụng Zalo <strong>KHÔNG DÙNG ĐỂ TRA CỨU</strong> Giấy chứng nhận bảo hiểm. Zalo được dùng làm kênh liên lạc trao đổi trực tiếp với <strong>Người Cấp Đơn (0906.069.368)</strong> hoặc <strong>Đại lý Hoàng Thị Xuân (0835.311.985)</strong> để được hỗ trợ hướng dẫn làm thủ tục và tiếp nhận yêu cầu bồi thường 1-1!
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 text-center">
+                        <div class="bg-[#F5F5F5] p-6 rounded-3xl border-2 border-emerald-400 text-center shadow-md">
+                            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                                <i data-lucide="check" class="w-9 h-9 stroke-[3]"></i>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-xs uppercase">
+                                TÍCH XANH HỢP LỆ
+                            </span>
+                            <h4 class="font-black text-slate-900 text-base mt-2">Chứng Nhận Được Xác Thực</h4>
+                            <p class="text-[11px] text-slate-500 mt-1">Phát hành từ hệ thống Tổng Công ty Cổ phần Bảo hiểm Petrolimex</p>
+                            <a href="https://hotro.pjico.com.vn/gcn" target="_blank" class="mt-4 inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition shadow">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Mở Trang hotro.pjico.com.vn/gcn
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHI TIẾT CỤM 3: HƯỚNG DẪN BỒI THƯỜNG & XỬ LÝ SỰ CỐ TAI NẠN 24/7 -->
+            <div id="guide-content-boi-thuong" class="guide-content-panel bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6 hidden">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-black text-red-600 uppercase">Cụm 3: Khẩn Cấp 24/7</span>
+                    <h3 class="text-xl sm:text-2xl font-black text-[#002B70] mt-1">
+                        Cẩm Nang Xử Lý Khi Gặp Sự Cố - Tai Nạn - Rủi Ro Xe Cơ Giới
+                    </h3>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center font-black text-base mb-3">1</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Bảo Đảm An Toàn Con Người</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Cứu chữa người bị thương (gọi 115). Bật đèn khẩn cấp Hazard, đặt biển cảnh báo cách đuôi xe 50 - 100m để tránh bị xe sau tông dồn toa.
+                        </p>
+                    </div>
+
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-[#002B70] text-white flex items-center justify-center font-black text-base mb-3">2</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Gọi Hotline 1900 54 54 55</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Thông báo cho PJICO biển số xe, địa điểm, diễn biến sự cố. Giám định viên PJICO sẽ tới hiện trường hoặc điều xe cứu hộ kéo về Garage.
+                        </p>
+                    </div>
+
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-base mb-3">3</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Chụp Ảnh Bằng Chứng Vàng</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Chụp ảnh toàn cảnh làn đường/biển báo; chụp cận cảnh vết va quẹt, biển số các bên. Quay video 360 độ quanh xe trước khi di dời xe.
+                        </p>
+                    </div>
+
+                    <div class="bg-[#F5F5F5] p-5 rounded-2xl border border-slate-200">
+                        <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-base mb-3">4</div>
+                        <h4 class="font-bold text-sm text-slate-900 mb-1">Đưa Xe Vào Garage Chính Hãng</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            PJICO duyệt báo giá phụ tùng chính hãng và bảo lãnh thanh toán trực tiếp cho Garage. Khách hàng nghiệm thu nhận lại xe.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3 Nguyên tắc sống còn -->
+                <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-5">
+                    <h4 class="font-black text-red-700 text-xs sm:text-sm uppercase flex items-center gap-1.5 mb-2">
+                        <i data-lucide="alert-octagon" class="w-4 h-4 text-red-600"></i> 3 Nguyên Tắc Sống Còn Để Không Bị Từ Chối Bồi Thường:
+                    </h4>
+                    <div class="grid sm:grid-cols-3 gap-3 text-xs text-slate-700">
+                        <div class="bg-white p-3 rounded-xl border border-red-100">
+                            <strong class="text-red-600 block mb-1">1. Không tự thỏa thuận</strong>
+                            Không tự ý nhận lỗi hoặc thương lượng đền tiền cho bên thứ ba khi chưa có giám định viên PJICO.
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-red-100">
+                            <strong class="text-red-600 block mb-1">2. Nồng độ cồn bằng 0</strong>
+                            Lái xe có cồn trong máu/hơi thở là điều khoản bị pháp luật và bảo hiểm từ chối bồi thường toàn bộ.
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-red-100">
+                            <strong class="text-red-600 block mb-1">3. Giữ nguyên hiện trường</strong>
+                            Chụp ảnh, quay phim đầy đủ trước khi di chuyển phương tiện tránh bị giảm trừ chế tài bồi thường.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHI TIẾT CỤM 4: HƯỚNG DẪN CÀI APP MY PJICO & NHẬP MÃ NHẬN QUÀ -->
+            <div id="guide-content-app" class="guide-content-panel bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6 hidden">
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-black text-amber-500 uppercase">Cụm 4: Ưu Đãi Ứng Dụng Di Động</span>
+                    <h3 class="text-xl sm:text-2xl font-black text-[#002B70] mt-1">
+                        Hướng Dẫn Tải App My PJICO & Nhập Mã Nhận Voucher Khuyến Mại
+                    </h3>
+                </div>
+
+                <div class="grid lg:grid-cols-12 gap-8 items-center">
+                    <div class="lg:col-span-7 space-y-4 text-xs sm:text-sm text-slate-600">
+                        <p class="leading-relaxed">
+                            Ứng dụng <strong>My PJICO</strong> là cổng số hóa toàn diện giúp khách hàng lưu trữ hợp đồng, tra cứu danh sách Garage/Bệnh viện bảo lãnh viện phí gần nhất và nhận thông báo khi sắp hết hạn.
+                        </p>
+
+                        <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2.5">
+                            <h4 class="font-black text-slate-900 text-sm flex items-center gap-1.5 text-amber-800">
+                                <i data-lucide="gift" class="w-4 h-4"></i> 4 Bước Nhận Quà Tặng Sau Khi Cài Đặt:
+                            </h4>
+                            <ol class="list-decimal list-inside space-y-1.5 text-slate-700">
+                                <li>Vào <strong>App Store (iPhone)</strong> hoặc <strong>Google Play (Android)</strong>, tìm kiếm từ khóa: <strong>"My PJICO"</strong> và bấm Cài đặt.</li>
+                                <li>Mở ứng dụng, chọn <strong>Đăng Ký Tài Khoản</strong> bằng Số điện thoại và nhập OTP xác thực.</li>
+                                <li>Tại ô <strong>"MÃ GIỚI THIỆU"</strong>, nhập chính xác: <span class="font-mono font-black text-[#002B70] bg-white px-2 py-0.5 rounded border border-amber-300 select-all">KTTT_2409000022</span></li>
+                                <li>Hoàn tất đăng ký, vào mục <strong>"Ưu đãi của tôi"</strong> để kiểm tra voucher quà tặng và áp dụng giảm phí bảo hiểm!</li>
+                            </ol>
+                        </div>
+
+                        <div class="flex items-center gap-3 pt-2">
+                            <span class="font-mono font-black text-base bg-slate-100 text-[#002B70] px-4 py-2 rounded-xl border border-slate-300 select-all">
+                                KTTT_2409000022
+                            </span>
+                            <button onclick="copyReferralCode()" class="bg-[#F58220] hover:bg-orange-600 text-white font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow transition">
+                                <i data-lucide="copy" class="w-4 h-4"></i> Sao Chép Mã
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-5 text-center">
+                        <div class="bg-[#F5F5F5] p-6 rounded-3xl border border-slate-200 text-center max-w-xs mx-auto">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://mypjico.vn" alt="QR Tải App My PJICO" class="w-40 h-40 mx-auto rounded-xl shadow-sm border border-slate-200 mb-3">
+                            <p class="font-extrabold text-xs text-slate-900">Quét Mã Tải App My PJICO</p>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Tương thích cả hệ điều hành iOS & Android</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 6. FOOTER CHUẨN TỔNG CÔNG TY BẢO HIỂM PJICO -->
+    <footer class="bg-[#171C21] text-slate-400 py-12 border-t border-slate-800 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <img src="https://www.pjico.com.vn/wp-content/themes/pjico/images/logo-footer.png" alt="Logo PJICO Footer" class="h-10 w-auto mb-3 object-contain brightness-0 invert">
+                    <p class="text-slate-400 leading-relaxed text-[11px]">
+                        Tổng Công ty Cổ phần Bảo hiểm Petrolimex (PJICO). Kênh phân phối trực tuyến và hỗ trợ khách hàng đại lý trên toàn quốc.
+                    </p>
+                    <p class="mt-2 text-amber-400 font-bold text-[11px]">Mã Giới Thiệu App: KTTT_2409000022</p>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-wider text-xs">Đại Lý Phụ Trách Hỗ Trợ</h4>
+                    <ul class="space-y-2 text-[11px]">
+                        <li>
+                            <strong class="text-white">Người Cấp Đơn Chính:</strong><br>
+                            Zalo / SĐT: <a href="https://zalo.me/0906069368" target="_blank" class="text-amber-400 font-mono font-bold hover:underline">0906.069.368</a>
+                        </li>
+                        <li>
+                            <strong class="text-white">Đại Lý Hoàng Thị Xuân:</strong><br>
+                            Zalo / SĐT: <a href="https://zalo.me/0835311985" target="_blank" class="text-amber-400 font-mono font-bold hover:underline">0835.311.985</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-wider text-xs">Tổng Đài & Tra Cứu</h4>
+                    <ul class="space-y-1.5 text-[11px]">
+                        <li>Tổng đài cứu hộ: <strong class="text-white font-mono">1900 54 54 55</strong></li>
+                        <li>Cổng tra cứu GCN: <a href="https://hotro.pjico.com.vn/gcn" target="_blank" class="text-emerald-400 underline">hotro.pjico.com.vn/gcn</a></li>
+                        <li>Trụ sở: Tầng 21-22, Tòa nhà MIPEC, 229 Tây Sơn, Hà Nội</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold mb-3 uppercase tracking-wider text-xs">Pháp Lý & An Toàn</h4>
+                    <p class="text-[11px] leading-relaxed text-slate-400">
+                        Cấp Giấy chứng nhận điện tử tuân thủ Nghị định 67/2023/NĐ-CP và Luật Kinh doanh Bảo hiểm. Giá trị pháp lý tương đương bản giấy 100%.
+                    </p>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-800 text-center text-slate-500 text-[11px]">
+                © 2026 PJICO Insurance Partner. Bản quyền thuộc về Hệ thống Đại lý Bảo hiểm PJICO Online.
+            </div>
+        </div>
+    </footer>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 translate-y-24 opacity-0 transition-all duration-300 z-50">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMsg">Đã sao chép!</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        lucide.createIcons();
+
+        // 1. CAROUSEL SLIDER LOGIC (SỬ DỤNG HIDDEN / FLEX TRIỆT ĐỂ, KHÔNG BAO GIỜ BỊ ĐÈ CHỮ HAY BÓNG MỜ)
+        let currentSlide = 0;
+        const totalSlides = 2;
+        let slideTimer;
+
+        function showSlide(index) {
+            for (let i = 0; i < totalSlides; i++) {
+                const slide = document.getElementById(`slide-${i}`);
+                const dot = document.getElementById(`dot-${i}`);
+                if (i === index) {
+                    slide.classList.remove('hidden');
+                    slide.classList.add('flex');
+                    dot.classList.remove('w-2', 'bg-white/40');
+                    dot.classList.add('w-6', 'bg-[#F58220]');
+                } else {
+                    slide.classList.add('hidden');
+                    slide.classList.remove('flex');
+                    dot.classList.remove('w-6', 'bg-[#F58220]');
+                    dot.classList.add('w-2', 'bg-white/40');
+                }
+            }
+            lucide.createIcons();
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+            resetSlideTimer();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+            resetSlideTimer();
+        }
+
+        function setSlide(index) {
+            currentSlide = index;
+            showSlide(currentSlide);
+            resetSlideTimer();
+        }
+
+        function resetSlideTimer() {
+            clearInterval(slideTimer);
+            slideTimer = setInterval(nextSlide, 6000);
+        }
+        resetSlideTimer();
+
+        // 2. PRODUCT SELECTION & INTERACTIVE ACTION BOX
+        const PRODUCT_CONFIG = {
+            xemay: {
+                title: "Gói Cơ Bản Xe Máy (TNDS + Tai Nạn Lái & Người Ngồi)",
+                desc: "Bảo hiểm bắt buộc trách nhiệm dân sự theo Luật kèm bảo vệ tai nạn 2 người ngồi trên xe. Cấp đơn nhanh bằng quét mã QR.",
+                badge: "Sản phẩm mua nhanh bằng mã QR",
+                isQR: true,
+                qrChinh: "qr_xemay_tnds.png",
+                qrXuan: "qr_xemay_xuan.png",
+                linkChinh: "https://baohiem.pjico.com.vn/mua-bao-hiem-xe-may-qrcode?Id=KTTT_5201_HGI_QRCODE_20260916012549",
+                pdfChinh: "https://inb-baohiem-api-svc.pjico.com.vn/Outputs/KTTT_5201_HGI_QRCODE_20260916012549.pdf",
+                linkXuan: "https://baohiem.pjico.com.vn/mua-bao-hiem-xe-may-qrcode?Id=PJICO_5201_HGI_QRCODE_20250911055635",
+                pdfXuan: "https://inb-baohiem-api-svc.pjico.com.vn/Outputs/PJICO_5201_HGI_QRCODE_20250911055635.pdf"
+            },
+            oto: {
+                title: "Gói Cơ Bản Ô Tô (TNDS Bắt Buộc + Tai Nạn Lái & Người Ngồi)",
+                desc: "Điều kiện bắt buộc xét đăng kiểm và lưu hành xe. Chi trả bên thứ 3 và toàn bộ tài xế, hành khách trên xe.",
+                badge: "Sản phẩm mua nhanh bằng mã QR",
+                isQR: true,
+                qrChinh: "qr_oto_tnds.png",
+                qrXuan: "qr_oto_xuan.png",
+                linkChinh: "https://baohiem.pjico.com.vn/mua-bao-hiem-xe-oto-qrcode?Id=KTTT_5101_HGI_QRCODE_20250107015423",
+                pdfChinh: "https://inb-baohiem-api-svc.pjico.com.vn/Outputs/KTTT_5101_HGI_QRCODE_20250107015423.pdf",
+                linkXuan: "https://baohiem.pjico.com.vn/mua-bao-hiem-xe-oto-qrcode?Id=PJICO_5101_HGI_QRCODE_20240712040648",
+                pdfXuan: "https://inb-baohiem-api-svc.pjico.com.vn/Outputs/PJICO_5101_HGI_QRCODE_20240712040648.pdf"
+            },
+            vatchat: {
+                title: "Bảo Hiểm Vật Chất Xe Ô Tô (Thân Vỏ)",
+                desc: "Đền bù thiệt hại khi đâm va, ngập nước (thủy kích), cháy nổ, trầy xước sơn, mất cắp bộ phận. Cứu hộ 24/7 miễn phí.",
+                badge: "Liên hệ đại lý cấp đơn / Tự mua qua App",
+                isQR: false
+            },
+            ungthu: {
+                title: "Bảo Hiểm Bệnh Ung Thư (PinkCare PJICO)",
+                desc: "Chi trả số tiền lớn lên đến 1 Tỷ đồng ngay khi có chẩn đoán bệnh theo giai đoạn, trợ cấp nằm viện và phẫu thuật.",
+                badge: "Liên hệ đại lý cấp đơn / Tự mua qua App",
+                isQR: false
+            },
+            hiemngheo: {
+                title: "Bảo Hiểm Bệnh Hiểm Nghèo",
+                desc: "Bảo vệ tài chính trước đột quỵ, nhồi máu cơ tim, suy thận... Bảo lãnh viện phí tại hàng trăm bệnh viện trên toàn quốc.",
+                badge: "Liên hệ đại lý cấp đơn / Tự mua qua App",
+                isQR: false
+            },
+            dulich_qt: {
+                title: "Bảo Hiểm Du Lịch Quốc Tế (Xin Visa)",
+                desc: "Hợp chuẩn 100% hồ sơ xin Visa Châu Âu (Schengen), Mỹ, Nhật Bản, Hàn Quốc, Úc. Cứu trợ y tế SOS toàn cầu.",
+                badge: "Liên hệ đại lý cấp đơn / Tự mua qua App",
+                isQR: false
+            },
+            dulich_nd: {
+                title: "Bảo Hiểm Du Lịch Trong Nước",
+                desc: "Chi trả chi phí y tế khẩn cấp, tai nạn khi đi du lịch, công tác, dã ngoại tại Việt Nam. Phí chỉ từ 1.500 đ/ngày.",
+                badge: "Liên hệ đại lý cấp đơn / Tự mua qua App",
+                isQR: false
+            },
+            nha: {
+                title: "Bảo Hiểm Nhà Ở Tư Nhân & Chung Cư",
+                desc: "Bảo vệ toàn diện khung nhà và tài sản đồ đạc bên trong trước nguy cơ cháy nổ, sét đánh, giông bão, ngập lụt vỡ ống nước.",
+                badge: "Liên hệ đại lý cấp đơn / Tự mua qua App",
+                isQR: false
+            }
+        };
+
+        let currentSelectedProductKey = "xemay";
+
+        function selectProduct(key) {
+            currentSelectedProductKey = key;
+            const config = PRODUCT_CONFIG[key];
+            if (!config) return;
+
+            document.getElementById('action-title').innerText = config.title;
+            document.getElementById('action-desc').innerText = config.desc;
+            document.getElementById('action-badge').innerText = config.badge;
+
+            const qrBox = document.getElementById('action-qr-mode');
+            const otherBox = document.getElementById('action-other-mode');
+
+            if (config.isQR) {
+                qrBox.classList.remove('hidden');
+                otherBox.classList.add('hidden');
+                document.getElementById('qr-img-chinh').src = config.qrChinh;
+                document.getElementById('qr-img-xuan').src = config.qrXuan;
+                document.getElementById('link-direct-chinh').href = config.linkChinh;
+                document.getElementById('link-pdf-chinh').href = config.pdfChinh;
+                document.getElementById('link-direct-xuan').href = config.linkXuan;
+                document.getElementById('link-pdf-xuan').href = config.pdfXuan;
+            } else {
+                qrBox.classList.add('hidden');
+                otherBox.classList.remove('hidden');
+            }
+
+            const actionBox = document.getElementById('product-action-box');
+            actionBox.classList.remove('hidden');
+            actionBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            lucide.createIcons();
+        }
+
+        function closeProductActionBox() {
+            document.getElementById('product-action-box').classList.add('hidden');
+        }
+
+        // Gửi Zalo nhanh cho sản phẩm khác
+        function sendQuickZalo() {
+            const name = document.getElementById('quickCustomerName').value || "Khách hàng";
+            const phone = document.getElementById('quickCustomerPhone').value || "Chưa cung cấp";
+            const note = document.getElementById('quickCustomerNote').value || "Cần tư vấn và cấp đơn";
+            const targetPhone = document.getElementById('quickAgentSelect').value || "0906069368";
+            const productTitle = PRODUCT_CONFIG[currentSelectedProductKey].title;
+
+            const msg = `Kính gửi Đại lý PJICO,\nTôi muốn mua bảo hiểm:\n- Sản phẩm: ${productTitle}\n- Họ tên: ${name}\n- SĐT/Zalo: ${phone}\n- Ghi chú: ${note}\n(Mã giới thiệu: KTTT_2409000022)`;
+
+            navigator.clipboard.writeText(msg).then(() => {
+                showToast("Đã sao chép yêu cầu! Đang chuyển tiếp tới Zalo " + targetPhone + "...");
+            });
+
+            window.open(`https://zalo.me/${targetPhone}`, '_blank');
+        }
+
+        // 3. TABS CHUYỂN CỤM HƯỚNG DẪN & BỒI THƯỜNG
+        function switchGuideTab(tabName) {
+            const tabKeys = ['qr', 'gcn', 'boi-thuong', 'app'];
+            tabKeys.forEach(k => {
+                const btn = document.getElementById(`tab-btn-${k}`);
+                const panel = document.getElementById(`guide-content-${k}`);
+                if (k === tabName) {
+                    btn.classList.add('tab-btn-active');
+                    btn.classList.remove('bg-white', 'text-slate-700');
+                    panel.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('tab-btn-active');
+                    btn.classList.add('bg-white', 'text-slate-700');
+                    panel.classList.add('hidden');
+                }
+            });
+            lucide.createIcons();
+        }
+
+        // 4. SAO CHÉP MÃ GIỚI THIỆU
+        function copyReferralCode() {
+            const code = "KTTT_2409000022";
+            navigator.clipboard.writeText(code).then(() => {
+                showToast("Đã sao chép mã: " + code + "! Dán vào app My PJICO khi đăng ký");
+            }).catch(() => {
+                showToast("Mã giới thiệu: " + code);
+            });
+        }
+
+        // 5. TOAST THÔNG BÁO
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.innerText = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
