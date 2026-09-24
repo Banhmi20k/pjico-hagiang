@@ -233,6 +233,20 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(content)
                 return
 
+        if path == '/thanhtoan':
+            thanhtoan_file = os.path.join(BASE_DIR, "thanhtoan", "index.html")
+            if not os.path.exists(thanhtoan_file):
+                thanhtoan_file = os.path.join(BASE_DIR, "thanhtoan.html")
+            if os.path.exists(thanhtoan_file):
+                with open(thanhtoan_file, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+                return
+
         # 2. API Endpoints bảo mật (Yêu cầu đăng nhập)
         if path in ('/api/stats', '/api/products', '/api/customers', '/api/orders', '/api/verify-token'):
             if not self.is_authenticated():
@@ -268,9 +282,19 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error_json("Dữ liệu JSON không hợp lệ: " + str(e))
             return
 
-        # Đăng nhập không cần token trước
+        # 1. Đăng nhập không cần token trước
         if path == '/api/login':
             self.handle_login(payload)
+            return
+
+        # 2. Tạo đơn hàng từ cổng thanh toán /thanhtoan
+        if path == '/api/public/orders':
+            self.handle_public_create_order(payload)
+            return
+
+        # 3. Webhook biến động số dư SePay (VietinBank SEVQR)
+        if path == '/api/sepay/webhook':
+            self.handle_sepay_webhook(payload)
             return
 
         # Các API POST khác đều cần xác thực
@@ -768,6 +792,127 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True, "message": "Đã xóa đơn hàng thành công"})
         except Exception as e:
             self.send_error_json("Lỗi khi xóa đơn hàng: " + str(e))
+    def handle_public_create_order(self, payload):
+        """Khách hàng thanh toán từ cổng /thanhtoan -> Tự động lưu khách hàng, đơn hàng và trừ kho vật lý"""
+        cust_name = str(payload.get('customer_name') or 'Khách vãng lai').strip()
+        cust_phone = str(payload.get('customer_phone') or '').strip() or None
+        prod_id = payload.get('product_id')
+        prod_name = str(payload.get('product_name') or '').strip()
+        amount = payload.get('amount')
+        status = payload.get('status') or 'paid'
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # 1. Tìm hoặc tạo khách hàng
+            cust_id = None
+            if cust_phone:
+                cur.execute("SELECT id FROM customers WHERE phone = ?;", (cust_phone,))
+                row = cur.fetchone()
+                if row:
+                    cust_id = row[0]
+            if not cust_id:
+                cur.execute("INSERT INTO customers (name, phone, zalo) VALUES (?, ?, ?);",
+                            (cust_name, cust_phone, cust_phone))
+                cust_id = cur.lastrowid
+
+            # 2. Tìm sản phẩm
+            prod = None
+            if prod_id:
+                cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products WHERE id = ?;", (prod_id,))
+                prod = cur.fetchone()
+            if not prod and prod_name:
+                cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products WHERE name LIKE ?;", (f"%{prod_name[:15]}%",))
+                prod = cur.fetchone()
+            if not prod:
+                cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products LIMIT 1;")
+                prod = cur.fetchone()
+
+            p_id, p_name, p_type, p_price, p_stock = prod
+            order_amount = amount if amount is not None else p_price
+
+            # 3. QUY TẮC CỐT LÕI: Trừ tồn kho nếu là sản phẩm vật lý (physical)
+            stock_deducted = False
+            if p_type == 'physical':
+                if p_stock is not None and p_stock > 0:
+                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+                    stock_deducted = True
+
+            # 4. Tạo đơn hàng với trạng thái paid
+            cur.execute("INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, ?);",
+                        (cust_id, p_id, order_amount, status))
+            order_id = cur.lastrowid
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": "Đã ghi nhận đơn hàng thanh toán thành công",
+                "order_id": order_id,
+                "customer_id": cust_id,
+                "status": status,
+                "stock_deducted": stock_deducted
+            }, 201)
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi tạo đơn thanh toán: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_sepay_webhook(self, payload):
+        """Xử lý webhook biến động số dư SePay (VietinBank SEVQR)"""
+        content = str(payload.get('content') or payload.get('description') or '').strip()
+        amount = payload.get('transferAmount') or payload.get('amount') or 0
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            import re
+            phone_match = re.search(r'0\d{9}', content)
+            order_updated = False
+
+            if phone_match:
+                phone = phone_match.group(0)
+                cur.execute("""
+                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity
+                    FROM orders o
+                    JOIN customers c ON o.customer_id = c.id
+                    JOIN products p ON o.product_id = p.id
+                    WHERE c.phone = ? AND o.status = 'pending'
+                    ORDER BY o.id DESC LIMIT 1;
+                """, (phone,))
+                pending_order = cur.fetchone()
+
+                if pending_order:
+                    o_id, p_id, p_type, p_stock = pending_order
+                    cur.execute("UPDATE orders SET status = 'paid' WHERE id = ?;", (o_id,))
+                    if p_type == 'physical' and p_stock is not None and p_stock > 0:
+                        cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+                    order_updated = True
+                else:
+                    cur.execute("SELECT id FROM customers WHERE phone = ?;", (phone,))
+                    c_row = cur.fetchone()
+                    if c_row:
+                        c_id = c_row[0]
+                    else:
+                        cur.execute("INSERT INTO customers (name, phone, zalo) VALUES (?, ?, ?);",
+                                    (f"Khách hàng SePay {phone}", phone, phone))
+                        c_id = cur.lastrowid
+                    
+                    cur.execute("SELECT id, product_type, stock_quantity FROM products LIMIT 1;")
+                    p_id, p_type, p_stock = cur.fetchone()
+                    if p_type == 'physical' and p_stock is not None and p_stock > 0:
+                        cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+                    cur.execute("INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, 'paid');",
+                                (c_id, p_id, amount))
+                    order_updated = True
+
+            conn.commit()
+            sync_db_copies()
+            self.send_json({"success": True, "message": "SePay webhook processed", "updated": order_updated})
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi xử lý SePay webhook: " + str(e))
         finally:
             conn.close()
 

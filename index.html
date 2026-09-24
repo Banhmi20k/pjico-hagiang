@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảo Hiểm PJICO Hà Giang Trực Tuyến - Tổng Công Ty Cổ Phần Bảo Hiểm Petrolimex</title>
-    <meta name="description" content="Kênh phân phối trực tuyến chính thức của Công ty Bảo hiểm PJICO Hà Giang. Mua bảo hiểm xe máy, ô tô trực tuyến qua mã QR cấp tốc 3 phút, tra cứu giấy chứng nhận điện tử tích xanh. Tổng đài TT Dịch vụ KH PJICO 24/7: 1900 54 54 55 - DVKH PJICO Hà Giang 24/7: 0987501199.">
+    <meta name="description" content="Mua bảo hiểm online tại PJICO Hà Giang: Cấp giấy chứng nhận điện tử tích xanh trong 3 phút, có đội ngũ nhân viên địa phương trực tiếp hỗ trợ từ lúc mua đến khi bồi thường. Hotline DVKH Hà Giang: 0987.501.199 - Zalo: 0906.069.368.">
     <!-- Favicon chuẩn PJICO -->
     <link rel="icon" type="image/png" href="https://www.pjico.com.vn/wp-content/uploads/2024/06/favicon.png">
     
@@ -222,25 +222,37 @@
                 <div class="hidden md:flex flex-col border-l-2 border-slate-200 pl-3">
                     <span class="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">Tổng Công ty Cổ phần Bảo hiểm Petrolimex</span>
                     <span class="text-sm font-bold text-[#086375] tracking-tight">CÔNG TY BẢO HIỂM PJICO HÀ GIANG</span>
-                    <span class="text-[11px] font-medium text-[#0B7CFF] tracking-wide">Kênh Phân Phối Trực Tuyến & Cấp Đơn Điện Tử</span>
+                    <span class="text-[11px] font-medium text-[#0B7CFF] tracking-wide">Mua Online • Đội Ngũ Địa Phương Hỗ Trợ Đến Khi Bồi Thường</span>
                 </div>
             </a>
 
             <!-- NAVIGATION ĐỒNG BỘ THEO CHUẨN SỐ HÓA & MENU TRUY CẬP NHANH (Desktop) -->
             <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2">
-                <!-- Mục 1: Danh Mục Sản Phẩm -->
+                <!-- Mục 1: Khảo Sát Nhanh 30s (Nhận Báo Giá) -->
+                <button onclick="goToSurveySlide()" type="button" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13.5px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200/80 transition shadow-2xs cursor-pointer">
+                    <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Khảo Sát 30s</span>
+                </button>
+
+                <!-- Mục 2: Danh Mục Sản Phẩm -->
                 <a href="#san-pham" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13.5px] font-semibold text-slate-700 hover:text-[#0B7CFF] hover:bg-[#EAF8FB] transition">
                     <i data-lucide="layers" class="w-4 h-4 text-[#0B7CFF]"></i>
                     <span>Sản Phẩm</span>
                 </a>
 
-                <!-- Mục 2: Giấy Yêu Cầu Cấp Đơn (Mẫu 7 phần chuẩn PJICO) -->
+                <!-- Mục 3: Giấy Yêu Cầu Cấp Đơn (Mẫu 7 phần chuẩn PJICO) -->
                 <button onclick="openFullRequestForm('suckhoe_canhan')" type="button" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13.5px] font-semibold text-slate-700 hover:text-[#0B7CFF] hover:bg-[#EAF8FB] transition cursor-pointer">
-                    <i data-lucide="file-signature" class="w-4 h-4 text-emerald-600"></i>
+                    <i data-lucide="file-signature" class="w-4 h-4 text-[#086375]"></i>
                     <span>Giấy Yêu Cầu</span>
                 </button>
 
-                <!-- Mục 3: Dropdown Menu Truy Cập Nhanh (Đồng bộ phẳng thanh lịch với các mục menu khác) -->
+                <!-- Mục 4: Cổng Thanh Toán & Tra Cứu Đơn Hàng -->
+                <a href="/thanhtoan" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13.5px] font-bold text-amber-800 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200/90 transition shadow-2xs">
+                    <i data-lucide="credit-card" class="w-4 h-4 text-amber-600"></i>
+                    <span>Thanh Toán / Tra Cứu</span>
+                </a>
+
+                <!-- Mục 5: Dropdown Menu Truy Cập Nhanh (Đồng bộ phẳng thanh lịch với các mục menu khác) -->
                 <div class="relative group" id="quickAccessDropdown">
                     <button type="button" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13.5px] font-semibold text-slate-700 hover:text-[#0B7CFF] hover:bg-[#EAF8FB] transition cursor-pointer">
                         <i data-lucide="layout-grid" class="w-4 h-4 text-[#28B9E7]"></i>
@@ -249,7 +261,14 @@
                     </button>
                     <!-- Bảng Dropdown Nổi -->
                     <div class="absolute left-0 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <a href="#cum-huong-dan" onclick="switchGuideTab('gcn')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-[#EAF8FB] text-slate-700 hover:text-[#0B7CFF] transition">
+                        <a href="javascript:void(0)" onclick="goToSurveySlide()" class="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 transition">
+                            <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                            <div>
+                                <div class="text-xs font-bold text-emerald-700">Khảo Sát Nhanh Báo Giá</div>
+                                <div class="text-[10px] text-slate-400">5 câu hỏi tư vấn đúng nhu cầu (30s)</div>
+                            </div>
+                        </a>
+                        <a href="#cum-huong-dan" onclick="switchGuideTab('gcn')" class="flex items-center gap-3 px-4 py-2.5 hover:bg-[#EAF8FB] text-slate-700 hover:text-[#0B7CFF] transition border-t border-slate-100">
                             <i data-lucide="badge-check" class="w-4 h-4 text-[#28B9E7] flex-shrink-0"></i>
                             <div>
                                 <div class="text-xs font-bold">Tra Cứu GCN Điện Tử</div>
@@ -311,12 +330,26 @@
         <!-- BẢNG MENU TRUY CẬP NHANH DÀNH CHO MOBILE (Trượt xuống khi bấm nút Menu) -->
         <div id="mobileQuickMenu" class="hidden lg:hidden bg-white border-t border-slate-200 px-4 py-3 shadow-lg space-y-2 animate-fadeIn">
             <div class="grid grid-cols-2 gap-2 text-xs font-semibold">
+                <a href="/thanhtoan" class="col-span-2 flex items-center justify-between p-2.5 rounded-xl bg-gradient-to-r from-[#002D62] via-[#0B7CFF] to-[#086375] text-white shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="credit-card" class="w-4 h-4 text-emerald-300"></i>
+                        <span>💳 Cổng Thanh Toán & Tra Cứu Đơn (VietinBank SePay)</span>
+                    </div>
+                    <span class="text-[10px] bg-emerald-500 text-white font-bold px-2 py-0.5 rounded-full">Tự động 24/7</span>
+                </a>
+                <a href="javascript:void(0)" onclick="goToSurveySlide(); toggleMobileQuickMenu();" class="col-span-2 flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600"></i>
+                        <span>⚡ Khảo Sát Nhanh Báo Giá (30s)</span>
+                    </div>
+                    <span class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">Ưu đãi</span>
+                </a>
                 <a href="#san-pham" onclick="toggleMobileQuickMenu()" class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 text-[#002D62] hover:bg-blue-50 border border-slate-200">
                     <i data-lucide="layers" class="w-4 h-4 text-[#0B7CFF]"></i>
                     <span>Sản Phẩm</span>
                 </a>
-                <a href="javascript:void(0)" onclick="openFullRequestForm('suckhoe_canhan'); toggleMobileQuickMenu();" class="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200">
-                    <i data-lucide="file-signature" class="w-4 h-4 text-emerald-600"></i>
+                <a href="javascript:void(0)" onclick="openFullRequestForm('suckhoe_canhan'); toggleMobileQuickMenu();" class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 text-slate-800 hover:bg-slate-100 border border-slate-200">
+                    <i data-lucide="file-signature" class="w-4 h-4 text-[#086375]"></i>
                     <span>Giấy Yêu Cầu</span>
                 </a>
                 <a href="#cum-huong-dan" onclick="switchGuideTab('gcn'); toggleMobileQuickMenu();" class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 text-slate-700 hover:bg-blue-50 border border-slate-200">
@@ -338,17 +371,464 @@
         </div>
     </header>
 
-    <!-- 3. HERO BANNER: PHONG CÁCH SỐ HÓA "PHỤNG SỰ TỪ TÂM" IPJICO.VN (4 SLIDES CAROUSEL) -->
-    <section class="bg-white py-4 sm:py-6">
+    <!-- 3. HERO BANNER: PHONG CÁCH SỐ HÓA "PHỤNG SỰ TỪ TÂM" IPJICO.VN (5 SLIDES CAROUSEL) -->
+    <section id="hero-banner-section" class="bg-white py-4 sm:py-6 scroll-mt-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="pjico-banner-box relative rounded-3xl bg-gradient-to-r from-[#EBF5FB] via-[#F2F9FD] to-[#E5F3FD] border border-[#BCE1FD] p-4 sm:p-8 flex items-center shadow-sm overflow-hidden min-h-[340px] sm:min-h-[380px]">
+            <div class="pjico-banner-box relative rounded-3xl bg-gradient-to-r from-[#EBF5FB] via-[#F2F9FD] to-[#E5F3FD] border border-[#BCE1FD] p-3 sm:p-6 lg:p-8 flex items-center shadow-sm overflow-hidden min-h-[340px] sm:min-h-[400px]">
                 
                 <!-- Ánh sáng công nghệ mềm mại (Soft Tech Glow) -->
                 <div class="absolute -top-24 -right-24 w-96 h-96 bg-[#28B9E7]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-[#0B7CFF]/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                <!-- SLIDE 1: App My PJICO & Mã Nhập Voucher -->
+                <!-- SLIDE 0: ĐỊNH VỊ KHÁC BIỆT PJICO HÀ GIANG (HEADLINE + ĐOẠN MỞ ĐẦU THỂ HIỆN RÕ KHÁC BIỆT TRONG 5 GIÂY ĐẦU) -->
                 <div id="slide-0" class="w-full flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10 px-2 sm:px-4">
+                    <div class="w-full lg:w-3/5 space-y-3 sm:space-y-3.5">
+                        <div class="inline-flex items-center gap-2 bg-white/95 border border-[#28B9E7] text-[#002D62] text-xs px-3.5 py-1.5 rounded-full font-semibold shadow-xs">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-[#0B7CFF]"></i> 
+                            <span>PJICO HÀ GIANG • ĐỒNG HÀNH TRỰC TIẾP TẠI ĐỊA PHƯƠNG</span>
+                        </div>
+                        
+                        <h1 class="text-2xl sm:text-3xl lg:text-[34px] font-extrabold leading-tight text-[#002D62]">
+                            Mua Bảo Hiểm Online Của PJICO Hà Giang <br class="hidden sm:inline">
+                            <span class="text-[#0B7CFF]">Có Đội Ngũ Hỗ Trợ Trực Tiếp Từ Lúc Mua Đến Khi Bồi Thường</span>
+                        </h1>
+                        
+                        <p class="text-slate-600 text-xs sm:text-[14.5px] leading-relaxed max-w-xl font-normal">
+                            Khác biệt với các ứng dụng hay tổng đài toàn quốc chỉ gửi link tự mua rồi để khách hàng tự xoay xở khi gặp sự cố: <strong>PJICO Hà Giang</strong> kết hợp cấp Giấy chứng nhận điện tử online tích xanh trong 3 phút với <strong>đội ngũ nhân viên địa phương tại Hà Giang</strong> trực tiếp tư vấn đúng quyền lợi, hỗ trợ hiện trường khi có sự cố và đồng hành hồ sơ bồi thường đến cùng.
+                        </p>
+
+                        <!-- 4 Điểm khác biệt cốt lõi (Khách đọc 5 giây là hiểu ngay) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-0.5 max-w-xl">
+                            <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 border border-[#BCE1FD]/80 shadow-2xs">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                                <span class="text-slate-700 font-medium">Nhận GCN online 3 phút (NĐ 67)</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 border border-[#BCE1FD]/80 shadow-2xs">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-amber-500 flex-shrink-0"></i>
+                                <span class="text-slate-700 font-medium">Tư vấn đúng sản phẩm & quy định</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 border border-[#BCE1FD]/80 shadow-2xs">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-[#0B7CFF] flex-shrink-0"></i>
+                                <span class="text-slate-700 font-medium">Nhân viên địa phương hỗ trợ sự cố</span>
+                            </div>
+                            <div class="flex items-center gap-2 p-2 rounded-xl bg-white/90 border border-[#BCE1FD]/80 shadow-2xs">
+                                <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                                <span class="text-slate-700 font-medium">Hướng dẫn & theo dõi bồi thường</span>
+                            </div>
+                        </div>
+
+                        <!-- Các nút Call To Action chuẩn định vị -->
+                        <div class="pt-2 flex flex-wrap items-center gap-2.5">
+                            <button onclick="goToSurveySlide()" type="button" class="bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-bold text-xs sm:text-[13.5px] px-4 sm:px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-1.5 cursor-pointer">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                                <span>Nhận Tư Vấn Từ Đội Ngũ PJICO Hà Giang</span>
+                            </button>
+                            <a href="#san-pham" class="bg-white hover:bg-slate-50 text-[#002D62] border border-slate-300 font-bold text-xs sm:text-[13.5px] px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs">
+                                <i data-lucide="shopping-cart" class="w-4 h-4 text-[#0B7CFF]"></i>
+                                <span>Xem Sản Phẩm</span>
+                            </a>
+                            <a href="https://zalo.me/0906069368" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold text-xs px-3.5 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow-2xs">
+                                <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Zalo: 0906.069.368</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Visual bên phải: Thẻ so sánh trực quan nổi bật điểm khác biệt 5 giây -->
+                    <div class="w-full lg:w-2/5 flex items-center justify-center lg:justify-end">
+                        <div class="bg-white rounded-3xl p-4 sm:p-5 border-2 border-[#28B9E7]/50 shadow-lg max-w-sm w-full space-y-3">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center font-bold">
+                                        <i data-lucide="scale" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-xs sm:text-sm text-[#002D62]">Góc Định Vị Khác Biệt</h4>
+                                        <p class="text-[10px] text-slate-400">Vì sao chọn PJICO Hà Giang?</p>
+                                    </div>
+                                </div>
+                                <span class="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Tại Hà Giang</span>
+                            </div>
+                            
+                            <div class="space-y-2 text-xs">
+                                <div class="p-2.5 bg-slate-50 rounded-2xl border border-slate-200">
+                                    <div class="font-bold text-slate-600 flex items-center gap-1.5 mb-1 text-[11.5px]">
+                                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+                                        <span>Kênh Online / App Toàn Quốc:</span>
+                                    </div>
+                                    <ul class="text-[11px] text-slate-500 space-y-0.5 list-disc list-inside pl-0.5">
+                                        <li>Chỉ gửi link tự chọn gói, tự mua</li>
+                                        <li>Khi có sự cố tự gọi tổng đài toàn quốc</li>
+                                        <li>Khách hàng tự loay hoay làm hồ sơ</li>
+                                    </ul>
+                                </div>
+
+                                <div class="p-2.5 bg-emerald-50/90 rounded-2xl border border-emerald-300 shadow-2xs">
+                                    <div class="font-bold text-emerald-800 flex items-center gap-1.5 mb-1 text-[11.5px]">
+                                        <span class="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">✓</span>
+                                        <span>Bảo Hiểm PJICO Hà Giang:</span>
+                                    </div>
+                                    <ul class="text-[11px] text-emerald-900 font-medium space-y-0.5 list-disc list-inside pl-0.5">
+                                        <li>Cấp GCN online có tích xanh trong 3 phút</li>
+                                        <li>Tư vấn đúng quyền lợi, không ép gói</li>
+                                        <li><strong>Có nhân viên địa phương hỗ trợ sự cố</strong></li>
+                                        <li><strong>Hướng dẫn & theo dõi tiến độ bồi thường</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="pt-1 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-100">
+                                <span>Đầu mối DVKH Hà Giang:</span>
+                                <a href="tel:0987501199" class="font-bold text-[#0B7CFF] font-mono hover:underline">0987.501.199</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 2: BẢNG KHẢO SÁT NHANH 30S TƯ VẤN NHU CẦU & BÁO GIÁ TRỰC TIẾP TRÊN BANNER -->
+                <div id="slide-1" class="w-full flex-col items-center justify-center relative z-10 px-1 sm:px-2 hidden">
+                    <div class="w-full max-w-3xl mx-auto">
+                        <!-- Khung Card Khảo sát dạng Interactive Chat Wizard -->
+                        <div id="survey-card" class="bg-white rounded-3xl border border-blue-200/80 shadow-lg overflow-hidden transition-all">
+                            
+                            <!-- Thanh Header Card: Avatar tư vấn viên & Thanh tiến trình -->
+                            <div class="bg-[#002D62] text-white p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="relative">
+                                        <div class="w-9 h-9 rounded-full bg-white/10 border-2 border-[#28B9E7] flex items-center justify-center text-white font-bold">
+                                            <i data-lucide="headset" class="w-4 h-4 text-[#28B9E7]"></i>
+                                        </div>
+                                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#002D62] rounded-full" title="Tư vấn viên trực tuyến"></span>
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h3 class="font-bold text-xs sm:text-sm tracking-tight">Khảo Sát Nhanh Báo Giá 30s • Đội Ngũ PJICO Hà Giang</h3>
+                                            <span class="bg-emerald-500/20 text-emerald-300 text-[9.5px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">Hỗ trợ 24/7</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-300">Mua online tiện lợi — Có nhân sự địa phương hỗ trợ đến khi bồi thường</p>
+                                    </div>
+                                </div>
+
+                                <!-- Tiến độ khảo sát -->
+                                <div class="flex items-center gap-2.5 sm:justify-end" id="survey-progress-box">
+                                    <span id="survey-step-indicator" class="text-xs font-semibold text-slate-200 whitespace-nowrap">Bắt đầu</span>
+                                    <div class="w-24 sm:w-32 bg-white/20 rounded-full h-2 overflow-hidden">
+                                        <div id="survey-progress-bar" class="bg-[#28B9E7] h-full rounded-full transition-all duration-300 w-0"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thân Card Khảo sát: Container các Bước (Steps) -->
+                            <div class="p-4 sm:p-6 min-h-[260px] sm:min-h-[280px] flex flex-col justify-between">
+                                
+                                <!-- BƯỚC 0: LỜI MỞ ĐẦU THÂN THIỆN THEO ĐỊNH VỊ -->
+                                <div id="survey-step-0" class="survey-step-content space-y-4 animate-fadeIn">
+                                    <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3">
+                                        <div class="w-8 h-8 rounded-xl bg-[#0B7CFF] text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+                                            <i data-lucide="message-square-heart" class="w-4 h-4"></i>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="text-xs sm:text-[13.5px] text-slate-800 font-medium leading-relaxed">
+                                                "Chào anh/chị! Tại PJICO Hà Giang, anh/chị mua bảo hiểm online nhưng luôn có đội ngũ nhân viên địa phương hỗ trợ trực tiếp từ lúc cấp đơn đến khi bồi thường. Cho em xin 30 giây hỏi vài câu nhanh để tư vấn đúng gói và báo giá chuẩn nhé ạ 🙏"
+                                            </p>
+                                            <span class="text-[11px] text-slate-500 block">⚡ Trả lời dạng chọn nhanh chỉ mất 30 giây — Không cần gõ phím nhiều.</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
+                                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                                            <span class="text-slate-700 font-medium">Báo giá đúng biểu phí luật định</span>
+                                        </div>
+                                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
+                                            <i data-lucide="map-pin" class="w-4 h-4 text-[#0B7CFF] flex-shrink-0"></i>
+                                            <span class="text-slate-700 font-medium">Nhân sự Hà Giang hỗ trợ sự cố</span>
+                                        </div>
+                                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
+                                            <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
+                                            <span class="text-slate-700 font-medium">Đồng hành hồ sơ bồi thường</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2 flex justify-end">
+                                        <button type="button" onclick="nextSurveyStep(1)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer">
+                                            <span>Bắt đầu khảo sát (30s)</span>
+                                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- BƯỚC 1: HỌ TÊN KHÁCH HÀNG -->
+                                <div id="survey-step-1" class="survey-step-content space-y-4 hidden animate-fadeIn">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">1</span>
+                                        <div>
+                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
+                                                Dạ, anh/chị tên gì ạ?
+                                            </h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Để em tiện xưng hô và gửi bảng báo giá chính xác cho anh/chị.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-1">
+                                        <input type="text" id="surveyNameInput" placeholder="Ví dụ: Anh Nam, Chị Lan, Hoàng Văn Đức..." 
+                                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); nextSurveyStep(2); }"
+                                               class="w-full p-3 rounded-xl border-2 border-slate-300 bg-white focus:border-[#0B7CFF] focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm font-semibold text-slate-800">
+                                    </div>
+
+                                    <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
+                                        <button type="button" onclick="prevSurveyStep(0)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                                            <span>Quay lại</span>
+                                        </button>
+                                        <button type="button" onclick="nextSurveyStep(2)" class="px-5 py-2 rounded-xl bg-[#0B7CFF] hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer">
+                                            <span>Tiếp tục</span>
+                                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- BƯỚC 2: LOẠI XE ĐANG SỬ DỤNG -->
+                                <div id="survey-step-2" class="survey-step-content space-y-4 hidden animate-fadeIn">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">2</span>
+                                        <div>
+                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
+                                                Dạ <span class="customer-name-placeholder text-[#0B7CFF]">anh/chị</span>, anh/chị đang dùng xe máy hay ô tô (hoặc cả hai) ạ?
+                                            </h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Chạm vào lựa chọn của anh/chị để chuyển tiếp câu hỏi tiếp theo.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                                        <button type="button" onclick="selectSurveyOption('vehicle', 'Xe máy 2 bánh', 3)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer text-center">
+                                            <span class="text-2xl sm:text-3xl">🛵</span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Xe máy 2 bánh</span>
+                                            <span class="text-[10.5px] text-slate-400">Xe số, tay ga, xe điện</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyOption('vehicle', 'Xe ô tô', 3)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer text-center">
+                                            <span class="text-2xl sm:text-3xl">🚗</span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Xe ô tô</span>
+                                            <span class="text-[10.5px] text-slate-400">Xe con, xe tải, xe KD</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyOption('vehicle', 'Cả xe máy & ô tô', 3)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer text-center">
+                                            <span class="text-2xl sm:text-3xl">🛵🚗</span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Cả xe máy & ô tô</span>
+                                            <span class="text-[10.5px] text-slate-400">Combo gia đình</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+                                        <button type="button" onclick="prevSurveyStep(1)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                                            <span>Quay lại</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- BƯỚC 3: TÌNH TRẠNG BẢO HIỂM TNDS -->
+                                <div id="survey-step-3" class="survey-step-content space-y-4 hidden animate-fadeIn">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">3</span>
+                                        <div>
+                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
+                                                Xe của anh/chị đã có bảo hiểm TNDS bắt buộc chưa ạ?
+                                            </h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Quy định bắt buộc của CSGT khi tham gia giao thông trên đường.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                                        <button type="button" onclick="selectSurveyOption('status', 'Còn hiệu lực', 4)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
+                                            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                                <i data-lucide="check" class="w-4 h-4"></i>
+                                            </span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-emerald-700">Còn hiệu lực</span>
+                                            <span class="text-[10.5px] text-slate-400">Đang có bảo hiểm</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyOption('status', 'Sắp hết hạn', 4)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
+                                            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                                                <i data-lucide="clock" class="w-4 h-4"></i>
+                                            </span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-amber-700">Sắp hết hạn</span>
+                                            <span class="text-[10.5px] text-slate-400">Dưới 1 tháng / Muốn gia hạn</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyOption('status', 'Chưa có / Đã hết hạn', 4)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-rose-500 hover:bg-rose-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
+                                            <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+                                                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                            </span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-rose-700">Chưa có / Hết hạn</span>
+                                            <span class="text-[10.5px] text-slate-400">Cần cấp chứng nhận gấp</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+                                        <button type="button" onclick="prevSurveyStep(2)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                                            <span>Quay lại</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- BƯỚC 4: BẢO HIỂM NGƯỜI NGỒI TRÊN XE -->
+                                <div id="survey-step-4" class="survey-step-content space-y-4 hidden animate-fadeIn">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">4</span>
+                                        <div>
+                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
+                                                Anh/chị có muốn thêm bảo hiểm cho người ngồi trên xe (tai nạn cho bản thân và người đi cùng) không ạ?
+                                            </h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Bồi thường chi phí y tế & thương tật cho lái xe và người ngồi sau với mức phí rất nhỏ chỉ từ 10k - 20k/năm.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                                        <button type="button" onclick="selectSurveyOption('passenger', 'Có (Thêm người ngồi trên xe)', 5)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
+                                            <span class="w-8 h-8 rounded-xl bg-blue-100 text-[#0B7CFF] flex items-center justify-center font-bold">
+                                                <i data-lucide="shield-plus" class="w-4 h-4"></i>
+                                            </span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Có, muốn tham gia</span>
+                                            <span class="text-[10.5px] text-slate-400">Bảo vệ toàn diện</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyOption('passenger', 'Không (Chỉ cần TNDS bắt buộc)', 5)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
+                                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
+                                                <i data-lucide="minus" class="w-4 h-4"></i>
+                                            </span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800">Không, chỉ TNDS</span>
+                                            <span class="text-[10.5px] text-slate-400">Tiết kiệm tối thiểu</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyOption('passenger', 'Chưa rõ (Muốn tư vấn thêm)', 5)" 
+                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
+                                            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                                                <i data-lucide="help-circle" class="w-4 h-4"></i>
+                                            </span>
+                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-amber-700">Chưa rõ, tư vấn thêm</span>
+                                            <span class="text-[10.5px] text-slate-400">Chi tiết quyền lợi</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+                                        <button type="button" onclick="prevSurveyStep(3)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                                            <span>Quay lại</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- BƯỚC 5: SỐ ĐIỆN THOẠI / ZALO NHẬN BÁO GIÁ -->
+                                <div id="survey-step-5" class="survey-step-content space-y-4 hidden animate-fadeIn">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">5</span>
+                                        <div>
+                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
+                                                Dạ tuyệt vời! Anh/chị cho em xin số Zalo/điện thoại để gửi báo giá và tư vấn chi tiết nhé?
+                                            </h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Chuyên viên PJICO Hà Giang sẽ gửi bảng tính phí ưu đãi ngay lập tức.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-1 space-y-2.5">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Số Zalo / Điện thoại của anh/chị <span class="text-red-500">*</span>:</label>
+                                            <input type="tel" id="surveyPhoneInput" placeholder="Ví dụ: 0912345678" 
+                                                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); submitSurveyForm(); }"
+                                                   class="w-full p-3 rounded-xl border-2 border-slate-300 bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none text-sm font-bold text-slate-800 font-mono">
+                                        </div>
+
+                                        <!-- Lựa chọn kênh tiếp nhận -->
+                                        <div class="flex items-center gap-4 text-xs font-semibold text-slate-700 pt-0.5">
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="surveyChannel" value="Zalo" checked class="w-4 h-4 text-[#0068FF] accent-[#0068FF]">
+                                                <span>Nhận qua Zalo (Ưu tiên)</span>
+                                            </label>
+                                            <label class="flex items-center gap-2 cursor-pointer">
+                                                <input type="radio" name="surveyChannel" value="Phone" class="w-4 h-4 text-emerald-600 accent-emerald-600">
+                                                <span>Gọi điện tư vấn</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
+                                        <button type="button" onclick="prevSurveyStep(4)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                                            <span>Quay lại</span>
+                                        </button>
+                                        <button type="button" id="btnSubmitSurvey" onclick="submitSurveyForm()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg transition cursor-pointer">
+                                            <i data-lucide="send" class="w-4 h-4"></i>
+                                            <span>Gửi Khảo Sát & Nhận Báo Giá</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- BƯỚC 6 (KẾT QUẢ): CẢM ƠN VÀ KẾT NỐI TỨC THÌ -->
+                                <div id="survey-step-6" class="survey-step-content space-y-4 hidden animate-fadeIn text-center py-2">
+                                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+                                        <i data-lucide="check-check" class="w-6 h-6"></i>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <h4 class="text-base sm:text-xl font-extrabold text-[#086375]">
+                                            Cảm Ơn <span id="survey-res-name" class="text-emerald-700">Anh/Chị</span>!
+                                        </h4>
+                                        <p class="text-xs text-slate-600 max-w-md mx-auto">
+                                            Em đã nhận được câu trả lời và tự động lưu hồ sơ vào hệ thống PJICO Hà Giang. Chuyên viên sẽ liên hệ gửi bảng báo giá ưu đãi tốt nhất ngay ạ!
+                                        </p>
+                                    </div>
+
+                                    <!-- Bảng tóm tắt kết quả khảo sát -->
+                                    <div class="max-w-md mx-auto bg-slate-50 rounded-2xl p-3 border border-slate-200 text-left text-xs space-y-1.5">
+                                        <div class="flex justify-between border-b border-slate-200 pb-1 font-semibold text-slate-500">
+                                            <span>Thông tin khảo sát</span>
+                                            <span id="survey-res-id" class="font-mono text-[#0B7CFF]">PJICO-...</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-500">Họ và tên:</span>
+                                            <span id="survey-res-name-val" class="font-bold text-slate-800">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-500">Số Zalo/ĐT:</span>
+                                            <span id="survey-res-phone-val" class="font-bold text-slate-800 font-mono">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-500">Phương tiện:</span>
+                                            <span id="survey-res-vehicle-val" class="font-semibold text-slate-800">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-500">Tình trạng TNDS:</span>
+                                            <span id="survey-res-status-val" class="font-semibold text-slate-800">-</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-slate-500">BH Người trên xe:</span>
+                                            <span id="survey-res-passenger-val" class="font-semibold text-slate-800">-</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
+                                        <a id="survey-zalo-link" href="https://zalo.me/0906069368" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0068FF] hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md transition">
+                                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                            <span>Mở Khung Chat Zalo Nhận Báo Giá</span>
+                                        </a>
+                                        <button type="button" onclick="resetSurvey()" class="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold text-xs transition cursor-pointer">
+                                            <span>Khảo sát lại</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLIDE 3: App My PJICO & Mã Nhập Voucher -->
+                <div id="slide-2" class="w-full flex-col lg:flex-row items-center justify-between gap-6 relative z-10 hidden px-2 sm:px-4">
                     <div class="w-full lg:w-3/5 space-y-3.5">
                         <div class="inline-flex items-center gap-2 bg-white/90 border border-[#BCE1FD] text-[#0B7CFF] text-xs px-3.5 py-1.5 rounded-full font-semibold shadow-xs">
                             <i data-lucide="smartphone" class="w-4 h-4 text-[#0B7CFF]"></i> Ứng Dụng Di Động Chính Thức My PJICO
@@ -387,8 +867,8 @@
                     </div>
                 </div>
 
-                <!-- SLIDE 2: Cấp Đơn Siêu Tốc & Tra Cứu Tích Xanh -->
-                <div id="slide-1" class="w-full flex-col lg:flex-row items-center justify-between gap-6 relative z-10 hidden px-2 sm:px-4">
+                <!-- SLIDE 4: Cấp Đơn Siêu Tốc & Tra Cứu Tích Xanh -->
+                <div id="slide-3" class="w-full flex-col lg:flex-row items-center justify-between gap-6 relative z-10 hidden px-2 sm:px-4">
                     <div class="w-full lg:w-3/5 space-y-3.5">
                         <div class="inline-flex items-center gap-2 bg-white/90 border border-[#28B9E7] text-[#0B7CFF] text-xs px-3.5 py-1.5 rounded-full font-semibold shadow-xs">
                             <i data-lucide="badge-check" class="w-4 h-4 text-[#0B7CFF]"></i> Cổng Xác Thực hotro.pjico.com.vn/gcn
@@ -425,8 +905,8 @@
                     </div>
                 </div>
 
-                <!-- SLIDE 3: CAO NGUYÊN ĐÁ ĐỒNG VĂN - PHỤNG SỰ TỪ TÂM (HÌNH ẢNH SẠCH SẼ, NHÃN THƯƠNG HIỆU TINH TẾ) -->
-                <div id="slide-2" class="w-full relative z-10 hidden rounded-2xl overflow-hidden shadow-md min-h-[320px] sm:min-h-[360px] flex items-center justify-center text-center">
+                <!-- SLIDE 5: CAO NGUYÊN ĐÁ ĐỒNG VĂN - PHỤNG SỰ TỪ TÂM (HÌNH ẢNH SẠCH SẼ, NHÃN THƯƠNG HIỆU TINH TẾ) -->
+                <div id="slide-4" class="w-full relative z-10 hidden rounded-2xl overflow-hidden shadow-md min-h-[320px] sm:min-h-[360px] flex items-center justify-center text-center">
                     <!-- Ảnh nền Cao nguyên đá Đồng Văn nguyên bản, sạch sẽ 100% -->
                     <img src="banner-cao-nguyen-da-dong-van.jpg" 
                          alt="Cao Nguyên Đá Đồng Văn - Bảo Hiểm PJICO Hà Giang" 
@@ -467,11 +947,11 @@
                     </div>
                 </div>
 
-                <!-- SLIDE 4: VỊNH HẠ LONG THUYỀN BUỒM ĐỎ - PHÁT TRIỂN BỀN VỮNG LAN TỎA GIÁ TRỊ (CHỮ & LOGO CHÌM) -->
-                <div id="slide-3" class="w-full relative z-10 hidden rounded-2xl overflow-hidden shadow-md min-h-[320px] sm:min-h-[350px] flex items-center justify-center text-center">
+                <!-- SLIDE 6: VỊNH HẠ LONG THUYỀN BUỒM ĐỎ - PHÁT TRIỂN BỀN VỮNG LAN TỎA GIÁ TRỊ (CHỮ & LOGO CHÌM) -->
+                <div id="slide-5" class="w-full relative z-10 hidden rounded-2xl overflow-hidden shadow-md min-h-[320px] sm:min-h-[350px] flex items-center justify-center text-center">
                     <!-- Ảnh nền Vịnh Hạ Long với thuyền buồm đỏ -->
                     <img src="banner-vinh-ha-long.jpg" 
-                         alt="Vịnh Hạ Long Thuyền Buồm Đỏ - PJICO Phát Triển Bền Vững Lan Tỏa Giá Trị" 
+                         alt="Vịnh Hạ Long Thuyền Buồm Đỏ - PJICO Phát Triển Bền Vững Lan TỎA Giá Trị" 
                          class="absolute inset-0 w-full h-full object-cover object-center">
                     <!-- Lớp phủ mềm mại dịu mắt -->
                     <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/20 to-black/30"></div>
@@ -511,25 +991,27 @@
                 </div>
 
                 <!-- Nút Prev / Next Carousel -->
-                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white hover:bg-slate-50 text-[#002D62] p-2 sm:p-2.5 rounded-full z-30 shadow-md border border-slate-200 transition" title="Slide trước">
+                <button onclick="prevSlide()" class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white hover:bg-slate-50 text-[#002D62] p-2 sm:p-2.5 rounded-full z-30 shadow-md border border-slate-200 transition cursor-pointer" title="Slide trước">
                     <i data-lucide="chevron-left" class="w-5 h-5"></i>
                 </button>
-                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white hover:bg-slate-50 text-[#002D62] p-2 sm:p-2.5 rounded-full z-30 shadow-md border border-slate-200 transition" title="Slide sau">
+                <button onclick="nextSlide()" class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white hover:bg-slate-50 text-[#002D62] p-2 sm:p-2.5 rounded-full z-30 shadow-md border border-slate-200 transition cursor-pointer" title="Slide sau">
                     <i data-lucide="chevron-right" class="w-5 h-5"></i>
                 </button>
 
-                <!-- Indicator Dots (4 Dots cho 4 Slides) -->
+                <!-- Indicator Dots (6 Dots cho 6 Slides) -->
                 <div class="absolute bottom-3 right-8 flex items-center gap-2 z-30">
-                    <button onclick="setSlide(0)" id="dot-0" class="w-6 h-2 rounded-full bg-[#0B7CFF] transition-all" title="Slide 1"></button>
-                    <button onclick="setSlide(1)" id="dot-1" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all" title="Slide 2"></button>
-                    <button onclick="setSlide(2)" id="dot-2" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all" title="Slide 3"></button>
-                    <button onclick="setSlide(3)" id="dot-3" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all" title="Slide 4"></button>
+                    <button onclick="setSlide(0)" id="dot-0" class="w-6 h-2 rounded-full bg-[#0B7CFF] transition-all cursor-pointer" title="Định vị PJICO Hà Giang"></button>
+                    <button onclick="setSlide(1)" id="dot-1" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all cursor-pointer" title="Khảo sát nhanh 30s"></button>
+                    <button onclick="setSlide(2)" id="dot-2" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all cursor-pointer" title="App My PJICO"></button>
+                    <button onclick="setSlide(3)" id="dot-3" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all cursor-pointer" title="Cấp Đơn Điện Tử Tích Xanh"></button>
+                    <button onclick="setSlide(4)" id="dot-4" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all cursor-pointer" title="Cao Nguyên Đá Đồng Văn"></button>
+                    <button onclick="setSlide(5)" id="dot-5" class="w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all cursor-pointer" title="Vịnh Hạ Long"></button>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 4. DANH MỤC SẢN PHẨM & LUỒNG TƯƠNG TÁC (CHỌN SẢN PHẨM -> HIỆN PHƯƠNG THỨC MUA) -->
+    <!-- 5. DANH MỤC SẢN PHẨM & LUỒNG TƯƠNG TÁC (CHỌN SẢN PHẨM -> HIỆN PHƯƠNG THỨC MUA) -->
     <section id="san-pham" class="py-14 sm:py-16 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-10">
@@ -872,10 +1354,14 @@
                                     <span>Mở Camera điện thoại hoặc Zalo để quét mã QR ➔ Bấm <strong>chụp ảnh CCCD & Giấy chứng nhận đăng ký xe</strong> để hệ thống tự điền thông tin tự động trong 30 giây!</span>
                                 </div>
                             
-                                <div class="mt-6 pt-4 border-t border-slate-200 text-center">
+                                <div class="mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-center gap-3">
+                                    <button onclick="openSepayModal(currentSelectedProductKey === 'oto' ? 480700 : 86000, currentSelectedProductKey === 'oto' ? 'Gói Cơ Bản Ô Tô' : 'Gói Cơ Bản Xe Máy')" type="button" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer">
+                                        <i data-lucide="qr-code" class="w-4 h-4"></i>
+                                        <span>💳 Thanh Toán Tự Động Qua VietinBank (SePay)</span>
+                                    </button>
                                     <button onclick="openFullRequestForm('xe_cogioi')" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-[#EAF8FB] text-[#086375] hover:text-[#0B7CFF] border border-slate-300 font-bold text-xs transition cursor-pointer">
                                         <i data-lucide="file-text" class="w-4 h-4 text-[#0B7CFF]"></i>
-                                        <span>Hoặc Điền Giấy Yêu Cầu Cấp Đơn Đầy Đủ (Chuẩn PJICO)</span>
+                                        <span>Hoặc Điền Giấy Yêu Cầu Cấp Đơn (Chuẩn PJICO)</span>
                                     </button>
                                 </div>
                             </div>
@@ -2087,8 +2573,260 @@
         </a>
     </div>
 
+    <!-- 8. CHATBOT BÁN HÀNG TỰ ĐỘNG PJICO HÀ GIANG (GÓC DƯỚI BÊN PHẢI) -->
+    <!-- Cửa sổ Chatbot -->
+    <div id="pjicoChatWindow" class="fixed bottom-24 right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[390px] h-[540px] max-h-[82vh] bg-white rounded-3xl shadow-2xl border-2 border-blue-200/90 flex flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0 pointer-events-none origin-bottom-right">
+        
+        <!-- Header Chatbot -->
+        <div class="bg-gradient-to-r from-[#002D62] via-[#086375] to-[#0B7CFF] text-white p-3.5 sm:p-4 flex items-center justify-between shadow-sm flex-shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="relative flex-shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-white/10 border-2 border-[#28B9E7] flex items-center justify-center text-white font-bold shadow-xs">
+                        <i data-lucide="bot" class="w-5 h-5 text-[#28B9E7]"></i>
+                    </div>
+                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-[#002D62] rounded-full animate-pulse" title="Đang trực tuyến"></span>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <h4 class="font-bold text-xs sm:text-sm tracking-tight truncate">Tư Vấn Bảo Hiểm PJICO</h4>
+                        <span class="bg-emerald-500/25 text-emerald-300 text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border border-emerald-400/30">Hà Giang</span>
+                    </div>
+                    <p class="text-[11px] text-blue-100/90 truncate">Hỗ trợ trực tiếp từ lúc mua đến bồi thường</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1">
+                <button onclick="togglePjicoChatbot()" class="text-white/80 hover:text-white hover:bg-white/15 p-1.5 rounded-lg transition cursor-pointer" title="Thu nhỏ">
+                    <i data-lucide="minus" class="w-4 h-4"></i>
+                </button>
+                <button onclick="togglePjicoChatbot()" class="text-white/80 hover:text-white hover:bg-white/15 p-1.5 rounded-lg transition cursor-pointer" title="Đóng">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Khung tin nhắn cuộn -->
+        <div id="pjicoChatMessages" class="flex-1 p-3.5 sm:p-4 overflow-y-auto space-y-3.5 bg-slate-50/70 text-xs sm:text-[13.5px]">
+            <!-- Tin nhắn sẽ được tự động hiển thị ở đây -->
+        </div>
+
+        <!-- Thanh Quick Reply cuộn ngang -->
+        <div class="px-3 py-2 bg-white border-t border-slate-150 overflow-x-auto whitespace-nowrap flex items-center gap-1.5 text-xs flex-shrink-0 shadow-inner">
+            <button onclick="handleQuickReply('sepay')" class="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 transition flex-shrink-0 cursor-pointer">
+                💳 Thanh toán QR
+            </button>
+            <button onclick="handleQuickReply('xemay')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                🛵 Xe máy
+            </button>
+            <button onclick="handleQuickReply('oto')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                🚗 Ô tô
+            </button>
+            <button onclick="handleQuickReply('thanvo')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                🛡️ Thân vỏ
+            </button>
+            <button onclick="handleQuickReply('gcn')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                📜 GCN điện tử
+            </button>
+            <button onclick="handleQuickReply('suckhoe')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                🏥 Sức khỏe
+            </button>
+            <button onclick="handleQuickReply('dulich')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                ✈️ Du lịch Visa
+            </button>
+            <button onclick="handleQuickReply('app')" class="px-2.5 py-1 rounded-full bg-blue-50 hover:bg-blue-100 text-[#002D62] font-semibold border border-blue-200 transition flex-shrink-0 cursor-pointer">
+                📱 App My PJICO
+            </button>
+            <button onclick="handleQuickReply('boithuong')" class="px-2.5 py-1 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-800 font-semibold border border-rose-200 transition flex-shrink-0 cursor-pointer">
+                🚨 Bồi thường
+            </button>
+            <button onclick="handleQuickReply('form')" class="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 transition flex-shrink-0 cursor-pointer">
+                📝 Điền form tư vấn
+            </button>
+        </div>
+
+        <!-- Ô nhập câu hỏi -->
+        <div class="p-2.5 sm:p-3 bg-white border-t border-slate-200 flex items-center gap-2 flex-shrink-0">
+            <input type="text" id="pjicoChatInput" 
+                   placeholder="Nhập câu hỏi (phí, đăng kiểm, thân vỏ, GCN...)" 
+                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); sendPjicoChatMessage(); }"
+                   class="flex-1 p-2 sm:p-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-[13px] text-slate-800 bg-slate-50">
+            <button onclick="sendPjicoChatMessage()" id="pjicoChatSendBtn" class="p-2 sm:p-2.5 bg-[#0B7CFF] hover:bg-[#0066DB] text-white rounded-xl shadow-md transition flex items-center justify-center cursor-pointer" title="Gửi câu hỏi">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Nút Chatbot Nhỏ Tròn Ở Góc Dưới Bên Phải -->
+    <div id="pjicoChatToggleContainer" class="fixed bottom-6 right-4 sm:right-6 z-50 flex items-center gap-2">
+        <!-- Bong bóng lời chào ngắn gọn tự động gợi ý -->
+        <div id="pjicoChatBadgeBubble" onclick="togglePjicoChatbot()" class="hidden sm:flex items-center gap-2 bg-white text-[#002D62] text-xs font-bold px-3 py-2 rounded-2xl shadow-xl border border-blue-200 cursor-pointer hover:bg-blue-50 transition group animate-bounce">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>Cần tư vấn bảo hiểm? Chat ngay!</span>
+        </div>
+
+        <!-- Nút Tròn Chính -->
+        <button onclick="togglePjicoChatbot()" id="pjicoChatToggleBtn" 
+                class="w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-gradient-to-tr from-[#002D62] via-[#0B7CFF] to-[#28B9E7] text-white shadow-2xl flex items-center justify-center hover:scale-105 transition-all duration-200 border-2 border-white ring-2 ring-blue-400/40 relative cursor-pointer"
+                title="Mở Trợ Lý Tư Vấn PJICO Hà Giang">
+            <!-- Icon Chat thông thường -->
+            <i data-lucide="message-square-more" id="chatOpenIcon" class="w-6 h-6 sm:w-7 sm:h-7"></i>
+            <!-- Icon Đóng khi đang mở -->
+            <i data-lucide="x" id="chatCloseIcon" class="w-6 h-6 sm:w-7 sm:h-7 hidden"></i>
+            
+            <!-- Chấm Online 24/7 -->
+            <span class="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full" title="Tư vấn viên trực tuyến"></span>
+        </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL THANH TOÁN TỰ ĐỘNG SEPAY - VIETINBANK (MÃ NỘI DUNG SEVQR) -->
+    <!-- ========================================================================= -->
+    <div id="sepayPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/75 backdrop-blur-sm hidden animate-fadeIn">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 relative flex flex-col max-h-[92vh]">
+            <!-- Header Modal -->
+            <div class="bg-gradient-to-r from-[#002D62] via-[#0B7CFF] to-[#28B9E7] p-4 sm:p-5 text-white flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/30 shadow-inner">
+                        <i data-lucide="qr-code" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500 text-white shadow-xs">Tự Động SePay 24/7</span>
+                            <span class="text-[10px] text-white/90 font-semibold">VietinBank</span>
+                        </div>
+                        <h3 class="text-base sm:text-lg font-bold leading-tight">Thanh Toán Bảo Hiểm Trực Tuyến</h3>
+                    </div>
+                </div>
+                <button onclick="closeSepayModal()" type="button" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition cursor-pointer" title="Đóng">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Body Modal (Cuộn được) -->
+            <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs sm:text-sm">
+                <!-- Cảnh báo bắt buộc tiền tố SEVQR -->
+                <div class="p-3 bg-amber-50 border-2 border-amber-300 rounded-2xl flex items-start gap-2.5 shadow-xs">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+                    <div class="space-y-1">
+                        <p class="text-[12px] font-bold text-amber-900 leading-snug">
+                            Lưu ý bắt buộc đối với VietinBank:
+                        </p>
+                        <p class="text-[11px] text-amber-800 leading-relaxed">
+                            Nội dung chuyển khoản <strong>phải bắt đầu bằng từ khóa <code class="bg-amber-200 text-amber-950 px-1.5 py-0.5 rounded font-mono font-black text-xs">SEVQR</code></strong> để hệ thống SePay tự động ghi nhận vào sổ theo dõi đơn hàng!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Khối hiển thị QR Code -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                    <div class="inline-block bg-white p-3 rounded-2xl shadow-md border border-slate-200 relative">
+                        <img id="sepayQrImage" src="https://img.vietqr.io/image/vietinbank-106006104248-compact2.png?amount=86000&addInfo=SEVQR%20PJICO&accountName=NGUYEN%20HUY%20VINH" alt="Mã VietQR Thanh Toán" class="w-52 h-52 sm:w-56 sm:h-56 mx-auto rounded-lg object-contain">
+                        <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-[#002D62] text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow whitespace-nowrap">
+                            Quét bằng App Ngân Hàng bất kỳ
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-4 leading-normal">
+                        Mở App Ngân hàng (VietinBank, Vietcombank, BIDV, Agribank, MB...) quét mã QR để điền sẵn toàn bộ số tiền và nội dung.
+                    </p>
+                </div>
+
+                <!-- Chọn nhanh gói phí -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span>Chọn nhanh mức phí:</span>
+                        <span id="sepayProductLabel" class="text-[#0B7CFF] font-semibold text-[11px]">Xe máy TNDS (86.000đ)</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="setSepayAmount(86000, 'Xe máy TNDS + 2 người (86.000đ)')" class="py-2 px-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:border-[#0B7CFF] hover:bg-blue-50 transition cursor-pointer text-center">
+                            🏍️ Xe máy 86K
+                        </button>
+                        <button type="button" onclick="setSepayAmount(480700, 'Ô tô 5 chỗ không KD (480.700đ)')" class="py-2 px-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:border-[#0B7CFF] hover:bg-blue-50 transition cursor-pointer text-center">
+                            🚗 Ô tô 5 chỗ 480K
+                        </button>
+                        <button type="button" onclick="setSepayAmount(873400, 'Ô tô 7 chỗ không KD (873.400đ)')" class="py-2 px-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:border-[#0B7CFF] hover:bg-blue-50 transition cursor-pointer text-center">
+                            🚙 Ô tô 7 chỗ 873K
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bảng Chi Tiết Thông Tin Chuyển Khoản & Nút Sao Chép -->
+                <div class="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 overflow-hidden shadow-xs">
+                    <!-- Ngân hàng -->
+                    <div class="p-3 flex items-center justify-between">
+                        <span class="text-slate-500 text-xs">Ngân hàng:</span>
+                        <span class="font-bold text-[#086375] text-xs">VietinBank (Công Thương VN)</span>
+                    </div>
+
+                    <!-- Số tài khoản -->
+                    <div class="p-3 flex items-center justify-between gap-2">
+                        <span class="text-slate-500 text-xs">Số tài khoản:</span>
+                        <div class="flex items-center gap-2">
+                            <span id="sepayAccNum" class="font-mono font-extrabold text-sm sm:text-base text-[#002D62]">106006104248</span>
+                            <button type="button" onclick="copySepayField('106006104248', 'Số tài khoản')" class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0B7CFF] transition cursor-pointer" title="Sao chép số TK">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chủ tài khoản -->
+                    <div class="p-3 flex items-center justify-between">
+                        <span class="text-slate-500 text-xs">Chủ tài khoản:</span>
+                        <span class="font-bold text-slate-800 text-xs uppercase">NGUYEN HUY VINH</span>
+                    </div>
+
+                    <!-- Số tiền -->
+                    <div class="p-3 flex items-center justify-between gap-2 bg-blue-50/40">
+                        <span class="text-slate-500 text-xs">Số tiền:</span>
+                        <div class="flex items-center gap-2">
+                            <span id="sepayAmountDisplay" class="font-extrabold text-base sm:text-lg text-emerald-600 font-mono">86.000 đ</span>
+                            <button type="button" onclick="copySepayField(currentSepayAmount.toString(), 'Số tiền')" class="p-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition cursor-pointer" title="Sao chép số tiền">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung chuyển khoản -->
+                    <div class="p-3 flex items-center justify-between gap-2 bg-amber-50/60">
+                        <div>
+                            <span class="text-slate-700 text-xs font-bold block">Nội dung CK:</span>
+                            <span class="text-[10px] text-amber-700">Chuẩn SePay VietinBank</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="sepayContentDisplay" class="font-mono font-black text-xs sm:text-sm text-red-600 bg-white px-2 py-1 rounded-md border border-amber-300">SEVQR PJICO</span>
+                            <button type="button" onclick="copySepayField(currentSepayContent, 'Nội dung chuyển khoản')" class="p-1.5 rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-900 transition cursor-pointer" title="Sao chép nội dung">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quy trình cấp GCN -->
+                <div class="p-3 rounded-2xl bg-[#EAF8FB] border border-[#28B9E7]/40 text-[11px] text-[#086375] space-y-1">
+                    <div class="font-bold flex items-center gap-1.5 text-[#0B7CFF]">
+                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                        <span>Cơ chế kích hoạt bảo hiểm:</span>
+                    </div>
+                    <p>• Hệ thống SePay nhận biến động số dư VietinBank và tự động đồng bộ sang Google Sheets.</p>
+                    <p>• Nhân viên PJICO Hà Giang đối soát đơn và xuất Giấy chứng nhận điện tử tích xanh gửi qua Zalo/Email trong 3-5 phút.</p>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <button type="button" onclick="confirmSepayPaid()" class="w-full sm:w-auto flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 shadow transition cursor-pointer">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    <span>Tôi Đã Chuyển Tiền Xong</span>
+                </button>
+                <a href="https://zalo.me/0906069368" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0B7CFF] font-semibold text-xs transition border border-blue-200">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    <span>Hỗ trợ Zalo: 0906.069.368</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 translate-y-24 opacity-0 transition-all duration-300 z-50">
+    <div id="toast" class="fixed bottom-24 right-4 sm:right-6 bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 translate-y-24 opacity-0 transition-all duration-300 z-50">
         <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
         <span id="toastMsg">Đã sao chép!</span>
     </div>
@@ -2097,15 +2835,16 @@
     <script>
         lucide.createIcons();
 
-        // 1. CAROUSEL SLIDER LOGIC (SỬ DỤNG HIDDEN / FLEX TRIỆT ĐỂ, KHÔNG BAO GIỜ BỊ ĐÈ CHỮ HAY BÓNG MỜ)
+        // 1. CAROUSEL SLIDER LOGIC (6 SLIDES: ĐỊNH VỊ PJICO HÀ GIANG, KHẢO SÁT 30S, APP MY PJICO, GCN TÍCH XANH, ĐỒNG VĂN, VỊNH HẠ LONG)
         let currentSlide = 0;
-        const totalSlides = 4;
+        const totalSlides = 6;
         let slideTimer;
 
         function showSlide(index) {
             for (let i = 0; i < totalSlides; i++) {
                 const slide = document.getElementById(`slide-${i}`);
                 const dot = document.getElementById(`dot-${i}`);
+                if (!slide || !dot) continue;
                 if (i === index) {
                     slide.classList.remove('hidden');
                     slide.classList.add('flex');
@@ -2122,6 +2861,11 @@
         }
 
         function nextSlide() {
+            // Nếu khách hàng đang thao tác làm khảo sát ở Slide 1 (đang ở bước > 0), không tự động chuyển slide để tránh gián đoạn
+            if (currentSlide === 1 && typeof currentSurveyStep !== 'undefined' && currentSurveyStep > 0 && currentSurveyStep < 6) {
+                resetSlideTimer();
+                return;
+            }
             currentSlide = (currentSlide + 1) % totalSlides;
             showSlide(currentSlide);
             resetSlideTimer();
@@ -2141,9 +2885,24 @@
 
         function resetSlideTimer() {
             clearInterval(slideTimer);
-            slideTimer = setInterval(nextSlide, 6000);
+            slideTimer = setInterval(nextSlide, 7000);
         }
         resetSlideTimer();
+
+        // Chuyển nhanh tới Slide Khảo sát từ Header / Menu / Nút CTA
+        function goToSurveySlide() {
+            setSlide(1);
+            const bannerSec = document.getElementById('hero-banner-section');
+            if (bannerSec) {
+                bannerSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (typeof showSurveyStep === 'function' && currentSurveyStep === 0) {
+                // Focus vào nút bắt đầu hoặc bước hiện tại
+                setTimeout(() => {
+                    document.getElementById('surveyNameInput')?.focus();
+                }, 400);
+            }
+        }
 
         // 2. PRODUCT SELECTION & INTERACTIVE ACTION BOX
         const PRODUCT_CONFIG = {
@@ -2266,7 +3025,129 @@
             document.getElementById('product-action-box').classList.add('hidden');
         }
 
-        
+        // =========================================================================
+        // CẤU HÌNH THANH TOÁN TỰ ĐỘNG SEPAY - VIETINBANK (MÃ NỘI DUNG SEVQR)
+        // =========================================================================
+        const SEPAY_CONFIG = {
+            bank: 'vietinbank',
+            acc: '106006104248',
+            holder: 'NGUYEN HUY VINH',
+            prefix: 'SEVQR PJICO' // Bắt buộc từ khóa SEVQR đối với VietinBank theo yêu cầu của SePay
+        };
+
+        let currentSepayAmount = 86000;
+        let currentSepayContent = 'SEVQR PJICO';
+
+        function updateSepayQr() {
+            const qrImg = document.getElementById('sepayQrImage');
+            const contentDisplay = document.getElementById('sepayContentDisplay');
+            const amountDisplay = document.getElementById('sepayAmountDisplay');
+            
+            if (contentDisplay) contentDisplay.innerText = currentSepayContent;
+            if (amountDisplay) amountDisplay.innerText = currentSepayAmount.toLocaleString('vi-VN') + ' đ';
+
+            // Tạo mã VietQR chuẩn NAPAS / VietinBank
+            const qrUrl = `https://img.vietqr.io/image/${SEPAY_CONFIG.bank}-${SEPAY_CONFIG.acc}-compact2.png?amount=${currentSepayAmount}&addInfo=${encodeURIComponent(currentSepayContent)}&accountName=${encodeURIComponent(SEPAY_CONFIG.holder)}`;
+            if (qrImg) qrImg.src = qrUrl;
+        }
+
+        function openSepayModal(customAmount, customDesc, orderCode) {
+            currentSepayAmount = customAmount || 86000;
+            
+            let code = orderCode;
+            if (!code) {
+                const now = new Date();
+                code = String(now.getDate()).padStart(2, '0') + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+            }
+            // Rút gọn ký tự không dấu và loại bỏ ký tự lạ
+            code = code.toString().replace(/[^a-zA-Z0-9]/g, '').slice(-10);
+
+            // Bắt buộc tiền tố SEVQR để SePay nhận diện biến động số dư VietinBank
+            currentSepayContent = `${SEPAY_CONFIG.prefix} ${code}`.trim();
+
+            const prodLabel = document.getElementById('sepayProductLabel');
+            if (prodLabel && customDesc) {
+                prodLabel.innerText = customDesc;
+            }
+
+            updateSepayQr();
+
+            const modal = document.getElementById('sepayPaymentModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            lucide.createIcons();
+        }
+
+        function closeSepayModal() {
+            const modal = document.getElementById('sepayPaymentModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function setSepayAmount(amount, desc) {
+            currentSepayAmount = amount;
+            const prodLabel = document.getElementById('sepayProductLabel');
+            if (prodLabel) prodLabel.innerText = desc || (amount.toLocaleString('vi-VN') + ' đ');
+            updateSepayQr();
+        }
+
+        function copySepayField(text, labelName) {
+            copyToClipboardSafe(text);
+            showToast(`Đã sao chép ${labelName}: ${text}`);
+        }
+
+        function confirmSepayPaid() {
+            closeSepayModal();
+            
+            // Tự động lưu đơn hàng đã thanh toán vào cơ sở dữ liệu để Admin thấy ngay
+            try {
+                const prodName = document.getElementById('sepayProductLabel')?.innerText || 'Bảo hiểm Xe Máy PJICO';
+                const buyerPhone = currentSepayContent.replace('SEVQR PJICO', '').trim() || '0987501199';
+                const buyerName = document.getElementById('buyerName')?.value || 'Khách Hàng Mua Online';
+
+                let orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
+                const newOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id || 0)) + 1 : 1;
+                const orderCodeStr = `PJ-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(newOrderId).padStart(4, '0')}`;
+                const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+                orders.unshift({
+                    id: newOrderId,
+                    order_code: orderCodeStr,
+                    customer_name: buyerName,
+                    customer_phone: buyerPhone,
+                    product_name: prodName,
+                    product_type: prodName.toLowerCase().includes('thẻ cứng') ? 'physical' : 'digital',
+                    amount: currentSepayAmount,
+                    status: 'paid', // Đã thanh toán!
+                    purchased_at: nowStr,
+                    payment_ref: currentSepayContent
+                });
+                localStorage.setItem('pjico_db_orders', JSON.stringify(orders));
+
+                // Lưu khách hàng
+                let customers = JSON.parse(localStorage.getItem('pjico_db_customers') || '[]');
+                if (!customers.find(c => c.phone === buyerPhone)) {
+                    customers.push({
+                        id: customers.length + 1,
+                        name: buyerName,
+                        phone: buyerPhone,
+                        zalo: buyerPhone,
+                        registered_at: nowStr
+                    });
+                    localStorage.setItem('pjico_db_customers', JSON.stringify(customers));
+                }
+            } catch(e) {}
+
+            showToast("Hệ thống đã ghi nhận thanh toán! Đang mở Cổng Xác Nhận...");
+            setTimeout(() => {
+                window.location.href = `/thanhtoan?lookup=${encodeURIComponent(currentSepayContent.replace('SEVQR PJICO', '').trim())}`;
+            }, 800);
+        }
+
         // CẤU HÌNH WEBHOOK GOOGLE APPS SCRIPT CHO TÀI KHOẢN: banhmi2xoi@gmail.com
         let GOOGLE_SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwcNmfnsOTpbO3nIZpjsxppFsfkSmP4hd9s1r3QXCeZ80Wd8ybG0QzOgs9t_p3JFoI_/exec"; 
 
@@ -2596,43 +3477,221 @@
             // Sao chép an toàn vào clipboard
             copyToClipboardSafe(summaryText);
 
-            // 3. ĐIỀU HƯỚNG THEO KÊNH KHÁCH HÀNG ĐÃ CHỌN
-            if (deliveryChannel === 'Zalo') {
-                showToast("Đã ghi nhận! Đang kết nối tới Zalo Đại lý " + targetAgentPhone + "...");
-                setTimeout(() => {
-                    const zaloUrl = "https://zalo.me/" + targetAgentPhone;
-                    const link = document.createElement('a');
-                    link.href = zaloUrl;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }, 800);
-            } else if (deliveryChannel === 'Messenger') {
-                showToast("Đã ghi nhận! Đang kết nối tới Facebook Messenger PJICO...");
-                setTimeout(() => {
-                    const fbUrl = "https://m.me/pjicohagiang";
-                    const link = document.createElement('a');
-                    link.href = fbUrl;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }, 800);
+            // 3. XÁC ĐỊNH MỨC PHÍ DỰ KIẾN VÀ BẬT MODAL THANH TOÁN TỰ ĐỘNG SEPAY (VIETINBANK)
+            let estAmount = 86000;
+            if (selectedProductVal === 'xe_cogioi') {
+                const vType = (document.getElementById('vehicleType')?.value || '').toLowerCase();
+                if (vType.includes('oto') || vType.includes('ô tô') || vType.includes('con') || vType.includes('tải') || vType.includes('xe du lịch')) {
+                    estAmount = 480700;
+                } else {
+                    estAmount = 86000;
+                }
+            } else if (selectedProductVal === 'dulich_quocte') {
+                estAmount = 250000;
             } else {
-                showToast("Đã lưu hồ sơ yêu cầu! Đang kết nối cuộc gọi tới Hotline " + targetHotlinePhone + "...");
-                setTimeout(() => {
-                    window.location.href = "tel:" + targetHotlinePhone;
-                }, 800);
+                estAmount = 86000;
             }
 
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = originalBtnHtml;
+            btnSubmit.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5 text-emerald-300"></i><span>✓ Đã gửi hồ sơ thành công!</span>';
+            lucide.createIcons();
+
+            showToast("✓ Đã lưu hồ sơ! Mở mã QR thanh toán tự động VietinBank...");
+
+            // Mở Modal thanh toán tự động với mã đơn / SĐT khách
+            setTimeout(() => {
+                openSepayModal(estAmount, selectedProductText, buyerPhone || dateCode);
+            }, 600);
+        }
+
+        // =========================================================================
+        // 8. BẢNG KHẢO SÁT 30 GIÂY (CONVERSATIONAL SURVEY WIZARD LOGIC)
+        // =========================================================================
+        let currentSurveyStep = 0;
+        const surveyData = {
+            name: '',
+            vehicle: '',
+            status: '',
+            passenger: '',
+            phone: '',
+            channel: 'Zalo'
+        };
+
+        function updateSurveyProgress(step) {
+            const bar = document.getElementById('survey-progress-bar');
+            const indicator = document.getElementById('survey-step-indicator');
+            if (!bar || !indicator) return;
+            
+            if (step === 0) {
+                bar.style.width = '0%';
+                indicator.innerText = 'Bắt đầu';
+            } else if (step >= 1 && step <= 5) {
+                const pct = (step / 5) * 100;
+                bar.style.width = pct + '%';
+                indicator.innerText = 'Câu ' + step + ' / 5';
+            } else if (step === 6) {
+                bar.style.width = '100%';
+                indicator.innerText = 'Hoàn thành';
+            }
+        }
+
+        function showSurveyStep(step) {
+            document.querySelectorAll('.survey-step-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById('survey-step-' + step);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+            currentSurveyStep = step;
+            updateSurveyProgress(step);
+            
+            if (step === 1) {
+                setTimeout(() => document.getElementById('surveyNameInput')?.focus(), 150);
+            } else if (step === 5) {
+                setTimeout(() => document.getElementById('surveyPhoneInput')?.focus(), 150);
+            }
             lucide.createIcons();
         }
 
+        function nextSurveyStep(step) {
+            if (currentSurveyStep === 1) {
+                const nameVal = document.getElementById('surveyNameInput')?.value.trim();
+                if (!nameVal) {
+                    alert('Dạ anh/chị cho em xin tên để tiện xưng hô nhé ạ!');
+                    document.getElementById('surveyNameInput')?.focus();
+                    return;
+                }
+                surveyData.name = nameVal;
+                document.querySelectorAll('.customer-name-placeholder').forEach(el => {
+                    el.innerText = nameVal;
+                });
+            }
+            showSurveyStep(step);
+        }
+
+        function prevSurveyStep(step) {
+            showSurveyStep(step);
+        }
+
+        function selectSurveyOption(field, value, nextStep) {
+            surveyData[field] = value;
+            showSurveyStep(nextStep);
+        }
+
+        async function submitSurveyForm() {
+            const phoneVal = document.getElementById('surveyPhoneInput')?.value.trim();
+            if (!phoneVal) {
+                alert('Dạ anh/chị cho em xin số điện thoại hoặc Zalo để gửi báo giá nhé!');
+                document.getElementById('surveyPhoneInput')?.focus();
+                return;
+            }
+            surveyData.phone = phoneVal;
+            surveyData.channel = document.querySelector('input[name="surveyChannel"]:checked')?.value || 'Zalo';
+            
+            const btn = document.getElementById('btnSubmitSurvey');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Đang xử lý hồ sơ...</span>';
+            lucide.createIcons();
+            
+            const dateCode = new Date().toISOString().replace(/[-:T.]/g, '').slice(2, 14);
+            const requestId = "KS-PJICO-" + dateCode;
+            
+            const noteSummary = "KHẢO SÁT: Loại xe: " + (surveyData.vehicle || "Chưa rõ") + 
+                                " | Tình trạng TNDS: " + (surveyData.status || "Chưa rõ") + 
+                                " | BH Người trên xe: " + (surveyData.passenger || "Chưa rõ");
+                                
+            const postPayload = {
+                requestId: requestId,
+                contactChannel: surveyData.channel,
+                assignedAgent: "Zalo 0906069368",
+                buyerName: surveyData.name,
+                buyerPhone: surveyData.phone,
+                buyerNote: noteSummary,
+                buyerEmail: "Chưa cung cấp",
+                productType: "Khảo sát nhanh: " + (surveyData.vehicle || "Xe cơ giới"),
+                coverageAmount: "Theo khảo sát",
+                insurancePeriod: "1 năm",
+                paymentMethod: "Tư vấn báo giá",
+                healthStats: "-",
+                medicalHistory: "Không",
+                surgeryAndTreatment: "Không",
+                lifestyleRisks: "Bình thường",
+                extraAssetDetails: "Khảo sát: " + surveyData.vehicle,
+                beneficiaryInfo: "Không chỉ định",
+                commitmentsAccepted: true,
+                signedDate: new Date().toISOString().split('T')[0],
+                hasSignature: false
+            };
+            
+            // 1. Tự động gửi lên Webhook Google Sheet
+            try {
+                if (typeof GOOGLE_SHEET_WEBHOOK_URL !== 'undefined' && GOOGLE_SHEET_WEBHOOK_URL.startsWith('http')) {
+                    await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(postPayload)
+                    });
+                    console.log('Đã gửi dữ liệu khảo sát lên Google Sheet banhmi2xoi@gmail.com');
+                }
+            } catch(err) {
+                console.warn('Google Sheet survey sync notice:', err);
+            }
+            
+            // Lưu dự phòng vào localStorage
+            try {
+                const list = JSON.parse(localStorage.getItem('pjico_surveys') || '[]');
+                list.push(postPayload);
+                localStorage.setItem('pjico_surveys', JSON.stringify(list));
+            } catch(e) {}
+            
+            // 2. Tạo bản tóm tắt sao chép vào Clipboard
+            const copyText = 
+                "📋 KẾT QUẢ KHẢO SÁT BẢO HIỂM PJICO HÀ GIANG\n" +
+                "• Mã hồ sơ: " + requestId + "\n" +
+                "• Khách hàng: " + surveyData.name + " | SĐT: " + surveyData.phone + "\n" +
+                "• Loại xe: " + surveyData.vehicle + "\n" +
+                "• Tình trạng TNDS: " + surveyData.status + "\n" +
+                "• Bảo hiểm người ngồi trên xe: " + surveyData.passenger + "\n" +
+                "(Gửi từ bảng khảo sát trực tuyến pjicohagiang.xyz)";
+            copyToClipboardSafe(copyText);
+            
+            // Cập nhật thông tin vào màn hình hoàn thành (Step 6)
+            document.getElementById('survey-res-name').innerText = surveyData.name;
+            document.getElementById('survey-res-id').innerText = requestId;
+            document.getElementById('survey-res-name-val').innerText = surveyData.name;
+            document.getElementById('survey-res-phone-val').innerText = surveyData.phone;
+            document.getElementById('survey-res-vehicle-val').innerText = surveyData.vehicle || "Xe cơ giới";
+            document.getElementById('survey-res-status-val').innerText = surveyData.status || "Chưa rõ";
+            document.getElementById('survey-res-passenger-val').innerText = surveyData.passenger || "Chưa rõ";
+            
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            
+            // Hiển thị Step 6 (Màn hình hoàn thành)
+            showSurveyStep(6);
+            showToast("Đã ghi nhận khảo sát thành công!");
+            
+            // Nếu chọn Zalo, tự động mở sau 1 giây
+            if (surveyData.channel === 'Zalo') {
+                setTimeout(() => {
+                    window.open("https://zalo.me/0906069368", '_blank');
+                }, 1000);
+            }
+        }
+
+        function resetSurvey() {
+            surveyData.name = '';
+            surveyData.vehicle = '';
+            surveyData.status = '';
+            surveyData.passenger = '';
+            surveyData.phone = '';
+            const nameEl = document.getElementById('surveyNameInput');
+            const phoneEl = document.getElementById('surveyPhoneInput');
+            if (nameEl) nameEl.value = '';
+            if (phoneEl) phoneEl.value = '';
+            showSurveyStep(0);
+        }
 
         // BẬT/TẮT MENU TRUY CẬP NHANH TRÊN MOBILE
         function toggleMobileQuickMenu() {
@@ -2701,10 +3760,374 @@
             showToast("Đã sao chép mã: " + code + "! Dán vào app My PJICO khi đăng ký");
         }
 
-        // 5. TOAST THÔNG BÁO
+        // 6. CHATBOT BÁN HÀNG TỰ ĐỘNG PJICO HÀ GIANG THEO SALES_SCRIPT.MD
+        let isPjicoChatOpen = false;
+        let isPjicoChatInitialized = false;
+
+        const PJICO_CHAT_DATA = {
+            greeting: `Em chào anh/chị ạ! Em là tư vấn viên bảo hiểm <strong>PJICO Hà Giang</strong>.<br><br>Anh/chị đang muốn hỏi về bảo hiểm xe máy, ô tô, thân vỏ, sức khỏe, du lịch hay bồi thường sự cố ạ?<br><br>Anh/chị cứ chọn chủ đề bên dưới hoặc nhập câu hỏi, em giải đáp thẳng thắn, đúng quy định, không ép mua gói thừa nhé ạ!`,
+            
+            answers: {
+                xemay: {
+                    userText: "Bảo hiểm xe máy TNDS bắt buộc",
+                    title: "Bảo hiểm xe máy TNDS & Người ngồi trên xe",
+                    text: `Dạ, gói bảo hiểm xe máy TNDS bắt buộc tham khảo trên trang từ khoảng <strong>~86.000 đồng/năm</strong> (đã gồm VAT và có thể kèm bảo hiểm tai nạn cho 2 người ngồi trên xe 20tr/người).<br><br>
+• <strong>Trách nhiệm bồi thường bên thứ 3:</strong> 150 Triệu đ/người/vụ về người, 50 Triệu đ/vụ về tài sản.<br>
+• <strong>Cấp đơn online:</strong> Quét mã QR có OCR nhận ngay GCN điện tử tích xanh qua Email sau 3-5 phút.<br>
+• Em có thể báo riêng phần TNDS bắt buộc trước (~66k), sau đó nói thêm quyền lợi tự nguyện người ngồi để anh/chị tự quyết định nhé ạ.`,
+                    actions: [
+                        { type: "qr", text: "Xem QR Mua Nhanh Xe Máy", target: "xemay", icon: "qr-code" },
+                        { type: "form", text: "Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" },
+                        { type: "zalo", text: "Zalo tư vấn: 0906.069.368", icon: "message-circle" }
+                    ]
+                },
+                oto: {
+                    userText: "Bảo hiểm ô tô TNDS & Đăng kiểm",
+                    title: "Bảo hiểm ô tô TNDS bắt buộc & Đăng kiểm",
+                    text: `Dạ, mức phí tham khảo từ <strong>480.700 đồng/năm</strong> (cho xe dưới 6 chỗ không kinh doanh), là điều kiện bắt buộc để xét đăng kiểm và lưu hành xe hợp chuẩn Nghị định 67.<br><br>
+⚠️ <strong>Lưu ý quan trọng:</strong> TNDS bồi thường trách nhiệm của chủ xe đối với bên thứ ba (150tr/người, 100tr tài sản). <em>TNDS không mặc định sửa xe của mình khi va chạm</em>. Nếu anh/chị muốn bảo vệ chính chiếc xe của mình trước đâm va, ngập nước thì cần hỏi thêm gói <strong>vật chất xe (thân vỏ)</strong> ạ.`,
+                    actions: [
+                        { type: "qr", text: "Xem QR Cấp Đơn Ô Tô", target: "oto", icon: "qr-code" },
+                        { type: "form", text: "Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" },
+                        { type: "zalo", text: "Báo giá qua Zalo: 0906.069.368", icon: "message-circle" }
+                    ]
+                },
+                thanvo: {
+                    userText: "Bảo hiểm thân vỏ / vật chất xe ô tô",
+                    title: "Bảo hiểm thân vỏ (vật chất ô tô)",
+                    text: `Em nói thẳng là <strong>không có chuyện cứ có bảo hiểm là mọi trường hợp đều được chi trả 100%</strong> anh/chị nhé. Chi trả bồi thường phải căn cứ vào:<br>
+• Nguyên nhân tổn thất (đâm va, lật đổ, chìm, cháy, ngập nước thủy kích...)<br>
+• Mức khấu trừ / miễn thường trong hợp đồng<br>
+• Các điều khoản loại trừ luật định & kết quả giám định hiện trường.<br><br>
+Anh/chị gửi em <strong>Hãng xe, đời xe và giá trị xe</strong>, em kiểm tra để báo đúng biểu phí và quyền lợi bảo vệ nhé ạ!`,
+                    actions: [
+                        { type: "form", text: "Điền form báo giá thân vỏ", prod: "vatchat_oto", icon: "file-signature" },
+                        { type: "zalo", text: "Gửi ảnh xe qua Zalo: 0906.069.368", icon: "message-circle" }
+                    ]
+                },
+                gcn: {
+                    userText: "Giấy chứng nhận điện tử & Tra cứu",
+                    title: "Giấy chứng nhận điện tử & Tra cứu tích xanh",
+                    text: `Dạ có anh/chị nhé! Khi mua online qua mã QR hoặc điền form, sau khi thanh toán và hệ thống kiểm tra thông tin hợp lệ, Giấy chứng nhận điện tử (PDF) sẽ được gửi thẳng về Email của anh/chị trong vòng 3-5 phút.<br><br>
+• Hợp chuẩn Nghị định 67/2023/NĐ-CP của Chính phủ, có giá trị pháp lý đầy đủ khi CSGT kiểm tra.<br>
+• Tra cứu chính thức tại: <a href="https://hotro.pjico.com.vn/gcn" target="_blank" class="text-[#0B7CFF] font-bold underline">hotro.pjico.com.vn/gcn</a> hoặc quét mã QR in trên giấy chứng nhận để kiểm tra dấu tích xanh xác thực.`,
+                    actions: [
+                        { type: "link", text: "Cổng Tra Cứu PJICO", url: "https://hotro.pjico.com.vn/gcn", icon: "badge-check" },
+                        { type: "guide", text: "Xem Hướng Dẫn Tra Cứu GCN", tab: "gcn", icon: "book-open" },
+                        { type: "form", text: "Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" }
+                    ]
+                },
+                suckhoe: {
+                    userText: "PinkCare & Bảo hiểm sức khỏe",
+                    title: "Bảo hiểm ung thư PinkCare & Bệnh hiểm nghèo",
+                    text: `Dạ, về bảo hiểm sức khỏe PJICO:<br>
+• <strong>PinkCare (Ung thư):</strong> Chi trả số tiền lớn lên đến <strong>1 Tỷ đồng</strong> ngay khi có chẩn đoán bệnh theo giai đoạn, kèm trợ cấp nằm viện và phẫu thuật.<br>
+• <strong>Bệnh hiểm nghèo:</strong> Bảo vệ trước đột quỵ, tim mạch, suy thận; hỗ trợ bảo lãnh viện phí tại hàng trăm bệnh viện liên kết toàn quốc.<br><br>
+⚠️ Em lưu ý trước: Quyền lợi phụ thuộc <em>thời gian chờ (90-180 ngày), bệnh có sẵn và điều khoản loại trừ</em>. Anh/chị cho em biết độ tuổi và nhu cầu để em kiểm tra gói đúng nhất nhé ạ!`,
+                    actions: [
+                        { type: "form", text: "Điền form nhận tư vấn sức khỏe", prod: "suckhoe_canhan", icon: "file-signature" },
+                        { type: "zalo", text: "Tư vấn kỹ qua Zalo: 0906.069.368", icon: "message-circle" }
+                    ]
+                },
+                dulich: {
+                    userText: "Bảo hiểm du lịch quốc tế & visa",
+                    title: "Bảo hiểm Du Lịch Quốc Tế (Xin Visa) & Trong Nước",
+                    text: `Dạ, về bảo hiểm du lịch:<br>
+• <strong>Quốc tế (Xin Visa):</strong> Chuẩn 100% điều kiện xin Visa Châu Âu (Schengen), Mỹ, Nhật, Hàn, Úc... Quyền lợi chi phí y tế khẩn cấp, tai nạn, cứu trợ SOS toàn cầu lên đến 50.000 EUR/USD.<br>
+• <em>Lưu ý:</em> Quyết định cấp visa thuộc thẩm quyền cơ quan lãnh sự; bảo hiểm đảm bảo đáp ứng đầy đủ điều kiện hồ sơ.<br>
+• <strong>Trong nước:</strong> Phí chỉ từ 1.500 đ/ngày, bảo vệ khi đi công tác, du lịch, dã ngoại.<br>
+Anh/chị gửi em nước đến, ngày đi - ngày về để em gửi bảng báo giá chính xác nhé ạ!`,
+                    actions: [
+                        { type: "form", text: "Điền form bảo hiểm du lịch", prod: "dulich_quocte", icon: "file-signature" },
+                        { type: "zalo", text: "Báo phí qua Zalo: 0906.069.368", icon: "message-circle" }
+                    ]
+                },
+                app: {
+                    userText: "Ứng dụng My PJICO & Mã giới thiệu",
+                    title: "App My PJICO & Ưu Đãi Voucher",
+                    text: `Dạ, ứng dụng <strong>My PJICO</strong> giúp anh/chị tự cấp đơn bảo hiểm trong 3 phút, lưu trữ GCN điện tử và kết nối cứu hộ 24/7:<br>
+• <strong>Ưu đãi:</strong> Nhập mã giới thiệu <strong class="text-[#0B7CFF] font-mono select-all">KTTT_2409000022</strong> khi đăng ký có cơ hội nhận đến 200 điểm thưởng (theo thể lệ từng kỳ của PJICO).<br>
+• Anh/chị có thể tải app trên App Store hoặc Google Play bằng cách quét mã QR trên website hoặc tìm 'My PJICO'.`,
+                    actions: [
+                        { type: "guide", text: "Xem Hướng Dẫn Cài App", tab: "app", icon: "smartphone" },
+                        { type: "form", text: "Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" }
+                    ]
+                },
+                boithuong: {
+                    userText: "Xử lý tai nạn & Quy trình bồi thường",
+                    title: "Xử lý sự cố tai nạn & Bồi thường 24/7",
+                    text: `Khi xảy ra tai nạn hoặc sự cố va chạm, anh/chị thực hiện các bước sau:<br>
+1️⃣ <strong>Ưu tiên an toàn người:</strong> Bật đèn cảnh báo, sơ cứu, gọi 115 nếu có người bị nạn.<br>
+2️⃣ <strong>Gọi tổng đài PJICO 24/7:</strong> <a href="tel:1900545455" class="text-[#0B7CFF] font-bold">1900 54 54 55</a> hoặc Hotline DVKH PJICO Hà Giang: <a href="tel:0987501199" class="text-[#0B7CFF] font-bold">0987.501.199</a>.<br>
+3️⃣ <strong>Giữ nguyên hiện trường & Chụp ảnh:</strong> Chụp toàn cảnh, cận cảnh vị trí va chạm, biển số các xe liên quan.<br>
+⚠️ <em>Tuyệt đối không tự ý thỏa thuận nhận lỗi</em> trước khi chuyên viên giám định PJICO hướng dẫn để bảo đảm quyền lợi bồi thường tối đa.`,
+                    actions: [
+                        { type: "guide", text: "Xem Chi Tiết Quy Trình Bồi Thường", tab: "boi-thuong", icon: "shield-alert" },
+                        { type: "zalo", text: "Hotline Hỗ Trợ: 0987.501.199", icon: "phone" }
+                    ]
+                },
+                form: {
+                    userText: "Điền form nhận tư vấn / Mua bảo hiểm",
+                    title: "Điền Giấy Yêu Cầu Bảo Hiểm Trực Tuyến",
+                    text: `Dạ, anh/chị bấm nút <strong>Điền form nhận tư vấn</strong> bên dưới để mở Giấy yêu cầu trực tuyến chuẩn 7 phần của PJICO.<br><br>
+• Chỉ cần điền họ tên, số điện thoại và chọn sản phẩm mình quan tâm.<br>
+• Điền form là để bên em tiếp nhận thông tin và gửi bảng báo giá chi tiết, <em>không bắt buộc phải mua ngay</em>.<br>
+• Đội ngũ PJICO Hà Giang sẽ liên hệ tư vấn rõ quyền lợi trong vòng 5-15 phút ạ!`,
+                    actions: [
+                        { type: "form", text: "Mở Giấy Yêu Cầu Trực Tuyến", prod: "xe_cogioi", icon: "file-signature" },
+                        { type: "survey", text: "Khảo Sát Nhanh Báo Giá 30s", icon: "clipboard-check" },
+                        { type: "zalo", text: "Nhắn Zalo: 0906.069.368", icon: "message-circle" }
+                    ]
+                },
+                zalo: {
+                    userText: "Hotline & Kênh hỗ trợ trực tiếp",
+                    title: "Đầu Mối Hỗ Trợ PJICO Hà Giang",
+                    text: `Dạ, đội ngũ PJICO Hà Giang luôn sẵn sàng hỗ trợ anh/chị:<br><br>
+• <strong>Zalo Bán hàng & Tư vấn:</strong> <a href="https://zalo.me/0906069368" target="_blank" class="text-[#0B7CFF] font-bold">0906.069.368</a> (Hoàng Văn Đức)<br>
+• <strong>Zalo Đại lý Hoàng Thị Xuân:</strong> <a href="https://zalo.me/0835311985" target="_blank" class="text-[#0B7CFF] font-bold">0835.311.985</a><br>
+• <strong>Hotline DVKH Hà Giang:</strong> <a href="tel:0987501199" class="text-[#0B7CFF] font-bold">0987.501.199</a><br>
+• <strong>Tổng đài toàn quốc 24/7:</strong> <a href="tel:1900545455" class="text-[#0B7CFF] font-bold">1900 54 54 55</a>`,
+                    actions: [
+                        { type: "zalo", text: "Mở Zalo: 0906.069.368", icon: "message-circle" },
+                        { type: "form", text: "Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" }
+                    ]
+                },
+                sepay: {
+                    userText: "Thanh toán QR VietinBank (SePay)",
+                    title: "Thanh Toán Tự Động Qua QR VietinBank (SePay)",
+                    text: `Dạ, hệ thống PJICO Hà Giang hỗ trợ thanh toán trực tiếp qua <strong>VietinBank</strong> hoàn toàn tự động 24/7:<br><br>
+• App ngân hàng tự động điền sẵn số tiền và cú pháp chuyển khoản có từ khóa <strong>SEVQR</strong>.<br>
+• Ngay sau khi chuyển khoản, SePay tự động ghi nhận vào sổ quản lý, chuyên viên PJICO Hà Giang sẽ xuất Giấy chứng nhận điện tử tích xanh gửi qua Zalo/Email cho anh/chị ngay lập tức!`,
+                    actions: [
+                        { type: "sepay", text: "💳 Mở Mã QR Thanh Toán VietinBank", amount: 86000, desc: "Gói Xe Máy (86.000đ)", icon: "qr-code" },
+                        { type: "zalo", text: "💬 Hỗ trợ qua Zalo: 0906.069.368", icon: "message-circle" }
+                    ]
+                }
+            }
+        };
+
+        const PJICO_KEYWORD_MAP = [
+            { topic: "sepay", keys: ["thanh toan", "chuyen khoan", "so tai khoan", "vietinbank", "stk", "ngan hang", "sepay", "sevqr", "quet ma qr", "tra tien", "chuyen tien", "dong tien"] },
+            { topic: "xemay", keys: ["xe may", "xe 2 banh", "xe may gia", "gia xe may", "phi xe may", "bao hiem xe may", "xe dien", "tnds xe may", "nguoi ngoi xe may", "xe so", "tay ga"] },
+            { topic: "oto", keys: ["o to", "oto", "xe con", "xe tai", "xe 4 cho", "xe 5 cho", "xe 7 cho", "dang kiem", "480", "tnds o to", "bat buoc o to", "xe kinh doanh", "bien vang"] },
+            { topic: "thanvo", keys: ["than vo", "vat chat", "sua xe", "dam va", "va quet", "ngap nuoc", "thuy kich", "mat cap", "chay no", "son xe", "den xe", "den bu xe", "tray xuoc"] },
+            { topic: "gcn", keys: ["gcn", "giay chung nhan", "dien tu", "tra cuu", "tich xanh", "csgt", "hotro", "kiem tra gcn", "xac thuc", "chung nhan"] },
+            { topic: "suckhoe", keys: ["suc khoe", "pinkcare", "ung thu", "hiem ngheo", "nam vien", "vien phi", "bao lanh", "phau thuat", "benh", "1 ty", "tro cap vien phi"] },
+            { topic: "dulich", keys: ["du lich", "visa", "schengen", "quoc te", "chau au", "my", "nhat", "han", "uc", "chuyen di", "ve may bay", "trong nuoc", "di tour"] },
+            { topic: "app", keys: ["app", "tai app", "my pjico", "ung dung", "ma gioi thieu", "kttt_2409000022", "voucher", "diem", "200 diem", "cai app"] },
+            { topic: "boithuong", keys: ["boi thuong", "tai nan", "su co", "va cham", "goi ai", "1900", "giam dinh", "hien truong", "thu tuc boi thuong", "ho so boi thuong", "cuu ho"] },
+            { topic: "zalo", keys: ["zalo", "so dien thoai", "sdt", "hotline", "tong dai", "dia chi", "lien he", "goi"] },
+            { topic: "form", keys: ["mua", "dat mua", "tu van", "bao gia", "bang gia", "gia", "phi", "form", "dang ky", "cap don", "danh sach cho", "muon mua"] }
+        ];
+
+        function removeVietnameseTones(str) {
+            str = str.toLowerCase();
+            str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+            str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+            str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+            str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+            str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+            str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+            str = str.replace(/đ/g, "d");
+            return str;
+        }
+
+        // Bật / Tắt Chatbot Window
+        function togglePjicoChatbot() {
+            const chatWin = document.getElementById('pjicoChatWindow');
+            const openIcon = document.getElementById('chatOpenIcon');
+            const closeIcon = document.getElementById('chatCloseIcon');
+            const badgeBubble = document.getElementById('pjicoChatBadgeBubble');
+            if (!chatWin) return;
+
+            isPjicoChatOpen = !isPjicoChatOpen;
+
+            if (isPjicoChatOpen) {
+                chatWin.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
+                chatWin.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
+                if (openIcon) openIcon.classList.add('hidden');
+                if (closeIcon) closeIcon.classList.remove('hidden');
+                if (badgeBubble) badgeBubble.classList.add('hidden');
+
+                if (!isPjicoChatInitialized) {
+                    initPjicoChat();
+                    isPjicoChatInitialized = true;
+                }
+                setTimeout(() => {
+                    document.getElementById('pjicoChatInput')?.focus();
+                }, 300);
+            } else {
+                chatWin.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+                chatWin.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
+                if (openIcon) openIcon.classList.remove('hidden');
+                if (closeIcon) closeIcon.classList.add('hidden');
+            }
+        }
+
+        // Khởi tạo lời chào tự động khi khách mở chat lần đầu
+        function initPjicoChat() {
+            appendBotMessage(PJICO_CHAT_DATA.greeting, [
+                { type: "quick", topic: "xemay", text: "🛵 Xe máy TNDS", icon: "bike" },
+                { type: "quick", topic: "oto", text: "🚗 Ô tô & Đăng kiểm", icon: "car" },
+                { type: "quick", topic: "thanvo", text: "🛡️ Thân vỏ ô tô", icon: "shield" },
+                { type: "form", text: "📝 Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" }
+            ]);
+        }
+
+        // Thêm tin nhắn của Bot vào khung chat
+        function appendBotMessage(text, actions = []) {
+            const container = document.getElementById('pjicoChatMessages');
+            if (!container) return;
+
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = 'flex items-start gap-2.5 animate-fadeIn';
+
+            let actionHtml = '';
+            if (actions && actions.length > 0) {
+                actionHtml = `<div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">`;
+                actions.forEach(act => {
+                    const iconAttr = act.icon ? `<i data-lucide="${act.icon}" class="w-3.5 h-3.5 flex-shrink-0"></i>` : '';
+                    if (act.type === 'quick') {
+                        actionHtml += `<button onclick="handleQuickReply('${act.topic}')" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#002D62] text-[11px] font-semibold border border-blue-200 transition flex items-center gap-1 cursor-pointer">${iconAttr}<span>${act.text}</span></button>`;
+                    } else if (act.type === 'form') {
+                        actionHtml += `<button onclick="triggerChatAction('form', '${act.prod || 'xe_cogioi'}')" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs transition flex items-center gap-1 cursor-pointer">${iconAttr}<span>${act.text}</span></button>`;
+                    } else if (act.type === 'qr') {
+                        actionHtml += `<button onclick="triggerChatAction('qr', '${act.target || 'xemay'}')" class="px-2.5 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-semibold border border-amber-300 transition flex items-center gap-1 cursor-pointer">${iconAttr}<span>${act.text}</span></button>`;
+                    } else if (act.type === 'zalo') {
+                        actionHtml += `<button onclick="triggerChatAction('zalo')" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0068FF] text-[11px] font-semibold border border-blue-200 transition flex items-center gap-1 cursor-pointer">${iconAttr}<span>${act.text}</span></button>`;
+                    } else if (act.type === 'guide') {
+                        actionHtml += `<button onclick="triggerChatAction('guide', '${act.tab}')" class="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold transition flex items-center gap-1 cursor-pointer">${iconAttr}<span>${act.text}</span></button>`;
+                    } else if (act.type === 'link') {
+                        actionHtml += `<a href="${act.url}" target="_blank" class="px-2.5 py-1 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0B7CFF] text-[11px] font-semibold border border-blue-200 transition flex items-center gap-1">${iconAttr}<span>${act.text}</span></a>`;
+                    } else if (act.type === 'survey') {
+                        actionHtml += `<button onclick="triggerChatAction('survey')" class="px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-semibold border border-emerald-200 transition flex items-center gap-1 cursor-pointer">${iconAttr}<span>${act.text}</span></button>`;
+                    }
+                });
+                actionHtml += `</div>`;
+            }
+
+            msgWrapper.innerHTML = `
+                <div class="w-7 h-7 rounded-full bg-[#002D62] text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-2xs">
+                    <i data-lucide="bot" class="w-3.5 h-3.5 text-[#28B9E7]"></i>
+                </div>
+                <div class="max-w-[85%] bg-white rounded-2xl rounded-tl-none p-3 text-slate-800 border border-slate-200/90 shadow-2xs leading-relaxed">
+                    <div>${text}</div>
+                    ${actionHtml}
+                </div>
+            `;
+
+            container.appendChild(msgWrapper);
+            container.scrollTop = container.scrollHeight;
+            lucide.createIcons();
+        }
+
+        // Thêm tin nhắn của Khách vào khung chat
+        function appendUserMessage(text) {
+            const container = document.getElementById('pjicoChatMessages');
+            if (!container) return;
+
+            const msgWrapper = document.createElement('div');
+            msgWrapper.className = 'flex justify-end animate-fadeIn';
+            msgWrapper.innerHTML = `
+                <div class="max-w-[85%] bg-[#0B7CFF] text-white rounded-2xl rounded-tr-none px-3.5 py-2.5 shadow-2xs text-xs sm:text-[13px] leading-relaxed">
+                    ${text}
+                </div>
+            `;
+
+            container.appendChild(msgWrapper);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Xử lý khi khách bấm Quick Reply
+        function handleQuickReply(topicId) {
+            const data = PJICO_CHAT_DATA.answers[topicId];
+            if (!data) return;
+
+            appendUserMessage(data.userText || data.title);
+
+            // Giả lập bot phản hồi tự nhiên sau 300ms
+            setTimeout(() => {
+                appendBotMessage(data.text, data.actions);
+            }, 300);
+        }
+
+        // Xử lý khi khách gõ câu hỏi và nhấn gửi
+        function sendPjicoChatMessage() {
+            const input = document.getElementById('pjicoChatInput');
+            if (!input) return;
+            const query = input.value.trim();
+            if (!query) return;
+
+            appendUserMessage(query);
+            input.value = '';
+
+            const normalizedQuery = removeVietnameseTones(query);
+
+            let matchedTopic = null;
+            for (const item of PJICO_KEYWORD_MAP) {
+                for (const k of item.keys) {
+                    if (normalizedQuery.includes(k)) {
+                        matchedTopic = item.topic;
+                        break;
+                    }
+                }
+                if (matchedTopic) break;
+            }
+
+            setTimeout(() => {
+                if (matchedTopic && PJICO_CHAT_DATA.answers[matchedTopic]) {
+                    const data = PJICO_CHAT_DATA.answers[matchedTopic];
+                    appendBotMessage(data.text, data.actions);
+                } else {
+                    // Câu trả lời fallback theo phong cách sales_script.md
+                    appendBotMessage(`Dạ em đã ghi nhận câu hỏi của anh/chị ạ.<br><br>
+Vì mỗi gói bảo hiểm cần thông tin cụ thể (dòng xe, đời xe, năm sản xuất, độ tuổi hoặc lộ trình), anh/chị bấm nút <strong>Điền form nhận tư vấn</strong> để bên em kiểm tra biểu phí chính xác, hoặc nhắn tin Zalo <strong>0906.069.368</strong> để chuyên viên tư vấn 1-1 ngay nhé ạ!`, [
+                        { type: "form", text: "📝 Điền form nhận tư vấn", prod: "xe_cogioi", icon: "file-signature" },
+                        { type: "zalo", text: "💬 Nhắn Zalo: 0906.069.368", icon: "message-circle" },
+                        { type: "survey", text: "⚡ Khảo sát nhanh 30s", icon: "clipboard-check" }
+                    ]);
+                }
+            }, 350);
+        }
+
+        // Xử lý các Action Click từ Chatbot
+        function triggerChatAction(type, arg) {
+            if (type === 'sepay') {
+                openSepayModal(arg?.amount || 86000, arg?.desc || 'Bảo hiểm PJICO', arg?.code);
+                togglePjicoChatbot();
+            } else if (type === 'form') {
+                openFullRequestForm(arg || 'xe_cogioi');
+                togglePjicoChatbot(); // Thu nhỏ chatbot để khách nhìn thấy form
+                showToast("Đã mở Giấy Yêu Cầu Bảo Hiểm! Mời anh/chị điền thông tin");
+            } else if (type === 'survey') {
+                goToSurveySlide();
+                togglePjicoChatbot();
+            } else if (type === 'qr') {
+                selectProduct(arg || 'xemay');
+                togglePjicoChatbot();
+            } else if (type === 'guide') {
+                switchGuideTab(arg);
+                const guideSec = document.getElementById('cum-huong-dan');
+                if (guideSec) guideSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                togglePjicoChatbot();
+            } else if (type === 'zalo') {
+                window.open('https://zalo.me/0906069368', '_blank');
+            }
+        }
+
+        // Tự động hiện bong bóng gợi ý chat sau 2.5s
+        setTimeout(() => {
+            const badge = document.getElementById('pjicoChatBadgeBubble');
+            if (badge && !isPjicoChatOpen) {
+                badge.classList.remove('hidden');
+            }
+        }, 2500);
+
+        // 7. TOAST THÔNG BÁO
         function showToast(message) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
+            if (!toast || !toastMsg) return;
             toastMsg.innerText = message;
             toast.classList.remove('translate-y-24', 'opacity-0');
             setTimeout(() => {
