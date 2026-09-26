@@ -247,7 +247,12 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(content)
                 return
 
-        # 2. API Endpoints bảo mật (Yêu cầu đăng nhập)
+        # 2. Public API Endpoints (Khách hàng kiểm tra đơn hàng từ /thanhtoan)
+        if path == '/api/public/orders/check':
+            self.handle_public_check_order(parsed_url.query)
+            return
+
+        # 3. API Endpoints bảo mật (Yêu cầu đăng nhập)
         if path in ('/api/stats', '/api/products', '/api/customers', '/api/orders', '/api/verify-token'):
             if not self.is_authenticated():
                 self.send_error_json("Phiên làm việc hết hạn hoặc chưa đăng nhập", 401)
@@ -292,7 +297,12 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_public_create_order(payload)
             return
 
-        # 3. Webhook biến động số dư SePay (VietinBank SEVQR)
+        # 3. Xác nhận thanh toán từ trang /thanhtoan
+        if path == '/api/public/orders/confirm':
+            self.handle_public_confirm_order(payload)
+            return
+
+        # 4. Webhook biến động số dư SePay (VietinBank SEVQR)
         if path == '/api/sepay/webhook':
             self.handle_sepay_webhook(payload)
             return
@@ -769,6 +779,25 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            # Lấy thông tin đơn hàng hiện tại
+            row = cur.execute("""
+                SELECT o.status, o.product_id, p.product_type, p.stock_quantity
+                FROM orders o
+                JOIN products p ON o.product_id = p.id
+                WHERE o.id = ?;
+            """, (item_id,)).fetchone()
+
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng")
+                return
+
+            old_status, prod_id, p_type, p_stock = row
+
+            # Nếu đơn chuyển từ pending sang paid và là sản phẩm vật lý -> Trừ tồn kho 1
+            if old_status != 'paid' and status == 'paid' and p_type == 'physical':
+                if p_stock is not None and p_stock > 0:
+                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (prod_id,))
+
             if amount is not None:
                 amount = float(amount)
                 cur.execute("UPDATE orders SET status = ?, amount = ? WHERE id = ?;", (status, amount, item_id))
@@ -776,7 +805,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 cur.execute("UPDATE orders SET status = ? WHERE id = ?;", (status, item_id))
             conn.commit()
             sync_db_copies()
-            self.send_json({"success": True, "message": "Đã cập nhật đơn hàng thành công"})
+            self.send_json({"success": True, "message": "Đã cập nhật đơn hàng thành công", "status": status})
         except Exception as e:
             self.send_error_json("Lỗi khi cập nhật đơn hàng: " + str(e))
         finally:
@@ -792,14 +821,15 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"success": True, "message": "Đã xóa đơn hàng thành công"})
         except Exception as e:
             self.send_error_json("Lỗi khi xóa đơn hàng: " + str(e))
+
     def handle_public_create_order(self, payload):
-        """Khách hàng thanh toán từ cổng /thanhtoan -> Tự động lưu khách hàng, đơn hàng và trừ kho vật lý"""
+        """Khách hàng thanh toán từ cổng /thanhtoan -> Tự động lưu khách hàng, khởi tạo đơn hàng (mặc định pending)"""
         cust_name = str(payload.get('customer_name') or 'Khách vãng lai').strip()
         cust_phone = str(payload.get('customer_phone') or '').strip() or None
         prod_id = payload.get('product_id')
         prod_name = str(payload.get('product_name') or '').strip()
         amount = payload.get('amount')
-        status = payload.get('status') or 'paid'
+        status = payload.get('status') or 'pending'
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -831,14 +861,14 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             p_id, p_name, p_type, p_price, p_stock = prod
             order_amount = amount if amount is not None else p_price
 
-            # 3. QUY TẮC CỐT LÕI: Trừ tồn kho nếu là sản phẩm vật lý (physical)
+            # 3. QUY TẮC: Chỉ trừ tồn kho nếu là sản phẩm vật lý VÀ trạng thái là 'paid'
             stock_deducted = False
-            if p_type == 'physical':
+            if status == 'paid' and p_type == 'physical':
                 if p_stock is not None and p_stock > 0:
                     cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
                     stock_deducted = True
 
-            # 4. Tạo đơn hàng với trạng thái paid
+            # 4. Tạo đơn hàng với trạng thái (pending hoặc paid)
             cur.execute("INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, ?);",
                         (cust_id, p_id, order_amount, status))
             order_id = cur.lastrowid
@@ -847,7 +877,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             self.send_json({
                 "success": True,
-                "message": "Đã ghi nhận đơn hàng thanh toán thành công",
+                "message": f"Đã ghi nhận đơn hàng #{order_id} thành công",
                 "order_id": order_id,
                 "customer_id": cust_id,
                 "status": status,
@@ -856,6 +886,108 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         except Exception as e:
             conn.rollback()
             self.send_error_json("Lỗi tạo đơn thanh toán: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_public_check_order(self, query_string):
+        """Khách hàng kiểm tra trạng thái đơn hàng thời gian thực từ /thanhtoan"""
+        params = urllib.parse.parse_qs(query_string)
+        order_id = params.get('id', [None])[0]
+        phone = params.get('phone', [None])[0]
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            if order_id:
+                cur.execute("""
+                    SELECT o.id, o.amount, o.status, o.purchased_at, c.name as customer_name, c.phone as customer_phone, p.name as product_name, p.product_type
+                    FROM orders o
+                    JOIN customers c ON o.customer_id = c.id
+                    JOIN products p ON o.product_id = p.id
+                    WHERE o.id = ?;
+                """, (order_id,))
+            elif phone:
+                cur.execute("""
+                    SELECT o.id, o.amount, o.status, o.purchased_at, c.name as customer_name, c.phone as customer_phone, p.name as product_name, p.product_type
+                    FROM orders o
+                    JOIN customers c ON o.customer_id = c.id
+                    JOIN products p ON o.product_id = p.id
+                    WHERE c.phone = ?
+                    ORDER BY o.id DESC LIMIT 1;
+                """, (phone,))
+            else:
+                self.send_error_json("Thiếu tham số tra cứu (id hoặc phone)")
+                return
+
+            row = cur.fetchone()
+            if not row:
+                self.send_json({"success": False, "message": "Không tìm thấy đơn hàng"})
+                return
+
+            self.send_json({
+                "success": True,
+                "data": dict(row)
+            })
+        except Exception as e:
+            self.send_error_json("Lỗi tra cứu đơn: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_public_confirm_order(self, payload):
+        """Xác nhận khách hàng đã chuyển tiền -> Cập nhật trạng thái 'paid' và trừ tồn kho vật lý"""
+        order_id = payload.get('id') or payload.get('order_id')
+        phone = payload.get('phone') or payload.get('customer_phone')
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            target_order = None
+            if order_id:
+                cur.execute("""
+                    SELECT o.id, o.status, o.product_id, p.product_type, p.stock_quantity, p.name as product_name, o.amount, c.name as customer_name, c.phone as customer_phone
+                    FROM orders o
+                    JOIN products p ON o.product_id = p.id
+                    JOIN customers c ON o.customer_id = c.id
+                    WHERE o.id = ?;
+                """, (order_id,))
+                target_order = cur.fetchone()
+            elif phone:
+                cur.execute("""
+                    SELECT o.id, o.status, o.product_id, p.product_type, p.stock_quantity, p.name as product_name, o.amount, c.name as customer_name, c.phone as customer_phone
+                    FROM orders o
+                    JOIN products p ON o.product_id = p.id
+                    JOIN customers c ON o.customer_id = c.id
+                    WHERE c.phone = ?
+                    ORDER BY o.id DESC LIMIT 1;
+                """, (phone,))
+                target_order = cur.fetchone()
+
+            if not target_order:
+                self.send_error_json("Không tìm thấy đơn hàng để xác nhận")
+                return
+
+            o_id, cur_status, p_id, p_type, p_stock, p_name, o_amount, c_name, c_phone = target_order
+
+            if cur_status != 'paid':
+                cur.execute("UPDATE orders SET status = 'paid' WHERE id = ?;", (o_id,))
+                if p_type == 'physical' and p_stock is not None and p_stock > 0:
+                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+                conn.commit()
+                sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": "Xác nhận nhận tiền thành công",
+                "order_id": o_id,
+                "status": "paid",
+                "customer_name": c_name,
+                "customer_phone": c_phone,
+                "product_name": p_name,
+                "amount": o_amount
+            })
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi khi xác nhận thanh toán: " + str(e))
         finally:
             conn.close()
 

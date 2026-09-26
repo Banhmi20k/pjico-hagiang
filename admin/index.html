@@ -729,8 +729,25 @@
             const orders = getLocalOrders();
             const idx = orders.findIndex(o => o.id === parseInt(id));
             if (idx !== -1) {
+                const prevStatus = orders[idx].status;
                 orders[idx].status = status;
-                orders[idx].amount = parseFloat(amount);
+                if (amount !== undefined && amount !== null && amount !== '') {
+                    orders[idx].amount = parseFloat(amount);
+                }
+
+                // Nếu chuyển từ pending (hoặc trạng thái khác) sang paid, và là sản phẩm vật lý -> Trừ tồn kho
+                if (prevStatus !== 'paid' && status === 'paid') {
+                    const products = getLocalProducts();
+                    const prodId = orders[idx].product_id;
+                    const prod = products.find(p => p.id === prodId || p.name === orders[idx].product_name);
+                    if (prod && prod.product_type === 'physical') {
+                        if (prod.stock_quantity !== null && prod.stock_quantity > 0) {
+                            prod.stock_quantity -= 1;
+                            setLocalProducts(products);
+                        }
+                    }
+                }
+
                 setLocalOrders(orders);
             }
         }
@@ -1503,7 +1520,13 @@
                             <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${st.class}">${st.label}</span>
                         </td>
                         <td class="p-3 text-slate-500 text-xs">${formatDate(o.purchased_at)}</td>
-                        <td class="p-3 text-right space-x-1">
+                        <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                            ${o.status === 'pending' ? `
+                                <button onclick="approveOrderPayment(${o.id})" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1" title="Duyệt Đã Nhận Tiền (SePay)">
+                                    <i data-lucide="check" class="w-3 h-3"></i>
+                                    <span>Duyệt Tiền</span>
+                                </button>
+                            ` : ''}
                             <button onclick="editOrderStatus(${o.id}, '${o.status}', ${o.amount})" class="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition cursor-pointer" title="Cập nhật trạng thái">
                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                             </button>
@@ -1516,6 +1539,34 @@
             }).join('');
 
             lucide.createIcons();
+        }
+
+        async function approveOrderPayment(id) {
+            if (!confirm(`Xác nhận đã nhận được tiền cho đơn hàng #${id}? Trạng thái sẽ chuyển sang ĐÃ THANH TOÁN (Paid) và trừ tồn kho nếu là sản phẩm vật lý.`)) return;
+
+            if (isBackendActive) {
+                try {
+                    const res = await fetchWithAuth(`${API_BASE}/api/orders/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'paid' })
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        showToast(`Đã duyệt đơn hàng #${id} thành công!`);
+                        loadOrders();
+                        loadProducts();
+                        loadStats();
+                        return;
+                    }
+                } catch(e) {}
+            }
+
+            updateOrderLocal(id, 'paid');
+            showToast(`Đã duyệt đơn hàng #${id} thành công!`);
+            loadOrders();
+            loadProducts();
+            loadStats();
         }
 
         async function openOrderModal() {
