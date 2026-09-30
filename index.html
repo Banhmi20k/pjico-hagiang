@@ -519,239 +519,227 @@
                             </div>
 
                             <!-- Thân Card Khảo sát: Container các Bước (Steps) -->
-                            <div class="p-4 sm:p-6 min-h-[260px] sm:min-h-[280px] flex flex-col justify-between">
+                            <div class="p-4 sm:p-6 min-h-[280px] flex flex-col justify-between">
                                 
-                                <!-- BƯỚC 0: LỜI MỞ ĐẦU THÂN THIỆN THEO ĐỊNH VỊ -->
-                                <div id="survey-step-0" class="survey-step-content space-y-4 animate-fadeIn">
-                                    <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3">
-                                        <div class="w-8 h-8 rounded-xl bg-[#0B7CFF] text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
-                                            <i data-lucide="message-square-heart" class="w-4 h-4"></i>
-                                        </div>
-                                        <div class="space-y-1">
-                                            <p class="text-xs sm:text-[13.5px] text-slate-800 font-medium leading-relaxed">
-                                                "Chào anh/chị! Tại PJICO Hà Giang, anh/chị mua bảo hiểm online nhưng luôn có đội ngũ nhân viên địa phương hỗ trợ trực tiếp từ lúc cấp đơn đến khi bồi thường. Cho em xin 30 giây hỏi vài câu nhanh để tư vấn đúng gói và báo giá chuẩn nhé ạ 🙏"
-                                            </p>
-                                            <span class="text-[11px] text-slate-500 block">⚡ Trả lời dạng chọn nhanh chỉ mất 30 giây — Không cần gõ phím nhiều.</span>
+                                <!-- BƯỚC 1: SẢN PHẨM QUAN TÂM -->
+                                <div id="survey-step-1" class="survey-step-content space-y-4 animate-fadeIn">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-lg bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">1</span>
+                                        <div>
+                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
+                                                Dạ, anh/chị đang quan tâm đến gói bảo hiểm nào ạ?
+                                            </h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Chạm vào sản phẩm bên dưới để chọn nhanh (hoặc tự động chọn khi nhấn Nhờ tư vấn):</p>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-                                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
-                                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                                            <span class="text-slate-700 font-medium">Báo giá đúng biểu phí luật định</span>
-                                        </div>
-                                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
-                                            <i data-lucide="map-pin" class="w-4 h-4 text-[#0B7CFF] flex-shrink-0"></i>
-                                            <span class="text-slate-700 font-medium">Nhân sự Hà Giang hỗ trợ sự cố</span>
-                                        </div>
-                                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-2">
-                                            <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-600 flex-shrink-0"></i>
-                                            <span class="text-slate-700 font-medium">Đồng hành hồ sơ bồi thường</span>
-                                        </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1" id="surveyProductGrid">
+                                        <button type="button" onclick="selectSurveyProduct('vatchat_oto', 'Bảo hiểm Vật chất ô tô (Thân vỏ)')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🚗</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Vật chất ô tô</span>
+                                            <span class="text-[10px] text-slate-400">Thân vỏ, thủy kích</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('xemay', 'Bảo hiểm xe máy TNDS Điện Tử')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🛵</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Xe máy TNDS</span>
+                                            <span class="text-[10px] text-slate-400">86.000 đ/năm</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('oto_tnds', 'Bảo hiểm ô tô TNDS 5 chỗ')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🚙</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Ô tô TNDS</span>
+                                            <span class="text-[10px] text-slate-400">480.700 đ/năm</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('pinkcare', 'Bảo hiểm Ung thư PinkCare')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🎗️</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Ung thư PinkCare</span>
+                                            <span class="text-[10px] text-slate-400">Chi trả tới 1 Tỷ</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('hiemngheo', 'Bảo hiểm Bệnh hiểm nghèo')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🩺</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Bệnh hiểm nghèo</span>
+                                            <span class="text-[10px] text-slate-400">Bảo lãnh viện phí</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('dulich_qt', 'Du lịch quốc tế (Xin Visa)')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">✈️</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Du lịch quốc tế</span>
+                                            <span class="text-[10px] text-slate-400">Visa Schengen</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('nha_chayno', 'Bảo hiểm Cháy nổ & Nhà ở')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🏠</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Cháy nổ nhà ở</span>
+                                            <span class="text-[10px] text-slate-400">Nhà phố, xưởng</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyProduct('cuuho', 'Gói cứu hộ giao thông 24/7')" class="survey-prod-btn p-3 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 cursor-pointer text-center group">
+                                            <span class="text-2xl">🆘</span>
+                                            <span class="font-bold text-xs text-slate-800 group-hover:text-[#0B7CFF]">Cứu hộ 24/7</span>
+                                            <span class="text-[10px] text-slate-400">Kéo xe đèo dốc</span>
+                                        </button>
                                     </div>
 
-                                    <div class="pt-2 flex justify-end">
-                                        <button type="button" onclick="nextSurveyStep(1)" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer">
-                                            <span>Bắt đầu khảo sát (30s)</span>
+                                    <div class="pt-2 flex justify-between items-center text-xs text-slate-500 border-t border-slate-100">
+                                        <span>Đang chọn: <strong id="surveySelectedProdLabel" class="text-[#0B7CFF]">Vui lòng chọn 1 sản phẩm</strong></span>
+                                        <button type="button" onclick="nextSurveyStep(2)" id="btnStep1Next" disabled class="px-5 py-2.5 rounded-xl bg-slate-300 text-white font-bold flex items-center gap-1.5 transition cursor-not-allowed">
+                                            <span>Tiếp tục</span>
                                             <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                         </button>
                                     </div>
                                 </div>
 
-                                <!-- BƯỚC 1: HỌ TÊN KHÁCH HÀNG -->
-                                <div id="survey-step-1" class="survey-step-content space-y-4 hidden animate-fadeIn">
+                                <!-- BƯỚC 2: HỌ TÊN -->
+                                <div id="survey-step-2" class="survey-step-content space-y-4 hidden animate-fadeIn">
                                     <div class="flex items-start gap-3">
-                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">1</span>
+                                        <span class="w-7 h-7 rounded-lg bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">2</span>
                                         <div>
                                             <h4 class="font-bold text-sm sm:text-base text-slate-800">
-                                                Dạ, anh/chị tên gì ạ?
+                                                Dạ, anh/chị cho em xin Họ và Tên nhé?
                                             </h4>
-                                            <p class="text-xs text-slate-500 mt-0.5">Để em tiện xưng hô và gửi bảng báo giá chính xác cho anh/chị.</p>
+                                            <p class="text-xs text-slate-500 mt-0.5">Để chuyên viên tiện xưng hô và lập bảng báo giá đúng tên anh/chị:</p>
                                         </div>
                                     </div>
 
                                     <div class="pt-1">
-                                        <input type="text" id="surveyNameInput" placeholder="Ví dụ: Anh Nam, Chị Lan, Hoàng Văn Đức..." 
-                                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); nextSurveyStep(2); }"
+                                        <input type="text" id="surveyNameInput" placeholder="Ví dụ: Nguyễn Văn Bình, Chị Lan..." 
+                                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); nextSurveyStep(3); }"
                                                class="w-full p-3 rounded-xl border-2 border-slate-300 bg-white focus:border-[#0B7CFF] focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm font-semibold text-slate-800">
+                                        <span id="surveyNameAutoBadge" class="hidden text-[11px] text-emerald-600 mt-1 inline-flex items-center gap-1 font-semibold">
+                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> ✓ Đã tự động điền từ hồ sơ
+                                        </span>
                                     </div>
 
                                     <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
-                                        <button type="button" onclick="prevSurveyStep(0)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                                        <button type="button" onclick="prevSurveyStep(1)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
                                             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                                             <span>Quay lại</span>
                                         </button>
-                                        <button type="button" onclick="nextSurveyStep(2)" class="px-5 py-2 rounded-xl bg-[#0B7CFF] hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer">
+                                        <button type="button" onclick="nextSurveyStep(3)" class="px-5 py-2.5 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer">
                                             <span>Tiếp tục</span>
                                             <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                                         </button>
                                     </div>
                                 </div>
 
-                                <!-- BƯỚC 2: LOẠI XE ĐANG SỬ DỤNG -->
-                                <div id="survey-step-2" class="survey-step-content space-y-4 hidden animate-fadeIn">
-                                    <div class="flex items-start gap-3">
-                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">2</span>
-                                        <div>
-                                            <h4 class="font-bold text-sm sm:text-base text-slate-800">
-                                                Dạ <span class="customer-name-placeholder text-[#0B7CFF]">anh/chị</span>, anh/chị đang dùng xe máy hay ô tô (hoặc cả hai) ạ?
-                                            </h4>
-                                            <p class="text-xs text-slate-500 mt-0.5">Chạm vào lựa chọn của anh/chị để chuyển tiếp câu hỏi tiếp theo.</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                                        <button type="button" onclick="selectSurveyOption('vehicle', 'Xe máy 2 bánh', 3)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer text-center">
-                                            <span class="text-2xl sm:text-3xl">🛵</span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Xe máy 2 bánh</span>
-                                            <span class="text-[10.5px] text-slate-400">Xe số, tay ga, xe điện</span>
-                                        </button>
-                                        <button type="button" onclick="selectSurveyOption('vehicle', 'Xe ô tô', 3)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer text-center">
-                                            <span class="text-2xl sm:text-3xl">🚗</span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Xe ô tô</span>
-                                            <span class="text-[10.5px] text-slate-400">Xe con, xe tải, xe KD</span>
-                                        </button>
-                                        <button type="button" onclick="selectSurveyOption('vehicle', 'Cả xe máy & ô tô', 3)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1.5 group cursor-pointer text-center">
-                                            <span class="text-2xl sm:text-3xl">🛵🚗</span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Cả xe máy & ô tô</span>
-                                            <span class="text-[10.5px] text-slate-400">Combo gia đình</span>
-                                        </button>
-                                    </div>
-
-                                    <div class="pt-3 flex items-center justify-between border-t border-slate-100">
-                                        <button type="button" onclick="prevSurveyStep(1)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
-                                            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-                                            <span>Quay lại</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- BƯỚC 3: TÌNH TRẠNG BẢO HIỂM TNDS -->
+                                <!-- BƯỚC 3: SỐ ĐIỆN THOẠI -->
                                 <div id="survey-step-3" class="survey-step-content space-y-4 hidden animate-fadeIn">
                                     <div class="flex items-start gap-3">
-                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">3</span>
+                                        <span class="w-7 h-7 rounded-lg bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">3</span>
                                         <div>
                                             <h4 class="font-bold text-sm sm:text-base text-slate-800">
-                                                Xe của anh/chị đã có bảo hiểm TNDS bắt buộc chưa ạ?
+                                                Số điện thoại / Zalo để em gửi bảng báo giá ạ?
                                             </h4>
-                                            <p class="text-xs text-slate-500 mt-0.5">Quy định bắt buộc của CSGT khi tham gia giao thông trên đường.</p>
+                                            <p class="text-xs text-slate-500 mt-0.5">Chuyên viên PJICO Hà Giang sẽ gửi bảng chi phí ưu đãi qua Zalo cho anh/chị:</p>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                                        <button type="button" onclick="selectSurveyOption('status', 'Còn hiệu lực', 4)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
-                                            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                                                <i data-lucide="check" class="w-4 h-4"></i>
-                                            </span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-emerald-700">Còn hiệu lực</span>
-                                            <span class="text-[10.5px] text-slate-400">Đang có bảo hiểm</span>
-                                        </button>
-                                        <button type="button" onclick="selectSurveyOption('status', 'Sắp hết hạn', 4)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
-                                            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                                                <i data-lucide="clock" class="w-4 h-4"></i>
-                                            </span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-amber-700">Sắp hết hạn</span>
-                                            <span class="text-[10.5px] text-slate-400">Dưới 1 tháng / Muốn gia hạn</span>
-                                        </button>
-                                        <button type="button" onclick="selectSurveyOption('status', 'Chưa có / Đã hết hạn', 4)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-rose-500 hover:bg-rose-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
-                                            <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
-                                                <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                                            </span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-rose-700">Chưa có / Hết hạn</span>
-                                            <span class="text-[10.5px] text-slate-400">Cần cấp chứng nhận gấp</span>
-                                        </button>
+                                    <div class="pt-1">
+                                        <input type="tel" id="surveyPhoneInput" placeholder="Ví dụ: 0987501199" 
+                                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); nextSurveyStep(4); }"
+                                               class="w-full p-3 rounded-xl border-2 border-slate-300 bg-white focus:border-[#0B7CFF] focus:ring-2 focus:ring-blue-100 outline-none text-sm font-bold text-slate-800 font-mono">
+                                        <span id="surveyPhoneAutoBadge" class="hidden text-[11px] text-emerald-600 mt-1 inline-flex items-center gap-1 font-semibold">
+                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> ✓ Nhận diện khách hàng thân thiết
+                                        </span>
                                     </div>
 
-                                    <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+                                    <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
                                         <button type="button" onclick="prevSurveyStep(2)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
                                             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                                             <span>Quay lại</span>
                                         </button>
+                                        <button type="button" onclick="nextSurveyStep(4)" class="px-5 py-2.5 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer">
+                                            <span>Tiếp tục</span>
+                                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <!-- BƯỚC 4: BẢO HIỂM NGƯỜI NGỒI TRÊN XE -->
+                                <!-- BƯỚC 4: NHU CẦU CỤ THỂ -->
                                 <div id="survey-step-4" class="survey-step-content space-y-4 hidden animate-fadeIn">
                                     <div class="flex items-start gap-3">
-                                        <span class="w-7 h-7 rounded-lg bg-[#0B7CFF] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">4</span>
+                                        <span class="w-7 h-7 rounded-lg bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">4</span>
                                         <div>
                                             <h4 class="font-bold text-sm sm:text-base text-slate-800">
-                                                Anh/chị có muốn thêm bảo hiểm cho người ngồi trên xe (tai nạn cho bản thân và người đi cùng) không ạ?
+                                                Nhu cầu cụ thể của anh/chị là gì ạ?
                                             </h4>
-                                            <p class="text-xs text-slate-500 mt-0.5">Bồi thường chi phí y tế & thương tật cho lái xe và người ngồi sau với mức phí rất nhỏ chỉ từ 10k - 20k/năm.</p>
+                                            <p class="text-xs text-slate-500 mt-0.5">Chọn nhanh tình trạng hoặc ghi chú thêm chi tiết:</p>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-                                        <button type="button" onclick="selectSurveyOption('passenger', 'Có (Thêm người ngồi trên xe)', 5)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
-                                            <span class="w-8 h-8 rounded-xl bg-blue-100 text-[#0B7CFF] flex items-center justify-center font-bold">
-                                                <i data-lucide="shield-plus" class="w-4 h-4"></i>
-                                            </span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-[#0B7CFF]">Có, muốn tham gia</span>
-                                            <span class="text-[10.5px] text-slate-400">Bảo vệ toàn diện</span>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                                        <button type="button" onclick="selectSurveyDemand('Mua mới cho xe / tài sản vừa mua')" class="survey-demand-btn p-3 rounded-xl border border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/40 text-left transition flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                                            <span class="w-6 h-6 rounded-lg bg-blue-100 text-[#0B7CFF] flex items-center justify-center flex-shrink-0 font-bold">1</span>
+                                            <span>Mua mới cho xe / tài sản vừa mua</span>
                                         </button>
-                                        <button type="button" onclick="selectSurveyOption('passenger', 'Không (Chỉ cần TNDS bắt buộc)', 5)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-slate-400 hover:bg-slate-50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
-                                            <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
-                                                <i data-lucide="minus" class="w-4 h-4"></i>
-                                            </span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800">Không, chỉ TNDS</span>
-                                            <span class="text-[10.5px] text-slate-400">Tiết kiệm tối thiểu</span>
+                                        <button type="button" onclick="selectSurveyDemand('Gia hạn / Tái tục sắp hết hạn')" class="survey-demand-btn p-3 rounded-xl border border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/40 text-left transition flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                                            <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 font-bold">2</span>
+                                            <span>Gói cũ sắp hết hạn, cần tái tục gấp</span>
                                         </button>
-                                        <button type="button" onclick="selectSurveyOption('passenger', 'Chưa rõ (Muốn tư vấn thêm)', 5)" 
-                                                class="survey-opt-btn p-3 sm:p-3.5 rounded-2xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 bg-white transition flex flex-col items-center justify-center gap-1 group cursor-pointer text-center">
-                                            <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-                                                <i data-lucide="help-circle" class="w-4 h-4"></i>
-                                            </span>
-                                            <span class="font-bold text-xs sm:text-sm text-slate-800 group-hover:text-amber-700">Chưa rõ, tư vấn thêm</span>
-                                            <span class="text-[10.5px] text-slate-400">Chi tiết quyền lợi</span>
+                                        <button type="button" onclick="selectSurveyDemand('Hồ sơ nộp Đại sứ quán xin Visa')" class="survey-demand-btn p-3 rounded-xl border border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/40 text-left transition flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                                            <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold">3</span>
+                                            <span>Cần chứng chỉ hợp chuẩn nộp Visa</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyDemand('Tư vấn gói tiết kiệm, bảo vệ cao nhất')" class="survey-demand-btn p-3 rounded-xl border border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/40 text-left transition flex items-center gap-2.5 text-xs font-semibold text-slate-700">
+                                            <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center flex-shrink-0 font-bold">4</span>
+                                            <span>Tư vấn phương án chi phí tiết kiệm nhất</span>
                                         </button>
                                     </div>
 
-                                    <div class="pt-3 flex items-center justify-between border-t border-slate-100">
+                                    <div>
+                                        <input type="text" id="surveyDemandCustom" placeholder="Ghi chú thêm (nếu có): Đời xe, năm SX, số chỗ, ngày xuất ngoại..." class="w-full p-2.5 rounded-xl border border-slate-300 bg-white focus:border-[#0B7CFF] outline-none text-xs text-slate-700">
+                                    </div>
+
+                                    <div class="pt-3 flex items-center justify-between gap-3 border-t border-slate-100">
                                         <button type="button" onclick="prevSurveyStep(3)" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer">
                                             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                                             <span>Quay lại</span>
                                         </button>
+                                        <button type="button" onclick="nextSurveyStep(5)" class="px-5 py-2.5 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white text-xs font-bold flex items-center gap-1.5 shadow transition cursor-pointer">
+                                            <span>Tiếp tục</span>
+                                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <!-- BƯỚC 5: SỐ ĐIỆN THOẠI / ZALO NHẬN BÁO GIÁ -->
+                                <!-- BƯỚC 5: THỜI GIAN DỰ KIẾN MUA & CTA NHẬN TƯ VẤN -->
                                 <div id="survey-step-5" class="survey-step-content space-y-4 hidden animate-fadeIn">
                                     <div class="flex items-start gap-3">
-                                        <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">5</span>
+                                        <span class="w-7 h-7 rounded-lg bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs mt-0.5">5</span>
                                         <div>
                                             <h4 class="font-bold text-sm sm:text-base text-slate-800">
-                                                Dạ tuyệt vời! Anh/chị cho em xin số Zalo/điện thoại để gửi báo giá và tư vấn chi tiết nhé?
+                                                Dự kiến khi nào anh/chị cần tham gia bảo hiểm ạ?
                                             </h4>
-                                            <p class="text-xs text-slate-500 mt-0.5">Chuyên viên PJICO Hà Giang sẽ gửi bảng tính phí ưu đãi ngay lập tức.</p>
+                                            <p class="text-xs text-slate-500 mt-0.5">Để chuyên viên hỗ trợ kịp tiến độ công việc của anh/chị:</p>
                                         </div>
                                     </div>
 
-                                    <div class="pt-1 space-y-2.5">
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Số Zalo / Điện thoại của anh/chị <span class="text-red-500">*</span>:</label>
-                                            <input type="tel" id="surveyPhoneInput" placeholder="Ví dụ: 0912345678" 
-                                                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); submitSurveyForm(); }"
-                                                   class="w-full p-3 rounded-xl border-2 border-slate-300 bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none text-sm font-bold text-slate-800 font-mono">
-                                        </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                                        <button type="button" onclick="selectSurveyTiming('Cần gấp hôm nay')" class="survey-timing-btn p-2.5 rounded-xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 bg-white transition flex flex-col items-center justify-center text-center cursor-pointer group">
+                                            <span class="text-xs font-bold text-slate-800 group-hover:text-emerald-700">⚡ Cần gấp hôm nay</span>
+                                            <span class="text-[10px] text-slate-400">Xử lý ngay</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyTiming('Trong tuần này')" class="survey-timing-btn p-2.5 rounded-xl border-2 border-slate-200 hover:border-[#0B7CFF] hover:bg-blue-50/50 bg-white transition flex flex-col items-center justify-center text-center cursor-pointer group">
+                                            <span class="text-xs font-bold text-slate-800 group-hover:text-[#0B7CFF]">📅 Trong tuần này</span>
+                                            <span class="text-[10px] text-slate-400">Sắp hết hạn</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyTiming('Trong tháng này')" class="survey-timing-btn p-2.5 rounded-xl border-2 border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 bg-white transition flex flex-col items-center justify-center text-center cursor-pointer group">
+                                            <span class="text-xs font-bold text-slate-800 group-hover:text-indigo-700">🗓️ Trong tháng này</span>
+                                            <span class="text-[10px] text-slate-400">Có kế hoạch</span>
+                                        </button>
+                                        <button type="button" onclick="selectSurveyTiming('Đang tham khảo giá')" class="survey-timing-btn p-2.5 rounded-xl border-2 border-slate-200 hover:border-amber-500 hover:bg-amber-50/50 bg-white transition flex flex-col items-center justify-center text-center cursor-pointer group">
+                                            <span class="text-xs font-bold text-slate-800 group-hover:text-amber-700">🔍 Tham khảo giá</span>
+                                            <span class="text-[10px] text-slate-400">Xem trước</span>
+                                        </button>
+                                    </div>
 
-                                        <!-- Lựa chọn kênh tiếp nhận -->
-                                        <div class="flex items-center gap-4 text-xs font-semibold text-slate-700 pt-0.5">
-                                            <label class="flex items-center gap-2 cursor-pointer">
+                                    <!-- Lựa chọn kênh tiếp nhận -->
+                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                        <span class="font-bold text-slate-700">Kênh nhận báo giá:</span>
+                                        <div class="flex items-center gap-4 font-semibold text-slate-700">
+                                            <label class="flex items-center gap-1.5 cursor-pointer">
                                                 <input type="radio" name="surveyChannel" value="Zalo" checked class="w-4 h-4 text-[#0068FF] accent-[#0068FF]">
-                                                <span>Nhận qua Zalo (Ưu tiên)</span>
+                                                <span>Zalo (Khuyên dùng)</span>
                                             </label>
-                                            <label class="flex items-center gap-2 cursor-pointer">
+                                            <label class="flex items-center gap-1.5 cursor-pointer">
                                                 <input type="radio" name="surveyChannel" value="Phone" class="w-4 h-4 text-emerald-600 accent-emerald-600">
-                                                <span>Gọi điện tư vấn</span>
+                                                <span>Điện thoại tư vấn</span>
                                             </label>
                                         </div>
                                     </div>
@@ -761,33 +749,33 @@
                                             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                                             <span>Quay lại</span>
                                         </button>
-                                        <button type="button" id="btnSubmitSurvey" onclick="submitSurveyForm()" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg transition cursor-pointer">
+                                        <button type="button" id="btnSubmitSurvey" onclick="submitSurveyForm()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-[#002D62] to-[#0B7CFF] hover:from-[#086375] hover:to-teal-600 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg transition cursor-pointer">
                                             <i data-lucide="send" class="w-4 h-4"></i>
-                                            <span>Gửi Khảo Sát & Nhận Báo Giá</span>
+                                            <span>NHẬN TƯ VẤN</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                <!-- BƯỚC 6 (KẾT QUẢ): CẢM ƠN VÀ KẾT NỐI TỨC THÌ -->
+                                <!-- BƯỚC 6: CẢM ƠN (SAU KHI SUBMIT) -->
                                 <div id="survey-step-6" class="survey-step-content space-y-4 hidden animate-fadeIn text-center py-2">
-                                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
-                                        <i data-lucide="check-check" class="w-6 h-6"></i>
+                                    <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-md">
+                                        <i data-lucide="check-check" class="w-7 h-7"></i>
                                     </div>
 
                                     <div class="space-y-1">
-                                        <h4 class="text-base sm:text-xl font-extrabold text-[#086375]">
-                                            Cảm Ơn <span id="survey-res-name" class="text-emerald-700">Anh/Chị</span>!
+                                        <h4 class="text-base sm:text-xl font-extrabold text-[#002D62]">
+                                            Cảm ơn anh/chị. Thông tin đã được ghi nhận.
                                         </h4>
                                         <p class="text-xs text-slate-600 max-w-md mx-auto">
-                                            Em đã nhận được câu trả lời và tự động lưu hồ sơ vào hệ thống PJICO Hà Giang. Chuyên viên sẽ liên hệ gửi bảng báo giá ưu đãi tốt nhất ngay ạ!
+                                            Chuyên viên PJICO Hà Giang sẽ chuẩn bị phương án bảo hiểm tối ưu và liên hệ hỗ trợ <span id="survey-res-name" class="font-bold text-[#0B7CFF]">anh/chị</span> ngay qua Zalo/Điện thoại ạ!
                                         </p>
                                     </div>
 
                                     <!-- Bảng tóm tắt kết quả khảo sát -->
-                                    <div class="max-w-md mx-auto bg-slate-50 rounded-2xl p-3 border border-slate-200 text-left text-xs space-y-1.5">
-                                        <div class="flex justify-between border-b border-slate-200 pb-1 font-semibold text-slate-500">
-                                            <span>Thông tin khảo sát</span>
-                                            <span id="survey-res-id" class="font-mono text-[#0B7CFF]">PJICO-...</span>
+                                    <div class="max-w-md mx-auto bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left text-xs space-y-2">
+                                        <div class="flex justify-between border-b border-slate-200 pb-1.5 font-semibold text-slate-500">
+                                            <span>Mã phiếu khảo sát</span>
+                                            <span id="survey-res-id" class="font-mono text-[#0B7CFF] font-bold">PJICO-...</span>
                                         </div>
                                         <div class="flex justify-between">
                                             <span class="text-slate-500">Họ và tên:</span>
@@ -798,35 +786,34 @@
                                             <span id="survey-res-phone-val" class="font-bold text-slate-800 font-mono">-</span>
                                         </div>
                                         <div class="flex justify-between">
-                                            <span class="text-slate-500">Phương tiện:</span>
-                                            <span id="survey-res-vehicle-val" class="font-semibold text-slate-800">-</span>
+                                            <span class="text-slate-500">Sản phẩm quan tâm:</span>
+                                            <span id="survey-res-vehicle-val" class="font-bold text-[#002D62]">-</span>
                                         </div>
                                         <div class="flex justify-between">
-                                            <span class="text-slate-500">Tình trạng TNDS:</span>
+                                            <span class="text-slate-500">Nhu cầu:</span>
                                             <span id="survey-res-status-val" class="font-semibold text-slate-800">-</span>
                                         </div>
                                         <div class="flex justify-between">
-                                            <span class="text-slate-500">BH Người trên xe:</span>
+                                            <span class="text-slate-500">Thời gian dự kiến:</span>
                                             <span id="survey-res-passenger-val" class="font-semibold text-slate-800">-</span>
                                         </div>
                                     </div>
 
-                                    <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
-                                        <a id="survey-checkout-link" href="/thanhtoan/" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-md transition">
-                                            <i data-lucide="credit-card" class="w-4 h-4"></i>
-                                            <span>Đặt Mua & Thanh Toán Ngay</span>
-                                        </a>
+                                    <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-2">
                                         <a id="survey-zalo-link" href="https://zalo.me/0906069368" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0068FF] hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md transition">
                                             <i data-lucide="message-circle" class="w-4 h-4"></i>
-                                            <span>Mở Khung Chat Zalo</span>
+                                            <span>Mở Khung Chat Zalo Ngay</span>
+                                        </a>
+                                        <a id="survey-checkout-link" href="/thanhtoan/" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-md transition">
+                                            <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                            <span>Xem Bảng Mua Trực Tiếp</span>
                                         </a>
                                         <button type="button" onclick="resetSurvey()" class="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold text-xs transition cursor-pointer">
                                             <span>Khảo sát lại</span>
                                         </button>
                                     </div>
                                 </div>
-
-                            </div>
+                            </div></div>
                         </div>
                     </div>
                 </div>
@@ -1037,8 +1024,8 @@
             <!-- Product Cards Grid (Tông màu Clean & Modern theo ipjico.vn) -->
             <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                <!-- 1. Gói Cơ Bản Xe Máy (Mua Nhanh QR) -->
-                <div onclick="selectProduct('xemay')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
+                <!-- 1. Gói Cơ Bản Xe Máy (MUA NGAY) -->
+                <div class="group bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-[#0B7CFF] text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
                         Bắt buộc Luật
                     </div>
@@ -1046,31 +1033,44 @@
                         <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
                             <i data-lucide="bike" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
-                            Gói Cơ Bản Xe Máy
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-[#0B7CFF] transition leading-tight">
+                            Bảo Hiểm TNDS Xe Máy (Điện Tử)
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">TNDS Bắt buộc + Tai nạn Lái xe & Người ngồi trên xe.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">TNDS Bắt buộc theo Nghị định 67 + Tai nạn 02 người ngồi trên xe.</p>
                         
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Trách nhiệm bồi thường:</span>
-                            <span class="text-sm font-bold text-[#086375]">150 Triệu đ/người/vụ</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Phí chỉ từ <strong>~86.000 đ/năm</strong></span>
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Xe mô tô, gắn máy 2 bánh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">150 Triệu đ/người/vụ</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-base font-extrabold text-[#0B7CFF]">86.000 đ/năm</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="qr-code" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Chi Tiết & Quét QR</span>
-                        </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-trach-nhiem-dan-su-bat-buoc" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <a href="/thanhtoan/?product=xemay&amount=86000" class="col-span-1 bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm text-center">
+                            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+                            <span>MUA NGAY</span>
                         </a>
+                        <button type="button" onclick="openQuickSurvey('xemay', 'Bảo hiểm xe máy TNDS Điện Tử')" class="col-span-1 bg-white hover:bg-blue-50 text-[#002D62] border border-slate-300 hover:border-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition text-center cursor-pointer">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-[#0B7CFF]"></i>
+                            <span>NHỜ TƯ VẤN</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- 2. Gói Cơ Bản Ô Tô (Mua Nhanh QR) -->
-                <div onclick="selectProduct('oto')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
+                <!-- 2. Gói Cơ Bản Ô Tô (MUA NGAY) -->
+                <div class="group bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-[#086375] text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
                         Xét Đăng Kiểm
                     </div>
@@ -1078,204 +1078,301 @@
                         <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
                             <i data-lucide="car" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
-                            Gói Cơ Bản Ô Tô
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-[#0B7CFF] transition leading-tight">
+                            Bảo Hiểm Ô Tô TNDS 5 Chỗ
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">TNDS Bắt buộc ô tô + Bảo hiểm Lái xe & Người ngồi theo số chỗ.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Giấy chứng nhận điện tử có QR tích hợp dữ liệu Cục Đăng kiểm toàn quốc.</p>
                         
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Trách nhiệm bồi thường:</span>
-                            <span class="text-sm font-bold text-[#086375]">150 Triệu đ/người/vụ</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Phí từ <strong>480.700 đ/năm</strong> (+người)</span>
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Ô tô dưới 6 chỗ không KD</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">150 Triệu đ (người) / 100Tr (ts)</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-base font-extrabold text-[#0B7CFF]">480.700 đ/năm</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="qr-code" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Chi Tiết & Quét QR</span>
-                        </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-trach-nhiem-dan-su-bat-buoc" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <a href="/thanhtoan/?product=oto&amount=480700" class="col-span-1 bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm text-center">
+                            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+                            <span>MUA NGAY</span>
                         </a>
+                        <button type="button" onclick="openQuickSurvey('oto_tnds', 'Bảo hiểm ô tô TNDS 5 chỗ')" class="col-span-1 bg-white hover:bg-blue-50 text-[#002D62] border border-slate-300 hover:border-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition text-center cursor-pointer">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-[#0B7CFF]"></i>
+                            <span>NHỜ TƯ VẤN</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- 3. Bảo hiểm Vật chất ô tô (Thân vỏ) -->
-                <div onclick="selectProduct('vatchat')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                <!-- 3. Thẻ Cứng & Ấn Chỉ Xe Máy (MUA NGAY) -->
+                <div class="group bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                        Giao Tận Nhà
+                    </div>
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3 group-hover:bg-amber-500 group-hover:text-white transition">
+                            <i data-lucide="credit-card" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-[#0B7CFF] transition leading-tight">
+                            Thẻ Cứng BH Xe Máy (Ép Nhựa)
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Ấn chỉ vật lý phôi chuẩn Bộ Tài Chính, giao tận nơi tại Hà Giang & toàn quốc.</p>
+                        
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Xe máy cần thẻ cứng cầm tay</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">TNDS + Tai nạn lái xe</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-base font-extrabold text-[#0B7CFF]">86.000 đ/thẻ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <a href="/thanhtoan/?product=thecung&amount=86000" class="col-span-1 bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm text-center">
+                            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+                            <span>MUA NGAY</span>
+                        </a>
+                        <button type="button" onclick="openQuickSurvey('thecung', 'Thẻ Cứng BH Xe Máy')" class="col-span-1 bg-white hover:bg-blue-50 text-[#002D62] border border-slate-300 hover:border-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition text-center cursor-pointer">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-[#0B7CFF]"></i>
+                            <span>NHỜ TƯ VẤN</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Gói Cứu Hộ Giao Thông 24/7 (MUA NGAY) -->
+                <div class="group bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                        Đèo Dốc 24/7
+                    </div>
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-3 group-hover:bg-rose-500 group-hover:text-white transition">
+                            <i data-lucide="life-buoy" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-[#0B7CFF] transition leading-tight">
+                            Gói Cứu Hộ Giao Thông Khẩn Cấp
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Cứu hộ kéo xe, kích bình ắc quy, xử lý lốp dự phòng trên toàn địa bàn Hà Giang.</p>
+                        
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Xe ô tô & xe máy</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm (Hưởng không giới hạn)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">Kéo xe & Hỗ trợ kỹ thuật 24/7</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-base font-extrabold text-[#0B7CFF]">300.000 đ/năm</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <a href="/thanhtoan/?product=cuuho&amount=300000" class="col-span-1 bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm text-center">
+                            <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+                            <span>MUA NGAY</span>
+                        </a>
+                        <button type="button" onclick="openQuickSurvey('cuuho', 'Gói cứu hộ giao thông 24/7')" class="col-span-1 bg-white hover:bg-blue-50 text-[#002D62] border border-slate-300 hover:border-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition text-center cursor-pointer">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-[#0B7CFF]"></i>
+                            <span>NHỜ TƯ VẤN</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 5. Bảo hiểm Vật chất ô tô (NHỜ TƯ VẤN) -->
+                <div class="group bg-white border border-slate-200 hover:border-[#086375] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-teal-50 text-[#086375] flex items-center justify-center mb-3 group-hover:bg-[#086375] group-hover:text-white transition">
                             <i data-lucide="shield" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
-                            Vật Chất Xe Ô Tô (Thân Vỏ)
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-[#086375] transition leading-tight">
+                            Bảo Hiểm Vật Chất Ô Tô (Thân Vỏ)
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Đâm va, trầy xước, ngập nước (thủy kích), mất cắp bộ phận, cứu hộ 24/7.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Đâm va, lật đổ, ngập nước (thủy kích), mất cắp bộ phận, cứu hộ miễn phí.</p>
                         
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Quyền lợi:</span>
-                            <span class="text-sm font-bold text-[#086375]">100% Giá Trị Tổn Thất</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Báo giá theo đời xe & giá trị xe</span>
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Xe ô tô cá nhân & kinh doanh</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">100% Giá trị tổn thất thực tế</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Liên hệ để báo phí</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Báo Giá Zalo / App</span>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <button type="button" onclick="openQuickSurvey('vatchat_oto', 'Bảo hiểm Vật chất ô tô (Thân vỏ)')" class="col-span-1 bg-[#086375] hover:bg-teal-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm cursor-pointer text-center">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <span>NHỜ TƯ VẤN</span>
                         </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-vat-chat-xe-o-to" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
+                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-vat-chat-xe-o-to" target="_blank" class="col-span-1 bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition border border-[#28B9E7]/30 text-center">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                            <span>Xem Quy Tắc</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- 4. Bảo hiểm Bệnh Ung Thư (PinkCare) -->
-                <div onclick="selectProduct('ungthu')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                <!-- 6. Bảo hiểm Bệnh Ung Thư PinkCare (NHỜ TƯ VẤN) -->
+                <div class="group bg-white border border-slate-200 hover:border-pink-500 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
+                        <div class="w-12 h-12 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center mb-3 group-hover:bg-pink-500 group-hover:text-white transition">
                             <i data-lucide="activity" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
-                            Bảo Hiểm Bệnh Ung Thư
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-pink-600 transition leading-tight">
+                            Bảo Hiểm Ung Thư (PinkCare)
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">PinkCare chi trả ngay số tiền lớn khi phát hiện bệnh theo giai đoạn.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Chi trả 100% số tiền bảo hiểm ngay khi có chẩn đoán xác định bệnh ung thư.</p>
                         
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Quyền lợi chi trả:</span>
-                            <span class="text-sm font-bold text-[#086375]">Lên đến 1 Tỷ Đồng</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Không cần khám sức khỏe trước</span>
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Công dân từ 18 - 55 tuổi</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm (Tái tục đến 65T)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">Lên đến 1 Tỷ Đồng</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Liên hệ để báo phí</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Đăng Ký Zalo / App</span>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <button type="button" onclick="openQuickSurvey('pinkcare', 'Bảo hiểm Ung thư PinkCare')" class="col-span-1 bg-[#086375] hover:bg-teal-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm cursor-pointer text-center">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <span>NHỜ TƯ VẤN</span>
                         </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-benh-ung-thu" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
+                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-benh-ung-thu" target="_blank" class="col-span-1 bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition border border-[#28B9E7]/30 text-center">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                            <span>Xem Quy Tắc</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- 5. Bảo hiểm Bệnh Hiểm Nghèo -->
-                <div onclick="selectProduct('hiemngheo')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                <!-- 7. Bảo hiểm Bệnh Hiểm Nghèo (NHỜ TƯ VẤN) -->
+                <div class="group bg-white border border-slate-200 hover:border-emerald-600 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover:bg-emerald-600 group-hover:text-white transition">
                             <i data-lucide="heart-pulse" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-emerald-700 transition leading-tight">
                             Bảo Hiểm Bệnh Hiểm Nghèo
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Bảo vệ trước đột quỵ, nhồi máu cơ tim, suy thận... Bảo lãnh viện phí.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Bảo vệ trước 37 bệnh hiểm nghèo: đột quỵ, nhồi máu cơ tim, suy thận...</p>
                         
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Bảo lãnh:</span>
-                            <span class="text-sm font-bold text-[#086375]">Hàng Trăm Triệu Đồng</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Mạng lưới bệnh viện toàn quốc</span>
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Công dân từ 01 - 65 tuổi</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">01 Năm</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">Bảo lãnh viện phí toàn quốc</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Liên hệ để báo phí</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Đăng Ký Zalo / App</span>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <button type="button" onclick="openQuickSurvey('hiemngheo', 'Bảo hiểm Bệnh hiểm nghèo')" class="col-span-1 bg-[#086375] hover:bg-teal-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm cursor-pointer text-center">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <span>NHỜ TƯ VẤN</span>
                         </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-benh-hiem-ngheo" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
+                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-benh-hiem-ngheo" target="_blank" class="col-span-1 bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition border border-[#28B9E7]/30 text-center">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                            <span>Xem Quy Tắc</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- 6. Du Lịch Quốc Tế (Xin Visa) -->
-                <div onclick="selectProduct('dulich_qt')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
+                <!-- 8. Du Lịch Quốc Tế Xin Visa (NHỜ TƯ VẤN) -->
+                <div class="group bg-white border border-slate-200 hover:border-cyan-600 rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-3 group-hover:bg-cyan-600 group-hover:text-white transition">
                             <i data-lucide="plane" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
+                        <h3 class="font-bold text-[17px] text-[#002D62] group-hover:text-cyan-700 transition leading-tight">
                             Du Lịch Quốc Tế (Xin Visa)
                         </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Đạt chuẩn nộp Visa Schengen (Châu Âu), Mỹ, Nhật, Hàn, Úc. Cứu hộ SOS.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Đạt chuẩn 100% nộp Visa Schengen (Châu Âu), Mỹ, Nhật, Hàn, Úc. Cứu trợ khẩn 24/7.</p>
                         
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Hạn mức chi trả:</span>
-                            <span class="text-sm font-bold text-[#086375]">Đến 50.000 EUR/USD</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Bồi thường trễ chuyến, mất hành lý</span>
+                        <div class="my-3 p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Đối tượng:</span>
+                                <span class="font-semibold text-slate-800">Du lịch, công tác, du học</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Thời hạn:</span>
+                                <span class="font-semibold text-slate-800">1 đến 180 ngày/chuyến</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Quyền lợi:</span>
+                                <span class="font-bold text-emerald-700">Đến 50.000 EUR/USD</span>
+                            </div>
+                            <div class="pt-1 border-t border-slate-200 flex justify-between items-center">
+                                <span class="text-slate-500 font-medium">Mức phí:</span>
+                                <span class="text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Liên hệ để báo phí</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Cấp Đơn Zalo / App</span>
+                    <div class="pt-2 grid grid-cols-2 gap-2">
+                        <button type="button" onclick="openQuickSurvey('dulich_qt', 'Du lịch quốc tế (Xin Visa)')" class="col-span-1 bg-[#086375] hover:bg-teal-700 text-white font-bold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm cursor-pointer text-center">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            <span>NHỜ TƯ VẤN</span>
                         </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-du-lich-quoc-te" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
+                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-du-lich-quoc-te" target="_blank" class="col-span-1 bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-xs flex items-center justify-center gap-1 transition border border-[#28B9E7]/30 text-center">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                            <span>Xem Quy Tắc</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- 7. Du Lịch Trong Nước -->
-                <div onclick="selectProduct('dulich_nd')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
-                            <i data-lucide="map-pin" class="w-6 h-6"></i>
-                        </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
-                            Du Lịch Trong Nước
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Bảo vệ chi phí y tế tai nạn, ngộ độc thức ăn cho cá nhân và đoàn du lịch.</p>
-                        
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Mức phí:</span>
-                            <span class="text-sm font-bold text-[#086375]">Từ 1.500 đ/người/ngày</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Cấp đơn cấp tốc cho đoàn</span>
-                        </div>
-                    </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Cấp Đơn Zalo / App</span>
-                        </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-du-lich-trong-nuoc" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 8. Bảo hiểm Nhà ở tư nhân & Chung cư -->
-                <div onclick="selectProduct('nha')" class="group cursor-pointer bg-white border border-slate-200 hover:border-[#0B7CFF] rounded-2xl p-5 shadow-sm hover:shadow-xl transition flex flex-col justify-between">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-[#EAF8FB] text-[#0B7CFF] flex items-center justify-center mb-3 group-hover:bg-[#0B7CFF] group-hover:text-white transition">
-                            <i data-lucide="home" class="w-6 h-6"></i>
-                        </div>
-                        <h3 class="font-bold text-[17px] text-[#086375] group-hover:text-[#0B7CFF] transition leading-tight">
-                            Nhà Ở Tư Nhân & Chung Cư
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Bảo vệ khung nhà và tài sản bên trong trước cháy nổ, sét đánh, tràn nước.</p>
-                        
-                        <div class="my-3 p-3 bg-[#F7F8F9] rounded-xl border border-slate-200">
-                            <span class="text-[11px] text-slate-500 block">Bảo vệ tài sản:</span>
-                            <span class="text-sm font-bold text-[#086375]">Lên đến Hàng Tỷ Đồng</span>
-                            <span class="text-[11px] text-slate-600 block mt-0.5">Phí chỉ từ vài trăm nghìn/năm</span>
-                        </div>
-                    </div>
-                    <div class="pt-2 space-y-2">
-                        <button class="w-full bg-[#0B7CFF] hover:bg-[#0066DB] text-white font-semibold py-2.5 px-3 rounded-xl text-[14px] flex items-center justify-center gap-1.5 transition shadow-sm">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Cấp Đơn Zalo / App</span>
-                        </button>
-                        <a href="https://www.pjico.com.vn/san-pham/bao-hiem-chay-no-toan-dien-nha-o-pjico-phu-gia" target="_blank" onclick="event.stopPropagation()" class="w-full bg-[#EAF8FB] hover:bg-blue-100 text-[#0B7CFF] font-semibold py-2.5 px-3 rounded-xl text-[13px] flex items-center justify-center gap-1.5 transition border border-[#28B9E7]/30">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#28B9E7]"></i>
-                            <span>Xem Quy Tắc Bảo Hiểm</span>
-                        </a>
-                    </div>
-                </div>
-
-            </div>
+            </div></div>
             </div>
             <!-- KHU VỰC HIỂN THỊ PHƯƠNG THỨC MUA KHI KHÁCH KÍCH VÀO SẢN PHẨM -->
             <div id="product-action-box" class="mt-12 scroll-mt-24 hidden">

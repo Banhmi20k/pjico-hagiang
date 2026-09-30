@@ -521,7 +521,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(content)
                 return
 
-        if path == '/thanhtoan':
+        if path in ['/thanhtoan', '/tra-cuu-don-hang', '/tra-cuu', '/tracking']:
             thanhtoan_file = os.path.join(BASE_DIR, "thanhtoan", "index.html")
             if not os.path.exists(thanhtoan_file):
                 thanhtoan_file = os.path.join(BASE_DIR, "thanhtoan.html")
@@ -1737,9 +1737,11 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             if order_id:
                 cur.execute("""
                     SELECT o.id, o.order_code, o.amount, o.status, o.purchased_at,
+                           o.plate_number, o.customer_address, c.email as customer_email, o.created_at, o.updated_at,
                            c.name as customer_name, c.phone as customer_phone,
                            p.name as product_name, p.product_type,
-                           pm.status as payment_status
+                           pm.status as payment_status, pm.received_amount, pm.expected_amount,
+                           pm.transaction_code, pm.transaction_time
                     FROM orders o
                     JOIN customers c ON o.customer_id = c.id
                     LEFT JOIN products p ON o.product_id = p.id
@@ -1750,9 +1752,11 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 norm_phone = normalize_vietnam_phone(phone)
                 cur.execute("""
                     SELECT o.id, o.order_code, o.amount, o.status, o.purchased_at,
+                           o.plate_number, o.customer_address, c.email as customer_email, o.created_at, o.updated_at,
                            c.name as customer_name, c.phone as customer_phone,
                            p.name as product_name, p.product_type,
-                           pm.status as payment_status
+                           pm.status as payment_status, pm.received_amount, pm.expected_amount,
+                           pm.transaction_code, pm.transaction_time
                     FROM orders o
                     JOIN customers c ON o.customer_id = c.id
                     LEFT JOIN products p ON o.product_id = p.id
@@ -1769,7 +1773,21 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"success": False, "message": "Không tìm thấy đơn hàng"})
                 return
 
-            self.send_json({"success": True, "data": dict(row)})
+            d = dict(row)
+            o_status = str(d.get('status') or '').lower()
+            pm_status = str(d.get('payment_status') or '').upper()
+            rec_amt = d.get('received_amount') or 0
+            exp_amt = d.get('amount') or 0
+
+            # Tính toán 3 trạng thái thanh toán chuẩn: SUCCESS, PENDING, MISMATCH
+            if o_status in ['paid', 'completed', 'delivered', 'issued'] or pm_status == 'SUCCESS':
+                d['payment_result'] = 'SUCCESS'
+            elif rec_amt > 0 and rec_amt != exp_amt:
+                d['payment_result'] = 'MISMATCH'
+            else:
+                d['payment_result'] = 'PENDING'
+
+            self.send_json({"success": True, "data": d})
         except Exception as e:
             self.send_error_json("Lỗi tra cứu đơn: " + str(e))
         finally:

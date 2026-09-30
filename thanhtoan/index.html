@@ -1,16 +1,14 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Thanh Toán & Xác Nhận Đơn Hàng - PJICO Hà Giang (SePay VietinBank)</title>
-    <!-- Favicon PJICO -->
-    <link rel="icon" type="image/png" href="https://www.pjico.com.vn/wp-content/uploads/2024/06/favicon.png">
+    <title>Thanh Toán & Tra Cứu Đơn Hàng • Bảo Hiểm PJICO Hà Giang</title>
     
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Meta SEO & Open Graph -->
+    <meta name="description" content="Cổng đặt mua, thanh toán trực tuyến qua VietinBank VietQR và tra cứu tiến độ cấp đơn bảo hiểm PJICO Hà Giang nhanh chóng, minh bạch.">
+    <meta property="og:title" content="Thanh Toán & Tra Cứu Đơn Hàng • Bảo Hiểm PJICO Hà Giang">
+    <meta property="og:description" content="Thanh toán tự động qua mã VietQR chuẩn SePay và theo dõi tiến độ cấp Giấy chứng nhận điện tử.">
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,565 +16,621 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-                    },
                     colors: {
                         pjico: {
-                            navy: '#002D62',
-                            blue: '#0B7CFF',
-                            blueDark: '#0066DB',
-                            cyanDark: '#086375',
-                            cyan: '#28B9E7',
-                            lightBg: '#F8FAFC'
+                            blue: '#002D62',
+                            azure: '#0B7CFF',
+                            teal: '#086375',
+                            light: '#EAF8FB',
+                            dark: '#001D40'
                         }
                     }
                 }
             }
         }
     </script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .tab-btn-active {
-            background-color: #002D62 !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 14px rgba(0, 45, 98, 0.25);
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        @keyframes pulseBorder {
-            0%, 100% { border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.2); }
-            50% { border-color: rgba(16, 185, 129, 1); box-shadow: 0 0 15px rgba(16, 185, 129, 0.35); }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
         }
-        .pulse-border {
-            animation: pulseBorder 2s infinite;
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out forwards;
         }
-        @keyframes subtleScale {
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-subtle {
+            animation: pulseSubtle 2s infinite ease-in-out;
+        }
+        @keyframes pulseSubtle {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
+            50% { transform: scale(1.02); }
         }
-        .pulse-scale {
-            animation: subtleScale 2.5s infinite ease-in-out;
-        }
-        @media print {
-            header, footer, .no-print, #navTabs, #stepIndicator {
-                display: none !important;
-            }
-            main {
-                max-width: 100% !important;
-                padding: 0 !important;
-            }
-            .print-receipt-card {
-                box-shadow: none !important;
-                border: 1px solid #ccc !important;
-            }
+        .tab-btn-active {
+            color: #002D62;
+            border-bottom: 3px solid #0B7CFF;
+            font-weight: 800;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased pb-20 sm:pb-0">
 
     <!-- ========================================================================= -->
-    <!-- TOP NOTIFICATION BAR -->
+    <!-- HEADER THANH TOÁN (NAVBAR TINH GỌN, CHUYÊN NGHIỆP) -->
     <!-- ========================================================================= -->
-    <div class="bg-[#002D62] text-white text-[11px] sm:text-xs py-2 px-4 text-center font-medium border-b border-white/10 no-print">
-        <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2 mx-auto sm:mx-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                <span>Hệ thống ghi nhận biến động số dư tự động 24/7 qua <strong>SePay VietinBank</strong> (Chuẩn SEVQR)</span>
-            </div>
-            <div class="hidden sm:flex items-center gap-4 text-slate-300">
-                <span>Hotline: <strong class="text-white">0987.501.199 / 0906.069.368</strong></span>
-                <span>•</span>
-                <a href="/admin" class="text-cyan-300 hover:underline flex items-center gap-1">
-                    <i data-lucide="shield" class="w-3 h-3"></i> Quản Trị Admin
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- HEADER CHÍNH -->
-    <!-- ========================================================================= -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs no-print">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-            <a href="/" class="flex items-center gap-2.5">
-                <img src="https://www.pjico.com.vn/wp-content/uploads/2024/06/logo.png" 
-                     alt="PJICO Logo" 
-                     class="h-8 sm:h-10 w-auto object-contain"
-                     onerror="this.src='https://www.pjico.com.vn/wp-content/themes/pjico/images/logo-footer.png';">
-                <div class="hidden sm:block border-l-2 border-slate-200 pl-3">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">CỔNG THANH TOÁN TRỰC TUYẾN</span>
-                    <span class="text-xs sm:text-sm font-extrabold text-[#002D62] block">PJICO HÀ GIANG</span>
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#002D62] to-[#0B7CFF] text-white flex items-center justify-center font-black text-lg tracking-wider shadow-sm group-hover:scale-105 transition">
+                    PJ
+                </div>
+                <div>
+                    <span class="text-xs sm:text-sm font-black tracking-tight text-[#002D62] block leading-none">PJICO HÀ GIANG</span>
+                    <span class="text-[10px] text-slate-500 font-semibold tracking-wide">Cổng Dịch Vụ Khách Hàng Online</span>
                 </div>
             </a>
 
-            <div class="flex items-center gap-2">
-                <a href="/" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:text-[#0B7CFF] hover:border-[#0B7CFF] text-xs font-semibold flex items-center gap-1.5 transition">
-                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
-                    <span class="hidden sm:inline">Về Trang Chủ</span>
-                </a>
-                <a href="/admin" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition" title="Mở trang Quản trị Đơn hàng">
-                    <i data-lucide="lock" class="w-3.5 h-3.5 text-slate-500"></i>
-                    <span>Admin</span>
+            <!-- Tabs Chuyển đổi: Đặt mua vs Tra cứu -->
+            <div class="flex items-center gap-1 sm:gap-2">
+                <button type="button" onclick="switchTab('pay')" id="tabBtn-pay" class="px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-600 hover:text-[#002D62] transition tab-btn-active cursor-pointer">
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                        <span>Đặt Mua & Thanh Toán</span>
+                    </span>
+                </button>
+                <button type="button" onclick="switchTab('lookup')" id="tabBtn-lookup" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-[#002D62] transition cursor-pointer">
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        <span>Tra Cứu Đơn & Tiến Độ</span>
+                    </span>
+                </button>
+                <a href="/" class="hidden md:inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-[#0B7CFF] pl-2 border-l border-slate-200">
+                    <i data-lucide="home" class="w-3.5 h-3.5"></i>
+                    <span>Trang Chủ</span>
                 </a>
             </div>
         </div>
     </header>
 
     <!-- ========================================================================= -->
-    <!-- MAIN CONTAINER -->
+    <!-- KHUNG NỘI DUNG CHÍNH (MAIN CONTAINER) -->
     <!-- ========================================================================= -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1 w-full space-y-6">
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
-        <!-- THANH CHUYỂN TAB (THANH TOÁN / TRA CỨU ĐƠN HÀNG) -->
-        <div id="navTabs" class="bg-white p-1.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-1.5 max-w-lg mx-auto no-print">
-            <button onclick="switchTab('pay')" id="tabBtn-pay" class="tab-btn-active flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer text-slate-600 hover:bg-slate-100">
-                <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-                <span>Đặt Mua & Thanh Toán</span>
-            </button>
-            <button onclick="switchTab('lookup')" id="tabBtn-lookup" class="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer text-slate-600 hover:bg-slate-100">
-                <i data-lucide="search" class="w-4 h-4"></i>
-                <span>Tra Cứu Đơn & Trạng Thái</span>
-            </button>
-        </div>
-
-        <!-- ========================================================================= -->
-        <!-- TAB 1: LUỒNG THANH TOÁN (3 BƯỚC TUẦN TỰ) -->
-        <!-- ========================================================================= -->
+        <!-- ===================================================================== -->
+        <!-- TAB 1: LUỒNG BÁN HÀNG ONLINE (ORDER -> CONFIRM -> QR -> THANK YOU) -->
+        <!-- ===================================================================== -->
         <div id="tabContent-pay" class="space-y-6">
 
-            <!-- BỘ CHỈ BÁO TIẾN TRÌNH 3 BƯỚC (STEPPER) -->
-            <div id="stepIndicator" class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs no-print">
-                <div class="grid grid-cols-3 gap-2 text-center">
-                    <!-- Bước 1 -->
+            <!-- STEPPER 4 BƯỚC CHUẨN RÕ RÀNG -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+                <div class="grid grid-cols-4 gap-1 sm:gap-2 text-center text-xs">
+                    <!-- Bước 1: Đặt Mua -->
                     <div id="stepDot-1" class="flex flex-col items-center gap-1">
-                        <div class="w-8 h-8 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs shadow-xs step-badge">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs shadow-xs step-badge">
                             1
                         </div>
-                        <span class="text-[11px] sm:text-xs font-bold text-[#002D62] step-title">Điền Thông Tin</span>
+                        <span class="text-[10px] sm:text-xs font-bold text-[#002D62] step-title">Đặt Mua</span>
                     </div>
 
-                    <!-- Bước 2 -->
-                    <div id="stepDot-2" class="flex flex-col items-center gap-1 opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs step-badge">
+                    <!-- Bước 2: Xác Nhận Đơn -->
+                    <div id="stepDot-confirm" class="flex flex-col items-center gap-1 opacity-40">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs step-badge">
                             2
                         </div>
-                        <span class="text-[11px] sm:text-xs font-semibold text-slate-600 step-title">Quét Mã VietQR</span>
+                        <span class="text-[10px] sm:text-xs font-semibold text-slate-600 step-title">Xác Nhận</span>
                     </div>
 
-                    <!-- Bước 3 -->
-                    <div id="stepDot-3" class="flex flex-col items-center gap-1 opacity-50">
-                        <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs step-badge">
+                    <!-- Bước 3: Quét QR & Thanh Toán -->
+                    <div id="stepDot-2" class="flex flex-col items-center gap-1 opacity-40">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs step-badge">
                             3
                         </div>
-                        <span class="text-[11px] sm:text-xs font-semibold text-slate-600 step-title">Cảm Ơn & Nhận GCN</span>
+                        <span class="text-[10px] sm:text-xs font-semibold text-slate-600 step-title">Quét QR</span>
+                    </div>
+
+                    <!-- Bước 4: Cảm Ơn -->
+                    <div id="stepDot-3" class="flex flex-col items-center gap-1 opacity-40">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs step-badge">
+                            4
+                        </div>
+                        <span class="text-[10px] sm:text-xs font-semibold text-slate-600 step-title">Cảm Ơn</span>
                     </div>
                 </div>
             </div>
 
-            <!-- ===================================================================== -->
-            <!-- BƯỚC 1: FORM NHẬP THÔNG TIN ĐẶT HÀNG (KHÔNG HIỆN MÃ QR Ở BƯỚC NÀY) -->
-            <!-- ===================================================================== -->
+            <!-- ================================================================= -->
+            <!-- 3. ORDER FORM: XÁC NHẬN THÔNG TIN ĐẶT MUA -->
+            <!-- ================================================================= -->
             <div id="checkoutStep-1" class="space-y-6">
-                <!-- Banner giới thiệu -->
-                <div class="bg-gradient-to-r from-[#002D62] via-[#086375] to-[#0B7CFF] rounded-3xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden">
-                    <div class="relative z-10">
-                        <span class="inline-flex items-center gap-1.5 text-[10px] uppercase font-black tracking-widest bg-emerald-500 text-white px-2.5 py-1 rounded-full mb-2">
-                            <i data-lucide="shield-check" class="w-3 h-3"></i> Bảo Hiểm Trực Tuyến Chính Hãng
-                        </span>
-                        <h1 class="text-xl sm:text-2xl font-black tracking-tight">Cổng Đăng Ký Bảo Hiểm PJICO Hà Giang</h1>
-                        <p class="text-xs sm:text-sm text-cyan-100 mt-1 max-w-2xl leading-relaxed">
-                            Quý khách vui lòng chọn gói bảo hiểm và điền thông tin người thụ hưởng bên dưới. Sau khi xác nhận, đơn hàng sẽ được khởi tạo với trạng thái <strong>Chờ thanh toán (Pending)</strong> và hệ thống sẽ hiển thị mã VietQR riêng cho Quý khách.
+                
+                <form id="orderForm" onsubmit="handleOrderFormSubmit(event)" class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-xs space-y-6">
+                    
+                    <div class="border-b border-slate-100 pb-4">
+                        <h1 class="text-lg sm:text-xl font-black text-[#002D62] flex items-center gap-2">
+                            <i data-lucide="file-check-2" class="w-5 h-5 text-[#0B7CFF]"></i>
+                            <span>XÁC NHẬN THÔNG TIN ĐẶT MUA</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Vui lòng kiểm tra thông tin người tham gia và gói bảo hiểm trước khi chuyển đến bước thanh toán.
                         </p>
                     </div>
-                </div>
 
-                <!-- Form thông tin đơn hàng -->
-                <form id="orderForm" onsubmit="handleProceedToPayment(event)" class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-xs space-y-6">
-                    
-                    <!-- Phần 1: Chọn gói bảo hiểm -->
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="text-sm sm:text-base font-bold text-[#002D62] flex items-center gap-2">
-                                <i data-lucide="package" class="w-4 h-4 text-[#0B7CFF]"></i>
-                                <span>1. Chọn Món Hàng / Gói Dịch Vụ Cần Mua *</span>
+                    <!-- SECTION 1: THÔNG TIN KHÁCH HÀNG (CÓ AUTO-FILL) -->
+                    <div class="space-y-3.5 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                            <h2 class="text-xs sm:text-sm font-bold text-[#002D62] uppercase tracking-wide flex items-center gap-1.5">
+                                <span class="w-5 h-5 rounded-md bg-[#002D62] text-white flex items-center justify-center text-[10px]">1</span>
+                                <span>Thông Tin Khách Hàng (Bên Mua Bảo Hiểm)</span>
                             </h2>
-                            <span class="text-[11px] text-slate-400">Chọn 1 trong các gói</span>
+                            <div id="custAutoFillBadge" class="hidden text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg flex items-center gap-1 font-semibold">
+                                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                <span>✓ Đã lấy từ hồ sơ (cho phép sửa)</span>
+                            </div>
                         </div>
 
-                        <!-- Grid chọn gói nhanh -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Họ Và Tên Khách Hàng *</label>
+                                <div class="relative">
+                                    <i data-lucide="user" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text" id="buyerName" required placeholder="Ví dụ: Nguyễn Văn Bình" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] bg-white font-medium outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Số Điện Thoại / Zalo Nhận GCN *</label>
+                                <div class="relative">
+                                    <i data-lucide="phone" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="tel" id="buyerPhone" required placeholder="Ví dụ: 0987501199" oninput="handleCheckoutPhoneLookup(this.value)" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] bg-white font-mono font-bold text-[#002D62] outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Email Nhận Bản Sao Lưu (Tùy chọn)</label>
+                                <div class="relative">
+                                    <i data-lucide="mail" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="email" id="buyerEmail" placeholder="email@gmail.com (nếu có)" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] bg-white font-medium outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Địa Chỉ Nhận Giấy Tờ / Thẻ Cứng</label>
+                                <div class="relative">
+                                    <i data-lucide="map-pin" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text" id="buyerAddress" placeholder="Tổ dân phố, Phường/Xã, Huyện/TP..." class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] bg-white font-medium outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: THÔNG TIN SẢN PHẨM & PHƯƠNG TIỆN -->
+                    <div class="space-y-3.5 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200">
+                        <h2 class="text-xs sm:text-sm font-bold text-[#002D62] uppercase tracking-wide flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-[#002D62] text-white flex items-center justify-center text-[10px]">2</span>
+                            <span>Thông Tin Sản Phẩm & Gói Bảo Hiểm</span>
+                        </h2>
+
+                        <!-- Chọn nhanh các gói sản phẩm -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="packageGrid">
-                            <!-- Xe máy điện tử 86k -->
+                            <!-- Gói 1: Xe máy 86k -->
                             <div onclick="selectPackage(86000, 'Bảo hiểm Xe Máy TNDS Điện Tử (Tích Xanh)', 'digital', 'xemay')" 
                                  id="pkg-xemay"
-                                 class="p-3.5 rounded-2xl border-2 border-[#0B7CFF] bg-blue-50/50 cursor-pointer hover:shadow-xs transition relative">
+                                 class="p-3.5 rounded-2xl border-2 border-[#0B7CFF] bg-blue-50/50 cursor-pointer transition relative">
                                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#0B7CFF] text-white absolute top-3 right-3">Phổ biến</span>
-                                <div class="text-xs sm:text-sm font-bold text-slate-900">Xe Máy TNDS (Điện tử)</div>
-                                <div class="text-base font-black text-[#0B7CFF] mt-1">86.000 đ</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">Nhận GCN qua Zalo/Email trong 3 phút (Sản phẩm số)</div>
+                                <div class="text-xs sm:text-sm font-bold text-slate-900">Bảo hiểm Xe Máy TNDS (Điện tử)</div>
+                                <div class="text-base font-black text-[#0B7CFF] mt-0.5">86.000 đ</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Đối tượng: Xe mô tô 2 bánh • Thời hạn: 1 Năm</div>
                             </div>
 
-                            <!-- Ô tô điện tử 480.700đ -->
+                            <!-- Gói 2: Ô tô 5 chỗ 480.7k -->
                             <div onclick="selectPackage(480700, 'Bảo hiểm Ô Tô TNDS 5 Chỗ Điện Tử', 'digital', 'oto')" 
                                  id="pkg-oto"
-                                 class="p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:border-[#0B7CFF] transition">
-                                <div class="text-xs sm:text-sm font-bold text-slate-900">Ô Tô 5 Chỗ (Điện tử)</div>
-                                <div class="text-base font-black text-[#0B7CFF] mt-1">480.700 đ</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">Hợp chuẩn đăng kiểm toàn quốc (Sản phẩm số)</div>
+                                 class="p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:border-[#0B7CFF] transition relative">
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#086375] text-white absolute top-3 right-3">Đăng kiểm</span>
+                                <div class="text-xs sm:text-sm font-bold text-slate-900">Bảo hiểm Ô Tô TNDS 5 Chỗ</div>
+                                <div class="text-base font-black text-[#086375] mt-0.5">480.700 đ</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Đối tượng: Ô tô dưới 6 chỗ không KD • Thời hạn: 1 Năm</div>
                             </div>
 
-                            <!-- Thẻ cứng Xe máy 86k -->
+                            <!-- Gói 3: Thẻ cứng xe máy 86k -->
                             <div onclick="selectPackage(86000, 'Ấn chỉ & Thẻ cứng BH Xe Máy (Giao tận nhà)', 'physical', 'thecung')" 
                                  id="pkg-thecung"
                                  class="p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:border-[#0B7CFF] transition relative">
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 absolute top-3 right-3">📦 Vật lý</span>
-                                <div class="text-xs sm:text-sm font-bold text-slate-900">Thẻ Cứng Giao Tận Nhà</div>
-                                <div class="text-base font-black text-amber-700 mt-1">86.000 đ</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">Thẻ ép plastic + tem chuẩn bưu điện giao</div>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white absolute top-3 right-3">Vật lý</span>
+                                <div class="text-xs sm:text-sm font-bold text-slate-900">Thẻ Cứng BH Xe Máy (Giao tận nhà)</div>
+                                <div class="text-base font-black text-amber-600 mt-0.5">86.000 đ</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Ấn chỉ ép nhựa phôi BTC • Giao tận nơi tại Hà Giang</div>
                             </div>
 
-                            <!-- Gói cứu hộ 300k -->
+                            <!-- Gói 4: Cứu hộ 300k -->
                             <div onclick="selectPackage(300000, 'Gói Cứu Hộ Giao Thông Khẩn Cấp 24/7', 'service', 'cuuho')" 
                                  id="pkg-cuuho"
                                  class="p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:border-[#0B7CFF] transition relative">
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 absolute top-3 right-3">🛠️ Dịch vụ</span>
-                                <div class="text-xs sm:text-sm font-bold text-slate-900">Cứu Hộ Toàn Tỉnh 24/7</div>
-                                <div class="text-base font-black text-purple-700 mt-1">300.000 đ</div>
-                                <div class="text-[11px] text-slate-500 mt-0.5">Kéo xe, kích bình ắc quy trên địa bàn Hà Giang</div>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-500 text-white absolute top-3 right-3">24/7</span>
+                                <div class="text-xs sm:text-sm font-bold text-slate-900">Gói Cứu Hộ Giao Thông 24/7</div>
+                                <div class="text-base font-black text-rose-600 mt-0.5">300.000 đ</div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Cứu hộ kéo xe, kích bình trên toàn địa bàn Hà Giang</div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin phương tiện -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Biển Số Xe / Số Khung (Nếu có)</label>
+                                <input type="text" id="buyerPlate" placeholder="Ví dụ: 23A-123.45 hoặc 23B1-999.88" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] bg-white font-mono font-bold uppercase outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-medium text-slate-700 mb-1">Ghi Chú Đơn Hàng (Tùy chọn)</label>
+                                <input type="text" id="buyerNote" placeholder="Ví dụ: Cần gấp trong buổi sáng..." class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] bg-white outline-none">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Phần 2: Thông tin người mua & thụ hưởng -->
-                    <div class="pt-4 border-t border-slate-100 space-y-4">
-                        <h2 class="text-sm sm:text-base font-bold text-[#002D62] flex items-center gap-2">
-                            <i data-lucide="user-check" class="w-4 h-4 text-emerald-600"></i>
-                            <span>2. Điền Thông Tin Khách Hàng *</span>
+                    <!-- SECTION 3: TÍNH PHÍ VÀ THANH TOÁN -->
+                    <div class="space-y-3 bg-blue-50/50 p-4 sm:p-5 rounded-2xl border border-blue-200">
+                        <h2 class="text-xs sm:text-sm font-bold text-[#002D62] uppercase tracking-wide flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-[#002D62] text-white flex items-center justify-center text-[10px]">3</span>
+                            <span>Chi Tiết Phí Bảo Hiểm</span>
                         </h2>
 
-                        <!-- Họ tên -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Họ Và Tên Khách Hàng (Chủ xe / Người mua) *</label>
-                            <div class="relative">
-                                <i data-lucide="user" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="text" id="buyerName" required placeholder="Ví dụ: Nguyễn Văn Bình" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] text-xs sm:text-sm outline-hidden font-medium">
+                        <div class="space-y-2 text-xs sm:text-sm">
+                            <div class="flex justify-between text-slate-600">
+                                <span>Phí gốc quy định:</span>
+                                <span id="feeBase" class="font-bold text-slate-800 font-mono">86.000 đ</span>
                             </div>
-                        </div>
-
-                        <!-- Số điện thoại & Email -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Số Điện Thoại / Zalo Nhận GCN *</label>
-                                <div class="relative">
-                                    <i data-lucide="phone" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    <input type="tel" id="buyerPhone" required placeholder="Ví dụ: 0987501199" oninput="handleCheckoutPhoneLookup(this.value)" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] text-xs sm:text-sm outline-hidden font-mono font-bold text-[#002D62]">
+                            <div class="flex justify-between text-slate-600">
+                                <span>Chiết khấu / Giảm giá trực tuyến:</span>
+                                <span id="feeDiscount" class="font-bold text-emerald-600 font-mono">0 đ</span>
+                            </div>
+                            <div class="pt-2 border-t border-blue-200/80 flex justify-between items-center">
+                                <span class="font-extrabold text-[#002D62] text-sm sm:text-base">Tổng Số Tiền Thanh Toán:</span>
+                                <div class="text-right">
+                                    <span id="payAmountDisplay" class="text-lg sm:text-2xl font-black text-[#0B7CFF] font-mono">86.000 đ</span>
+                                    <input type="hidden" id="payAmount" value="86000">
                                 </div>
-                                <div id="custRecognizeBadge" class="hidden mt-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                                    <span>✓ Đã nhận diện: </span><strong id="custRecognizeName"></strong>
-                                </div>
-                                <span class="text-[10px] text-slate-400 mt-0.5 block">Dùng làm mã định danh đơn & gửi file Zalo</span>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1">Email Nhận Bản Sao Lưu (Tùy chọn)</label>
-                                <div class="relative">
-                                    <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    <input type="email" id="buyerEmail" placeholder="nguyenvanbinh@gmail.com" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] text-xs sm:text-sm outline-hidden font-medium">
-                                </div>
-                                <span class="text-[10px] text-slate-400 mt-0.5 block">Hệ thống gửi file PDF hóa đơn/GCN</span>
-                            </div>
-                        </div>
-
-                        <!-- Biển số xe & Địa chỉ -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Biển Số Xe / Địa Chỉ Giao Thẻ Cứng</label>
-                            <div class="relative">
-                                <i data-lucide="map-pin" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="text" id="buyerNote" placeholder="Ví dụ: 23A-123.45 hoặc Tổ 3, Phường Quang Trung, TP Hà Giang" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] text-xs sm:text-sm outline-hidden font-medium">
-                            </div>
-                        </div>
-
-                        <!-- Số tiền thanh toán -->
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Tổng Số Tiền Cần Thanh Toán (VNĐ) *</label>
-                            <div class="relative">
-                                <input type="number" id="payAmount" value="86000" min="1000" class="w-full pl-4 pr-14 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] text-sm sm:text-base font-black text-[#0B7CFF] outline-hidden font-mono bg-slate-50" readonly>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">VNĐ</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Nút xác nhận khởi tạo đơn & lấy mã QR -->
+                    <!-- SECTION 4: 3 CHECKBOX XÁC NHẬN BẮT BUỘC -->
+                    <div class="space-y-3 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 text-xs">
+                        <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-md bg-slate-700 text-white flex items-center justify-center text-[10px]">4</span>
+                            <span>Cam Kết & Xác Nhận Của Bên Mua Bảo Hiểm *</span>
+                        </h2>
+
+                        <div class="space-y-2 text-slate-700">
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" id="chkConfirmInfo" required checked class="w-4 h-4 mt-0.5 text-[#0B7CFF] rounded accent-[#0B7CFF]">
+                                <span>Tôi xác nhận thông tin trên là chính xác.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" id="chkAgreePlan" required checked class="w-4 h-4 mt-0.5 text-[#0B7CFF] rounded accent-[#0B7CFF]">
+                                <span>Tôi đồng ý với phương án bảo hiểm đã lựa chọn.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" id="chkInformedConditions" required checked class="w-4 h-4 mt-0.5 text-[#0B7CFF] rounded accent-[#0B7CFF]">
+                                <span>Tôi đã được cung cấp/thông báo các thông tin cần thiết về sản phẩm và điều kiện áp dụng.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- CTA CHÍNH DUY NHẤT -->
                     <div class="pt-2">
                         <button type="submit" id="btnProceedPayment" class="w-full py-4 px-6 rounded-2xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-black text-sm sm:text-base shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2">
-                            <span>XÁC NHẬN ĐẶT HÀNG & LẤY MÃ THANH TOÁN (QR)</span>
+                            <span>XÁC NHẬN ĐẶT MUA & THANH TOÁN</span>
                             <i data-lucide="arrow-right" class="w-5 h-5"></i>
                         </button>
-                        <p class="text-[11px] text-center text-slate-400 mt-2">
-                            🔒 Đơn hàng sẽ được khởi tạo với trạng thái <strong>Chờ thanh toán (Pending)</strong> trong hệ thống và chuyển đến màn hình quét mã VietQR.
-                        </p>
                     </div>
                 </form>
             </div>
 
-            <!-- ===================================================================== -->
-            <!-- BƯỚC 2: MÀN HÌNH QUÉT MÃ VIETQR & CHỜ THANH TOÁN (PENDING) -->
-            <!-- ===================================================================== -->
-            <div id="checkoutStep-2" class="space-y-6 hidden">
+            <!-- ================================================================= -->
+            <!-- 4. ORDER CONFIRMATION: ĐƠN HÀNG ĐÃ ĐƯỢC TẠO -->
+            <!-- ================================================================= -->
+            <div id="checkoutStep-confirm" class="space-y-6 hidden animate-fadeIn">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg max-w-xl mx-auto space-y-6">
+                    
+                    <div class="text-center space-y-2">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto shadow-sm">
+                            <i data-lucide="clock" class="w-7 h-7 animate-spin"></i>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-[#002D62]">ĐƠN HÀNG ĐÃ ĐƯỢC TẠO</h2>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                            ⏳ CHỜ THANH TOÁN (Pending)
+                        </span>
+                    </div>
+
+                    <!-- Chi tiết đơn hàng tóm tắt -->
+                    <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 text-xs sm:text-sm space-y-3">
+                        <div class="flex justify-between items-center pb-2 border-b border-slate-200">
+                            <span class="text-slate-500 font-semibold">Mã đơn hàng:</span>
+                            <span id="confirmOrderCode" class="font-mono font-black text-base text-[#0B7CFF] select-all">PJ...</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Sản phẩm:</span>
+                            <span id="confirmProductName" class="font-bold text-slate-800 text-right">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Khách hàng:</span>
+                            <span id="confirmCustomerName" class="font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Số điện thoại:</span>
+                            <span id="confirmCustomerPhone" class="font-mono font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-500">Phương tiện / Ghi chú:</span>
+                            <span id="confirmCustomerNote" class="font-medium text-slate-700 text-right">-</span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-200 flex justify-between items-center text-sm sm:text-base">
+                            <span class="font-black text-[#002D62]">Tổng phí bảo hiểm:</span>
+                            <span id="confirmOrderAmount" class="font-black text-emerald-600 font-mono text-lg">0 đ</span>
+                        </div>
+                    </div>
+
+                    <!-- 2 CTA RÕ RÀNG -->
+                    <div class="space-y-2.5 pt-1">
+                        <button type="button" onclick="goToPaymentScreen()" class="w-full py-4 px-6 rounded-2xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-black text-sm sm:text-base shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2">
+                            <i data-lucide="qr-code" class="w-5 h-5"></i>
+                            <span>THANH TOÁN NGAY</span>
+                        </button>
+                        
+                        <button type="button" onclick="copyConfirmOrderCode()" class="w-full py-3 px-4 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-1.5">
+                            <i data-lucide="copy" class="w-4 h-4 text-slate-500"></i>
+                            <span>LƯU MÃ ĐƠN HÀNG</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================= -->
+            <!-- 5. PAYMENT PAGE: THANH TOÁN ĐƠN HÀNG & MÃ VIETQR CHUẨN SEPAY -->
+            <!-- ================================================================= -->
+            <div id="checkoutStep-2" class="space-y-6 hidden animate-fadeIn">
                 
-                <!-- Hộp thông báo trạng thái đơn hàng: PENDING -->
-                <div class="bg-amber-50 border-2 border-amber-300 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                <!-- Hộp thông báo trạng thái đơn hàng -->
+                <div class="bg-blue-50 border-2 border-[#0B7CFF] rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
                     <div class="flex items-center gap-3 text-center sm:text-left">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-                            <i data-lucide="clock" class="w-5 h-5 animate-spin"></i>
+                        <div class="w-10 h-10 rounded-2xl bg-[#002D62] text-white flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="credit-card" class="w-5 h-5 text-[#28B9E7]"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2 flex-wrap justify-center sm:justify-start">
-                                <span class="text-xs font-black text-amber-900">ĐƠN HÀNG <span id="pendingOrderCodeBadge" class="font-mono">#PJ...</span> ĐÃ KHỞI TẠO</span>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 border border-amber-400">
-                                    ⏳ Đang chờ thanh toán (Pending)
+                                <h2 class="text-sm font-black text-[#002D62]">THANH TOÁN ĐƠN HÀNG <span id="pendingOrderCodeBadge" class="font-mono text-[#0B7CFF]">#PJ...</span></h2>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                                    ⏳ CHỜ THANH TOÁN
                                 </span>
                             </div>
-                            <p class="text-xs text-amber-800 mt-0.5">
-                                Đơn hàng đã được lưu vào hệ thống Quản lý đơn hàng. Quý khách vui lòng quét mã VietQR bên dưới để thanh toán.
+                            <p class="text-xs text-slate-600 mt-0.5">
+                                Quý khách vui lòng quét mã VietQR bên dưới hoặc chuyển khoản chính xác theo hướng dẫn.
                             </p>
                         </div>
                     </div>
 
-                    <button type="button" onclick="returnToStep1()" class="text-xs font-bold text-slate-600 hover:text-slate-900 hover:underline px-3 py-1.5 rounded-xl border border-slate-300 bg-white shadow-2xs whitespace-nowrap">
+                    <button type="button" onclick="returnToStep1()" class="text-xs font-bold text-slate-600 hover:text-slate-900 hover:underline px-3 py-1.5 rounded-xl border border-slate-300 bg-white shadow-2xs whitespace-nowrap cursor-pointer">
                         ← Sửa Thông Tin
                     </button>
                 </div>
 
-                <!-- Bố cục 2 cột: Thông tin chuyển khoản & VietQR -->
+                <!-- Bố cục 2 cột: Hướng dẫn & Mã QR -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
-                    <!-- Cột trái: Tóm tắt đơn hàng & Thông tin VietinBank (7 cột) -->
-                    <div class="lg:col-span-7 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                        <h3 class="text-sm font-bold text-[#002D62] flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <i data-lucide="receipt" class="w-4 h-4 text-[#0B7CFF]"></i>
-                            <span>Chi Tiết Đơn Hàng #<span id="qrOrderCodeText" class="font-mono">PJ...</span></span>
+                    <!-- Cột trái: Hướng dẫn 4 bước & Thông tin chi tiết -->
+                    <div class="lg:col-span-7 bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-xs space-y-5">
+                        <h3 class="text-sm font-bold text-[#002D62] uppercase tracking-wide flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="list-ordered" class="w-4 h-4 text-[#0B7CFF]"></i>
+                            <span>HƯỚNG DẪN THANH TOÁN 4 BƯỚC</span>
                         </h3>
 
-                        <!-- Thông tin người đặt -->
-                        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-500">Người đặt mua:</span>
-                                <span id="qrCustomerName" class="font-bold text-slate-800">--</span>
+                        <div class="space-y-3 text-xs sm:text-sm text-slate-700">
+                            <div class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">1</span>
+                                <p>Mở ứng dụng ngân hàng bất kỳ (VietinBank, VCB, MB, Techcombank, VPBank, MoMo...).</p>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-500">Số điện thoại / Zalo:</span>
-                                <span id="qrCustomerPhone" class="font-mono font-bold text-[#002D62]">--</span>
+                            <div class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">2</span>
+                                <p>Chọn chức năng <strong>Quét mã QR</strong> trên ứng dụng ngân hàng và quét mã VietQR bên cạnh.</p>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-slate-500">Gói bảo hiểm / Sản phẩm:</span>
-                                <span id="qrProductName" class="font-semibold text-slate-800 text-right">--</span>
+                            <div class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">3</span>
+                                <p>Kiểm tra số tiền và nội dung chuyển khoản trùng khớp tuyệt đối.</p>
                             </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                                <span class="text-slate-500">Số tiền cần thanh toán:</span>
-                                <span id="qrAmountDisplay" class="font-mono font-black text-emerald-600 text-base">-- đ</span>
-                            </div>
-                        </div>
-
-                        <!-- Thông tin chuyển khoản VietinBank -->
-                        <div class="space-y-2.5 text-xs bg-gradient-to-b from-blue-50/60 to-slate-50 p-4 rounded-2xl border border-blue-200/80">
-                            <div class="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
-                                <span class="text-slate-600">Ngân hàng thụ hưởng:</span>
-                                <span class="font-bold text-[#002D62] flex items-center gap-1">
-                                    <span class="w-2 h-2 rounded-full bg-blue-600"></span>
-                                    VietinBank (Ngân hàng Công Thương)
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
-                                <span class="text-slate-600">Chủ tài khoản:</span>
-                                <span class="font-bold text-[#002D62]">NGUYEN HUY VINH</span>
-                            </div>
-                            <div class="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
-                                <span class="text-slate-600">Số tài khoản:</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-mono font-black text-slate-900 text-sm">106006104248</span>
-                                    <button type="button" onclick="copyText('106006104248', 'Số tài khoản')" class="px-2 py-0.5 rounded bg-blue-100 hover:bg-blue-200 text-[#002D62] font-bold text-[10px] cursor-pointer" title="Sao chép STK">
-                                        Sao chép
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between pb-1.5 border-b border-blue-200/60">
-                                <span class="text-slate-600">Số tiền chính xác:</span>
-                                <div class="flex items-center gap-2">
-                                    <span id="qrAmountCopyText" class="font-mono font-black text-emerald-600 text-sm">-- đ</span>
-                                    <button type="button" onclick="copyText(currentOrderData.amount, 'Số tiền')" class="px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] cursor-pointer" title="Sao chép số tiền">
-                                        Sao chép
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Nội dung chuyển khoản SEVQR -->
-                            <div class="pt-1.5">
-                                <div class="text-[11px] font-bold text-amber-900 mb-1 flex items-center justify-between">
-                                    <span>Nội dung chuyển khoản (Bắt buộc giữ nguyên):</span>
-                                    <span class="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-bold">Chuẩn SEVQR</span>
-                                </div>
-                                <div class="flex items-center gap-2 bg-amber-50 p-2.5 rounded-xl border border-amber-300">
-                                    <span id="qrTransferContent" class="font-mono font-black text-xs sm:text-sm text-rose-600 flex-1 truncate">SEVQR PJICO ...</span>
-                                    <button type="button" onclick="copyText(document.getElementById('qrTransferContent').innerText, 'Nội dung chuyển khoản')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 cursor-pointer whitespace-nowrap shadow-xs">
-                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Sao chép
-                                    </button>
-                                </div>
-                                <p class="text-[10px] text-amber-700 mt-1 leading-relaxed">
-                                    ⚠️ <strong>Lưu ý:</strong> VietinBank quy định giao dịch phải bắt đầu bằng <strong>SEVQR</strong> để SePay tự động nhận diện và cập nhật đơn hàng tức thì!
-                                </p>
+                            <div class="flex items-start gap-3">
+                                <span class="w-6 h-6 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">4</span>
+                                <p>Xác nhận chuyển khoản và bấm nút <strong>"KIỂM TRA THANH TOÁN"</strong> bên dưới.</p>
                             </div>
                         </div>
 
-                        <!-- Trạng thái tự động kiểm tra giao dịch -->
-                        <div class="p-3 bg-slate-100 rounded-2xl text-xs text-slate-600 flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                                <span class="text-[11px] font-medium" id="autoCheckStatusText">Đang chờ biến động số dư SePay VietinBank...</span>
+                        <!-- Bảng chi tiết chuyển khoản thủ công -->
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Ngân hàng thụ hưởng:</span>
+                                <span class="font-bold text-slate-800">VietinBank (Ngân hàng Công Thương)</span>
                             </div>
-                            <span class="text-[10px] font-mono text-slate-400">Tự kiểm tra 3s/lần</span>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Chủ tài khoản:</span>
+                                <span class="font-bold text-slate-800">NGUYEN HUY VINH</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Số tài khoản:</span>
+                                <div class="flex items-center gap-1.5 font-mono font-bold text-[#002D62]">
+                                    <span>106006104248</span>
+                                    <button type="button" onclick="copyText('106006104248', 'Đã sao chép số tài khoản!')" class="p-1 text-slate-400 hover:text-slate-700" title="Sao chép">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-500">Số tiền:</span>
+                                <div class="flex items-center gap-1.5 font-mono font-black text-[#0B7CFF]">
+                                    <span id="qrAmountCopyText">86.000 đ</span>
+                                    <button type="button" onclick="copyText(document.getElementById('payAmount').value, 'Đã sao chép số tiền!')" class="p-1 text-slate-400 hover:text-slate-700" title="Sao chép">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="pt-2 border-t border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                                <span class="text-slate-500 font-semibold">Nội dung chuyển khoản:</span>
+                                <div class="flex items-center gap-2 bg-blue-100/70 text-[#002D62] px-3 py-1.5 rounded-xl border border-blue-200 font-mono font-black select-all">
+                                    <span id="qrTransferContent">SEVQR PJICO PJ...</span>
+                                    <button type="button" onclick="copyText(document.getElementById('qrTransferContent').innerText, 'Đã sao chép nội dung chuyển khoản!')" class="text-[#0B7CFF] hover:underline flex items-center gap-1 text-xs ml-1 font-sans">
+                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        <span>SAO CHÉP</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. KHU VỰC HIỂN THỊ TRẠNG THÁI THANH TOÁN (PAYMENT STATUS) -->
+                        <div id="paymentStatusBox" class="space-y-3">
+                            <!-- Trạng thái mặc định: Chờ chuyển khoản -->
+                            <div id="statusPendingCard" class="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 flex items-start gap-2.5">
+                                <i data-lucide="clock" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5 animate-spin"></i>
+                                <div>
+                                    <span class="font-bold">Đang chờ nhận tiền vào tài khoản</span>
+                                    <p class="text-[11px] text-amber-800 mt-0.5">
+                                        Sau khi hoàn tất chuyển khoản từ ứng dụng ngân hàng của bạn, hãy nhấn nút <strong>"KIỂM TRA THANH TOÁN"</strong> bên dưới.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái: Mismatch (Không khớp số tiền) -->
+                            <div id="statusMismatchCard" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-300 text-xs text-rose-900 flex items-start gap-2.5">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <span class="font-bold">Đã nhận giao dịch nhưng số tiền hoặc nội dung chưa khớp</span>
+                                    <p class="text-[11px] text-rose-800 mt-0.5">
+                                        Vui lòng kiểm tra lại biên lai hoặc liên hệ ngay hotline <strong>0906.069.368</strong> để chuyên viên PJICO Hà Giang hỗ trợ đối soát thủ công cho bạn.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Trạng thái: Success (Thành công) -->
+                            <div id="statusSuccessCard" class="hidden p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 flex items-start gap-2.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <span class="font-bold">Thanh toán thành công!</span>
+                                    <p class="text-[11px] text-emerald-800 mt-0.5">
+                                        Hệ thống đã ghi nhận tiền về tài khoản. Đang chuyển sang màn hình xác nhận...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NÚT DUY NHẤT: KIỂM TRA THANH TOÁN (THAY THẾ HOÀN TOÀN NÚT CŨ) -->
+                        <div class="pt-2">
+                            <button type="button" id="btnCheckPaymentStatus" onclick="handleCheckPaymentClick()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm sm:text-base shadow-lg transition cursor-pointer flex items-center justify-center gap-2">
+                                <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                                <span>KIỂM TRA THANH TOÁN</span>
+                            </button>
+                            <p class="text-[11px] text-slate-400 text-center mt-2">
+                                🔒 Hệ thống tự động đối soát giao dịch thời gian thực qua cổng VietinBank Napas 24/7.
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Cột phải: Khung VietQR Chuẩn NAPAS & Nút xác thực (5 cột) -->
-                    <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 text-center">
-                        <div>
-                            <span class="text-[10px] uppercase font-extrabold tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-300 px-3 py-1 rounded-full inline-block">
-                                VietQR Chuẩn NAPAS 24/7
-                            </span>
+                    <!-- Cột phải: Khung ảnh VietQR -->
+                    <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-center text-center space-y-4">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Quét Mã VietQR Chuyển Khoản Nhanh</span>
+                        
+                        <div class="p-3 bg-white border-2 border-slate-200 rounded-3xl shadow-md max-w-[280px] w-full pulse-subtle">
+                            <img id="vietQrImg" src="" alt="Mã VietQR Thanh Toán PJICO" class="w-full h-auto rounded-2xl block">
                         </div>
 
-                        <!-- Ảnh QR VietQR -->
-                        <div class="p-4 bg-gradient-to-b from-blue-50 to-slate-50 rounded-2xl border-2 pulse-border flex flex-col items-center justify-center relative">
-                            <img id="vietQrImg" src="" alt="Mã VietQR Thanh Toán VietinBank" class="w-60 h-60 object-contain rounded-xl shadow-xs bg-white p-1.5">
-                            <div class="text-[11px] font-semibold text-slate-500 mt-2 flex items-center gap-1.5">
-                                <i data-lucide="scan" class="w-4 h-4 text-[#0B7CFF]"></i>
-                                <span>Mở app ngân hàng quét mã để tự điền đủ</span>
-                            </div>
+                        <div class="space-y-1 text-xs">
+                            <span class="text-slate-500 block">Số tiền cần chuyển:</span>
+                            <span id="qrAmountDisplay" class="font-mono font-black text-xl text-[#0B7CFF]">86.000 đ</span>
                         </div>
 
-                        <!-- Các nút hành động thanh toán -->
-                        <div class="space-y-2.5 pt-1">
-                            <!-- Nút Kiểm tra thủ công -->
-                            <button type="button" onclick="checkCurrentOrderStatus(true)" id="btnCheckStatus" class="w-full py-2.5 px-4 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
-                                <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-500"></i>
-                                <span>Kiểm Tra Trạng Thái Thanh Toán</span>
-                            </button>
-
-                            <!-- Nút Xác nhận đã chuyển khoản thành công -->
-                            <button type="button" onclick="handleCustomerConfirmedTransfer()" id="btnCustomerConfirm" class="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer flex items-center justify-center gap-2">
-                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-                                <span>TÔI ĐÃ CHUYỂN KHOẢN THÀNH CÔNG</span>
-                            </button>
-                            
-                            <p class="text-[11px] text-slate-400 leading-tight">
-                                Sau khi chuyển tiền trên ứng dụng ngân hàng, bấm nút trên để xác thực và xem <strong>Màn hình Cảm ơn & Giấy chứng nhận</strong>.
-                            </p>
+                        <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 w-full text-left space-y-1">
+                            <div>• Đơn hàng: <strong id="qrOrderCodeText" class="font-mono text-slate-800">PJ...</strong></div>
+                            <div>• Khách hàng: <strong id="qrCustomerName" class="text-slate-800">-</strong> (<span id="qrCustomerPhone" class="font-mono">-</span>)</div>
+                            <div>• Sản phẩm: <strong id="qrProductName" class="text-slate-800">-</strong></div>
                         </div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- ===================================================================== -->
-            <!-- BƯỚC 3: MÀN HÌNH CẢM ƠN VÀ XÁC NHẬN ĐÃ NHẬN ĐƯỢC TIỀN -->
-            <!-- ===================================================================== -->
-            <div id="checkoutStep-3" class="space-y-6 hidden">
-                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg max-w-xl mx-auto space-y-6 text-center animate-fadeIn print-receipt-card">
+            <!-- ================================================================= -->
+            <!-- 7. THANK YOU: CẢM ƠN ANH/CHỊ ĐÃ ĐẶT MUA -->
+            <!-- ================================================================= -->
+            <div id="checkoutStep-3" class="space-y-6 hidden animate-fadeIn">
+                <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-lg max-w-xl mx-auto space-y-6 text-center">
                     
-                    <!-- Icon Thành Công Lớn & Rực Rỡ -->
-                    <div class="relative w-20 h-20 mx-auto">
-                        <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner pulse-scale">
-                            <i data-lucide="check-circle" class="w-12 h-12 text-emerald-600"></i>
-                        </div>
-                        <span class="absolute -top-1 -right-1 flex h-6 w-6">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-6 w-6 bg-emerald-500 text-white text-[10px] items-center justify-center font-bold">✓</span>
+                    <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+                        <i data-lucide="check-circle" class="w-10 h-10"></i>
+                    </div>
+
+                    <div class="space-y-1">
+                        <h2 class="text-xl sm:text-2xl font-black text-[#002D62]">CẢM ƠN ANH/CHỊ ĐÃ ĐẶT MUA</h2>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ✓ ĐÃ THANH TOÁN (Paid)
                         </span>
                     </div>
 
-                    <!-- Khối Tiêu Đề Cảm Ơn & Xác Nhận Nhận Tiền -->
-                    <div class="space-y-2">
-                        <span class="px-3.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            XÁC NHẬN ĐÃ NHẬN ĐƯỢC TIỀN THÀNH CÔNG
-                        </span>
-                        
-                        <h2 class="text-2xl sm:text-3xl font-black text-[#002D62] tracking-tight">
-                            🎉 CẢM ƠN QUÝ KHÁCH!
-                        </h2>
-                        
-                        <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-                            Bảo hiểm <strong>PJICO Hà Giang</strong> chân thành cảm ơn Quý khách <strong id="confirmedCustName" class="text-slate-900 font-extrabold">--</strong> đã tin tưởng lựa chọn! Hệ thống <strong>SePay & VietinBank</strong> đã xác nhận nhận đủ tiền chuyển khoản cho đơn hàng của Quý khách.
+                    <!-- Chi tiết xác nhận -->
+                    <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 text-xs sm:text-sm text-left space-y-2.5">
+                        <div class="flex justify-between pb-2 border-b border-slate-200">
+                            <span class="text-slate-500">Mã đơn hàng:</span>
+                            <span id="thankOrderCode" class="font-mono font-black text-[#0B7CFF] text-base">PJ...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Sản phẩm:</span>
+                            <span id="thankProductName" class="font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Khách hàng:</span>
+                            <span id="thankCustomerName" class="font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Số tiền đã nhận:</span>
+                            <span id="thankAmount" class="font-mono font-black text-emerald-700 text-base">0 đ</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Thời gian ghi nhận:</span>
+                            <span id="thankPaidAt" class="text-slate-600 font-mono">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Thông báo CSKH -->
+                    <div class="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-900 text-left flex items-start gap-2.5">
+                        <i data-lucide="info" class="w-4 h-4 text-[#0B7CFF] flex-shrink-0 mt-0.5"></i>
+                        <p class="leading-relaxed">
+                            <strong>Nhân viên đang kiểm tra hồ sơ và thực hiện cấp giấy chứng nhận/hợp đồng.</strong> 
+                            Giấy chứng nhận điện tử có tích xanh xác thực sẽ được gửi trực tiếp tới Zalo / Số điện thoại của Quý khách trong ít phút!
                         </p>
                     </div>
 
-                    <!-- Thẻ Biên Lai Điện Tử Chính Thức -->
-                    <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 text-left text-xs sm:text-sm space-y-2.5 shadow-2xs">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-200 font-semibold text-slate-500">
-                            <div class="flex items-center gap-1.5">
-                                <i data-lucide="file-check" class="w-4 h-4 text-emerald-600"></i>
-                                <span>Biên Lai Thu Tiền Điện Tử</span>
-                            </div>
-                            <span class="text-[11px] font-mono text-[#0B7CFF] font-bold">PJICO HÀ GIANG</span>
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Mã đơn hàng:</span>
-                            <span id="confirmedOrderCode" class="font-mono font-bold text-slate-900">#PJ...</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Khách hàng:</span>
-                            <span id="confirmedBuyerDisplay" class="font-bold text-slate-900">--</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Sản phẩm / Dịch vụ:</span>
-                            <span id="confirmedProductDisplay" class="font-semibold text-[#002D62] text-right">--</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Số tiền đã nhận:</span>
-                            <span id="confirmedAmountDisplay" class="font-mono font-black text-emerald-600 text-base">-- đ</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Phương thức thanh toán:</span>
-                            <span class="font-semibold text-slate-700">VietinBank VietQR (SePay SEVQR)</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-slate-500">Thời gian xác nhận tiền về:</span>
-                            <span id="confirmedDateDisplay" class="font-mono text-slate-700 text-xs">--</span>
-                        </div>
-                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                            <span class="text-slate-500">Trạng thái giao dịch:</span>
-                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                💰 Đã thanh toán (Paid)
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Hộp Hướng Dẫn Cấp GCN Tiếp Theo -->
-                    <div class="p-4 bg-blue-50 rounded-2xl border border-blue-200 text-xs text-[#002D62] text-left flex items-start gap-3">
-                        <i data-lucide="bell-ring" class="w-5 h-5 text-[#0B7CFF] flex-shrink-0 mt-0.5"></i>
-                        <div class="leading-relaxed">
-                            <strong>Tiếp theo:</strong> Chuyên viên cấp đơn của <strong>Công ty Bảo hiểm PJICO Hà Giang</strong> đang xuất Giấy chứng nhận điện tử (Tích xanh Bộ Tài Chính) và sẽ gửi file PDF qua Zalo/Email cho Quý khách trong vòng 3 phút!
-                        </div>
-                    </div>
-
-                    <!-- Nút Thao Tác Nhanh -->
-                    <div class="space-y-2 pt-2 no-print">
-                        <a id="confirmedZaloLink" href="https://zalo.me/0987501199" target="_blank" class="w-full py-3.5 px-4 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow">
+                    <!-- 3 CTA BẮT BUỘC THEO QUY ĐỊNH -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                        <button type="button" onclick="goToTrackingFromThankYou()" class="w-full py-3 px-3 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                            <span>TRA CỨU ĐƠN HÀNG</span>
+                        </button>
+                        <a href="https://zalo.me/0906069368" target="_blank" class="w-full py-3 px-3 rounded-xl bg-[#0068FF] hover:bg-blue-700 text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm">
                             <i data-lucide="message-circle" class="w-4 h-4"></i>
-                            <span>Nhắn Zalo Nhận Giấy Chứng Nhận Ngay</span>
+                            <span>LIÊN HỆ NHÂN VIÊN</span>
                         </a>
-
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="window.print()" class="flex-1 py-2.5 px-3 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
-                                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-                                <span>In / Lưu Biên Lai</span>
-                            </button>
-                            <button type="button" onclick="startNewOrder()" class="flex-1 py-2.5 px-3 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer">
-                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                                <span>Tạo Đơn Hàng Mới</span>
-                            </button>
-                        </div>
+                        <a href="/" class="w-full py-3 px-3 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1.5">
+                            <i data-lucide="home" class="w-4 h-4"></i>
+                            <span>VỀ TRANG CHỦ</span>
+                        </a>
                     </div>
 
                 </div>
@@ -584,80 +638,249 @@
 
         </div>
 
-        <!-- ========================================================================= -->
-        <!-- TAB 2: TRA CỨU ĐƠN HÀNG & TRẠNG THÁI THANH TOÁN (LOOKUP) -->
-        <!-- ========================================================================= -->
+        <!-- ===================================================================== -->
+        <!-- TAB 2: 8. ORDER TRACKING & 9. ORDER TIMELINE (/tra-cuu-don-hang) -->
+        <!-- ===================================================================== -->
         <div id="tabContent-lookup" class="space-y-6 hidden">
-            <div class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                <div class="max-w-xl mx-auto text-center space-y-2">
-                    <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#0B7CFF] flex items-center justify-center mx-auto">
-                        <i data-lucide="search" class="w-6 h-6"></i>
-                    </div>
-                    <h2 class="text-xl font-black text-[#002D62]">Tra Cứu Đơn Hàng & Trạng Thái Thanh Toán</h2>
-                    <p class="text-xs sm:text-sm text-slate-500">
-                        Nhập <strong>Số điện thoại</strong> hoặc <strong>Mã đơn hàng</strong> để kiểm tra tình trạng tiền đã vào VietinBank chưa và nhận lại giấy chứng nhận.
+            
+            <div class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-xs space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-black text-[#002D62] flex items-center gap-2">
+                        <i data-lucide="search" class="w-5 h-5 text-[#0B7CFF]"></i>
+                        <span>TRA CỨU TIẾN ĐỘ & HỒ SƠ ĐƠN HÀNG</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Nhập số điện thoại hoặc mã đơn hàng để theo dõi tiến độ cấp Giấy chứng nhận và tải file bản sao.
                     </p>
                 </div>
 
-                <!-- Ô tìm kiếm -->
-                <div class="max-w-md mx-auto flex items-center gap-2">
-                    <div class="relative flex-1">
-                        <i data-lucide="phone" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="lookupQuery" placeholder="Nhập số điện thoại (VD: 0987501199)..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#0B7CFF] text-xs sm:text-sm font-bold text-[#002D62] outline-hidden">
+                <!-- Form tra cứu -->
+                <form onsubmit="handleTrackingSearch(event)" class="p-4 sm:p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Số Điện Thoại Đăng Ký *</label>
+                            <input type="tel" id="lookupPhone" placeholder="Ví dụ: 0987501199" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-mono font-bold text-slate-800 outline-none focus:border-[#0B7CFF]">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">Mã Đơn Hàng (Nếu có)</label>
+                            <input type="text" id="lookupOrderCode" placeholder="Ví dụ: PJ2609..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white font-mono uppercase text-slate-800 outline-none focus:border-[#0B7CFF]">
+                        </div>
                     </div>
-                    <button type="button" onclick="performOrderLookup()" class="px-5 py-3 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-1.5">
+
+                    <button type="submit" id="btnLookupSubmit" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow transition cursor-pointer">
                         <i data-lucide="search" class="w-4 h-4"></i>
-                        <span>Tra Cứu</span>
+                        <span>TRA CỨU</span>
                     </button>
-                </div>
+                </form>
 
-                <!-- Kết quả tìm kiếm -->
-                <div id="lookupResultsContainer" class="mt-6 pt-6 border-t border-slate-100 hidden space-y-3">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Kết Quả Đơn Hàng Tìm Thấy:</h3>
-                    <div id="lookupOrderList" class="space-y-3">
-                        <!-- Render danh sách đơn bằng JS -->
+                <!-- Vùng kết quả tra cứu -->
+                <div id="lookupResultBox" class="hidden space-y-6 pt-2">
+                    
+                    <!-- Thông tin cơ bản đơn hàng -->
+                    <div class="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                            <div>
+                                <span class="text-xs text-slate-400">Đơn hàng</span>
+                                <div class="font-mono font-black text-lg text-[#002D62]" id="trackOrderCode">PJ...</div>
+                            </div>
+                            <div id="trackStatusBadge">
+                                <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-slate-100 text-slate-700">Đang cập nhật</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                            <div>
+                                <span class="text-slate-400 block">Sản phẩm:</span>
+                                <strong id="trackProductName" class="text-slate-800">-</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Khách hàng:</span>
+                                <strong id="trackCustomerName" class="text-slate-800">-</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Số tiền:</span>
+                                <strong id="trackAmount" class="text-emerald-700 font-mono text-sm">-</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Ngày đặt:</span>
+                                <span id="trackCreatedAt" class="text-slate-700 font-mono">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Nút xem giấy chứng nhận (chỉ hiện khi đã cấp / paid / delivered) -->
+                        <div id="trackCertBox" class="hidden pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                            <span class="text-xs text-emerald-700 font-bold flex items-center gap-1.5">
+                                <i data-lucide="award" class="w-4 h-4"></i>
+                                <span>Giấy chứng nhận điện tử hợp lệ đã sẵn sàng</span>
+                            </span>
+                            <button type="button" onclick="openCertificateModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow transition cursor-pointer">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+                                <span>XEM GIẤY CHỨNG NHẬN</span>
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- 9. ORDER TIMELINE (THANH TIẾN ĐỘ 6 MỐC TRỰC QUAN) -->
+                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                        <h3 class="text-xs sm:text-sm font-bold text-[#002D62] uppercase tracking-wide flex items-center gap-1.5">
+                            <i data-lucide="git-commit" class="w-4 h-4 text-[#0B7CFF]"></i>
+                            <span>TIẾN ĐỘ XỬ LÝ ĐƠN HÀNG (ORDER TIMELINE)</span>
+                        </h3>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs" id="timelineContainer">
+                            <!-- 1. Tiếp nhận -->
+                            <div id="tlStep-1" class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs mx-auto">✓</div>
+                                <div class="font-bold text-slate-800">1. Tiếp nhận</div>
+                                <div class="text-[10px] text-slate-400">Đã vào hệ thống</div>
+                            </div>
+                            <!-- 2. Xác nhận -->
+                            <div id="tlStep-2" class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs mx-auto">✓</div>
+                                <div class="font-bold text-slate-800">2. Xác nhận</div>
+                                <div class="text-[10px] text-slate-400">Hồ sơ hợp lệ</div>
+                            </div>
+                            <!-- 3. Thanh toán -->
+                            <div id="tlStep-3" class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs mx-auto">3</div>
+                                <div class="font-bold text-slate-800">3. Thanh toán</div>
+                                <div class="text-[10px] text-slate-400">Tiền về TK</div>
+                            </div>
+                            <!-- 4. Đang xử lý -->
+                            <div id="tlStep-4" class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs mx-auto">4</div>
+                                <div class="font-bold text-slate-800">4. Đang xử lý</div>
+                                <div class="text-[10px] text-slate-400">Thẩm định PJICO</div>
+                            </div>
+                            <!-- 5. Đã cấp đơn -->
+                            <div id="tlStep-5" class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs mx-auto">5</div>
+                                <div class="font-bold text-slate-800">5. Đã cấp đơn</div>
+                                <div class="text-[10px] text-slate-400">Ký số điện tử</div>
+                            </div>
+                            <!-- 6. Đã gửi khách -->
+                            <div id="tlStep-6" class="p-2.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                                <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs mx-auto">6</div>
+                                <div class="font-bold text-slate-800">6. Đã gửi khách</div>
+                                <div class="text-[10px] text-slate-400">Zalo/Email/Bưu điện</div>
+                            </div>
+                        </div>
+
+                        <!-- Cảnh báo nếu đơn bị hủy -->
+                        <div id="tlCancelledBox" class="hidden p-3 bg-rose-50 border border-rose-300 rounded-xl text-xs text-rose-800 flex items-center gap-2">
+                            <i data-lucide="x-circle" class="w-4 h-4 text-rose-600 flex-shrink-0"></i>
+                            <span>Đơn hàng này đã bị hủy do quá hạn thanh toán hoặc theo yêu cầu của khách hàng.</span>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div id="lookupEmptyState" class="mt-6 pt-6 border-t border-slate-100 hidden text-center py-8 text-slate-400 text-xs sm:text-sm">
-                    Không tìm thấy đơn hàng nào với thông tin tra cứu trên. Vui lòng kiểm tra lại số điện thoại hoặc mã đơn!
+                <!-- Thông báo nếu không tìm thấy -->
+                <div id="lookupNotFoundBox" class="hidden p-5 rounded-2xl bg-amber-50 border border-amber-300 text-xs text-amber-900 text-center space-y-2">
+                    <i data-lucide="search-x" class="w-8 h-8 text-amber-600 mx-auto"></i>
+                    <p class="font-bold">Không tìm thấy đơn hàng phù hợp với thông tin đã nhập.</p>
+                    <p class="text-slate-600">Vui lòng kiểm tra lại số điện thoại hoặc mã đơn hàng của bạn.</p>
                 </div>
+
             </div>
+
         </div>
 
     </main>
 
     <!-- ========================================================================= -->
-    <!-- FOOTER -->
+    <!-- 10. MOBILE BOTTOM STICKY ACTION BAR -->
     <!-- ========================================================================= -->
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto no-print">
-        <div class="max-w-4xl mx-auto px-4 space-y-2">
-            <p class="font-bold text-[#002D62]">CÔNG TY BẢO HIỂM PJICO HÀ GIANG</p>
-            <p>Địa chỉ: Tổ 3, Phường Quang Trung, TP. Hà Giang, Tỉnh Hà Giang</p>
-            <p>Hotline Cấp đơn & Bồi thường 24/7: <strong class="text-[#0B7CFF]">0987.501.199 / 0906.069.368</strong></p>
-            <div class="pt-2 text-[11px] text-slate-400 flex items-center justify-center gap-4">
-                <a href="/" class="hover:underline">Trang Chủ</a>
-                <span>•</span>
-                <a href="/admin" class="hover:underline">Admin Panel (Quản trị)</a>
-                <span>•</span>
-                <a href="/thanhtoan" class="hover:underline">Cổng Thanh Toán</a>
+    <div id="mobileStickyBar" class="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 sm:hidden shadow-lg transition-transform duration-300">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Tổng thanh toán:</span>
+                <span id="mobileStickyAmount" class="font-mono font-black text-sm text-[#0B7CFF]">86.000 đ</span>
+            </div>
+            <button type="button" id="mobileStickyBtn" onclick="handleMobileStickyAction()" class="flex-grow max-w-[220px] py-3 px-4 rounded-xl bg-[#002D62] text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5">
+                <span id="mobileStickyBtnText">ĐẶT MUA NGAY</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL XEM GIẤY CHỨNG NHẬN ĐIỆN TỬ -->
+    <!-- ========================================================================= -->
+    <div id="certModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+            <div class="p-4 bg-[#002D62] text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="award" class="w-5 h-5 text-emerald-400"></i>
+                    <h3 class="font-bold text-sm">Giấy Chứng Nhận Bảo Hiểm Điện Tử</h3>
+                </div>
+                <button type="button" onclick="closeCertificateModal()" class="text-white/80 hover:text-white p-1 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 text-xs">
+                <div class="border-2 border-emerald-500 rounded-2xl p-4 bg-emerald-50/30 text-center space-y-2">
+                    <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                    <div class="text-base font-black text-[#002D62]">TỔNG CÔNG TY CỔ PHẦN BẢO HIỂM PETROLIMEX (PJICO)</div>
+                    <div class="text-xs font-bold text-emerald-700">GIẤY CHỨNG NHẬN BẢO HIỂM ĐIỆN TỬ HỢP CHUẨN</div>
+                    <span class="inline-block px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-600 text-white font-mono">
+                        ✓ TÍCH XANH CỤC ĐĂNG KIỂM & BỘ CÔNG AN
+                    </span>
+                </div>
+
+                <div class="space-y-2 text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-200 font-medium">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Mã GCN / Đơn hàng:</span>
+                        <strong id="modalCertOrderCode" class="font-mono text-[#002D62]">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Chủ xe / Bên mua:</span>
+                        <strong id="modalCertCustName">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Số điện thoại:</span>
+                        <strong id="modalCertCustPhone" class="font-mono">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Sản phẩm:</span>
+                        <strong id="modalCertProdName">-</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Số tiền bảo hiểm:</span>
+                        <strong class="text-emerald-700">150.000.000 đ/người/vụ</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Hiệu lực bảo hiểm:</span>
+                        <strong>01 Năm kể từ ngày cấp</strong>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <a href="/oto_xuan.pdf" target="_blank" class="w-full py-3 px-4 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition text-center">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Tải File PDF Giấy Chứng Nhận Mẫu</span>
+                    </a>
+                    <button type="button" onclick="closeCertificateModal()" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold text-xs">
+                        Đóng cửa sổ
+                    </button>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
 
     <!-- TOAST NOTIFICATION -->
-    <div id="toastNotification" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 translate-y-24 opacity-0 transition-all duration-300 z-50">
-        <i data-lucide="check-circle" id="toastIcon" class="w-4 h-4 text-emerald-400"></i>
+    <div id="toastNotification" class="fixed bottom-20 sm:bottom-6 right-6 bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 translate-y-24 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
         <span id="toastMessage">Thông báo</span>
     </div>
 
     <!-- ========================================================================= -->
-    <!-- JAVASCRIPT LOGIC CỔNG THANH TOÁN (3 BƯỚC CHUẨN) -->
+    <!-- LOGIC JAVASCRIPT ĐIỀU KHIỂN LUỒNG BÁN HÀNG PHASE 2 -->
     <!-- ========================================================================= -->
     <script>
         const API_BASE = window.location.origin.includes('http') ? window.location.origin : 'http://localhost:8080';
 
-        // CẤU HÌNH TÀI KHOẢN SEPAY - VIETINBANK
+        // CẤU HÌNH TÀI KHOẢN SEPAY - VIETINBANK (GIỮ NGUYÊN HOÀN TOÀN)
         const SEPAY_CONFIG = {
             bank: 'vietinbank',
             acc: '106006104248',
@@ -665,21 +888,8 @@
             prefix: 'SEVQR PJICO' // Bắt buộc tiền tố SEVQR theo quy định SePay cho VietinBank
         };
 
-        // Gói mặc định được chọn
-        let selectedProduct = {
-            name: 'Bảo hiểm Xe Máy TNDS Điện Tử (Tích Xanh)',
-            price: 86000,
-            type: 'digital',
-            code: 'xemay'
-        };
-
-        // Dữ liệu đơn hàng hiện tại đang thao tác
-        let currentOrderData = null;
-        let pollTimer = null;
-
-        // Dữ liệu ban đầu mặc định đồng bộ chuẩn SQLite brain.db
         const DEFAULT_PRODUCTS = [
-            { id: 1, name: "Ấn chỉ & Thẻ cứng BH Xe Máy (Giao tận nhà)", product_type: "physical", price: 86000, description: "Thẻ bảo hiểm cứng ép plastic kèm tem chuẩn PJICO", stock_quantity: 49 },
+            { id: 1, name: "Ấn chỉ & Thẻ cứng BH Xe Máy (Giao tận nhà)", product_type: "physical", price: 86000, description: "Ấn chỉ vật lý chuẩn Bộ Tài Chính giao tận nơi tại Hà Giang", stock_quantity: 50 },
             { id: 2, name: "Mũ bảo hiểm PJICO Petrolimex (Quà tặng)", product_type: "physical", price: 150000, description: "Mũ bảo hiểm đạt chuẩn CR in logo PJICO Petrolimex", stock_quantity: 30 },
             { id: 3, name: "Bảo hiểm Xe Máy TNDS Điện Tử (Tích Xanh)", product_type: "digital", price: 86000, description: "Giấy chứng nhận điện tử nhận ngay qua Zalo/Email trong 3 phút", stock_quantity: null },
             { id: 4, name: "Bảo hiểm Ô Tô TNDS 5 Chỗ Điện Tử", product_type: "digital", price: 480700, description: "GCN điện tử hợp chuẩn xét đăng kiểm toàn quốc", stock_quantity: null },
@@ -687,7 +897,19 @@
             { id: 6, name: "Dịch Vụ Tư Vấn Thẩm Định Hồ Sơ Visa Châu Âu", product_type: "service", price: 500000, description: "Tư vấn hồ sơ bảo hiểm du lịch chuẩn quy định đại sứ quán", stock_quantity: null }
         ];
 
-        // Khởi tạo trang
+        let selectedProduct = {
+            id: 3,
+            price: 86000,
+            name: "Bảo hiểm Xe Máy TNDS Điện Tử (Tích Xanh)",
+            type: "digital",
+            code: "xemay"
+        };
+
+        let currentOrderData = null;
+        let pollingInterval = null;
+        let currentCheckoutStep = 1;
+
+        // Khởi tạo trang khi tải
         document.addEventListener('DOMContentLoaded', () => {
             initLocalStorageIfEmpty();
             parseUrlParameters();
@@ -706,25 +928,31 @@
             }
         }
 
-        // Đọc tham số URL từ Landing Page & Hồ sơ khách hàng trung tâm
+        // Đọc tham số URL từ Landing Page & Central Customer
         function parseUrlParameters() {
             const params = new URLSearchParams(window.location.search);
+            const pathName = window.location.pathname.toLowerCase();
+            const tabParam = params.get('tab');
             const amountParam = params.get('amount');
             const productParam = params.get('product');
             const phoneParam = params.get('phone');
             const nameParam = params.get('name');
             const noteParam = params.get('note') || params.get('plate');
-            const lookupParam = params.get('lookup');
+            const lookupParam = params.get('lookup') || params.get('order_code');
 
             if (nameParam) document.getElementById('buyerName').value = nameParam;
             if (phoneParam) document.getElementById('buyerPhone').value = phoneParam;
-            if (noteParam) document.getElementById('buyerNote').value = noteParam;
+            if (noteParam) {
+                document.getElementById('buyerPlate').value = noteParam;
+                document.getElementById('buyerAddress').value = noteParam;
+            }
 
-            // Đọc thêm từ LocalStorage pjico_central_customer nếu các trường chưa có
+            // Đọc thêm từ LocalStorage pjico_central_customer
             try {
                 const centralCust = JSON.parse(localStorage.getItem('pjico_central_customer') || '{}');
                 if (!document.getElementById('buyerName').value && centralCust.name) {
                     document.getElementById('buyerName').value = centralCust.name;
+                    document.getElementById('custAutoFillBadge')?.classList.remove('hidden');
                 }
                 if (!document.getElementById('buyerPhone').value && centralCust.phone) {
                     document.getElementById('buyerPhone').value = centralCust.phone;
@@ -732,11 +960,15 @@
                 if (!document.getElementById('buyerEmail').value && centralCust.email) {
                     document.getElementById('buyerEmail').value = centralCust.email;
                 }
-                if (!document.getElementById('buyerNote').value && (centralCust.plate_number || centralCust.address)) {
-                    document.getElementById('buyerNote').value = centralCust.plate_number || centralCust.address;
+                if (!document.getElementById('buyerAddress').value && centralCust.address) {
+                    document.getElementById('buyerAddress').value = centralCust.address;
+                }
+                if (!document.getElementById('buyerPlate').value && centralCust.plate_number) {
+                    document.getElementById('buyerPlate').value = centralCust.plate_number;
                 }
             } catch(e) {}
 
+            // Chọn gói tương ứng
             if (productParam === 'oto' || (amountParam && parseInt(amountParam) === 480700)) {
                 selectPackage(480700, 'Bảo hiểm Ô Tô TNDS 5 Chỗ Điện Tử', 'digital', 'oto');
             } else if (productParam === 'thecung') {
@@ -745,26 +977,34 @@
                 selectPackage(300000, 'Gói Cứu Hộ Giao Thông Khẩn Cấp 24/7', 'service', 'cuuho');
             } else if (amountParam) {
                 const amt = parseInt(amountParam);
-                document.getElementById('payAmount').value = amt;
-                selectedProduct.price = amt;
-                if (params.get('desc')) selectedProduct.name = params.get('desc');
+                selectPackage(amt, params.get('desc') || 'Bảo hiểm PJICO Hà Giang', 'digital', 'custom');
+            } else {
+                selectPackage(86000, 'Bảo hiểm Xe Máy TNDS Điện Tử (Tích Xanh)', 'digital', 'xemay');
             }
 
-            if (lookupParam) {
+            // Nếu truy cập từ link /tra-cuu-don-hang hoặc tab=lookup
+            if (pathName.includes('tra-cuu') || tabParam === 'lookup' || lookupParam) {
                 switchTab('lookup');
-                document.getElementById('lookupQuery').value = lookupParam;
-                performOrderLookup();
+                if (lookupParam) {
+                    document.getElementById('lookupOrderCode').value = lookupParam;
+                }
+                if (phoneParam) {
+                    document.getElementById('lookupPhone').value = phoneParam;
+                }
+                if (lookupParam || phoneParam) {
+                    performOrderLookup(lookupParam, phoneParam);
+                }
             } else {
-                // Tự động nhận diện khách hàng nếu đã có số điện thoại
                 const curPhone = document.getElementById('buyerPhone').value;
                 if (curPhone) handleCheckoutPhoneLookup(curPhone);
             }
         }
 
-        let checkoutPhoneLookupTimeout = null;
+        // Debounced phone lookup
+        let phoneLookupTimeout = null;
         function handleCheckoutPhoneLookup(phoneVal) {
-            clearTimeout(checkoutPhoneLookupTimeout);
-            checkoutPhoneLookupTimeout = setTimeout(async () => {
+            clearTimeout(phoneLookupTimeout);
+            phoneLookupTimeout = setTimeout(async () => {
                 const clean = (phoneVal || '').replace(/\D/g, '');
                 if (clean.length >= 10) {
                     try {
@@ -775,39 +1015,19 @@
                                 const d = json.data;
                                 const nameEl = document.getElementById('buyerName');
                                 const emailEl = document.getElementById('buyerEmail');
-                                const noteEl = document.getElementById('buyerNote');
+                                const addrEl = document.getElementById('buyerAddress');
+                                const plateEl = document.getElementById('buyerPlate');
                                 if (nameEl && (!nameEl.value || nameEl.value.trim() === '')) nameEl.value = d.full_name || d.name || '';
                                 if (emailEl && (!emailEl.value || emailEl.value.trim() === '')) emailEl.value = d.email || '';
-                                if (noteEl && (!noteEl.value || noteEl.value.trim() === '')) {
-                                    noteEl.value = d.latest_plate_number || d.address || '';
-                                }
-                                const badge = document.getElementById('custRecognizeBadge');
-                                const badgeName = document.getElementById('custRecognizeName');
-                                if (badge && badgeName) {
-                                    badgeName.innerText = d.full_name || d.name;
-                                    badge.classList.remove('hidden');
-                                }
+                                if (addrEl && (!addrEl.value || addrEl.value.trim() === '')) addrEl.value = d.address || '';
+                                if (plateEl && (!plateEl.value || plateEl.value.trim() === '') && d.latest_plate_number) plateEl.value = d.latest_plate_number;
+                                
+                                document.getElementById('custAutoFillBadge')?.classList.remove('hidden');
+                                showToast(`✓ Nhận diện khách hàng: ${d.full_name || d.name}`);
                                 return;
                             }
                         }
                     } catch(e) {}
-
-                    // Fallback LocalStorage
-                    const customers = JSON.parse(localStorage.getItem('pjico_db_customers') || '[]');
-                    const localCust = customers.find(c => (c.phone || '').replace(/\D/g, '') === clean);
-                    if (localCust) {
-                        const nameEl = document.getElementById('buyerName');
-                        if (nameEl && !nameEl.value) nameEl.value = localCust.name;
-                        const badge = document.getElementById('custRecognizeBadge');
-                        const badgeName = document.getElementById('custRecognizeName');
-                        if (badge && badgeName) {
-                            badgeName.innerText = localCust.name;
-                            badge.classList.remove('hidden');
-                        }
-                    }
-                } else {
-                    const badge = document.getElementById('custRecognizeBadge');
-                    if (badge) badge.classList.add('hidden');
                 }
             }, 350);
         }
@@ -823,19 +1043,30 @@
             const content = document.getElementById(`tabContent-${tabId}`);
             if (content) content.classList.remove('hidden');
 
+            // Cập nhật URL nếu chuyển tab
+            if (tabId === 'lookup') {
+                window.history.replaceState({}, '', '/tra-cuu-don-hang');
+            } else {
+                window.history.replaceState({}, '', '/thanhtoan');
+            }
+
             lucide.createIcons();
+            window.scrollTo({ top: 100, behavior: 'smooth' });
         }
 
         function selectPackage(price, name, type, code) {
             selectedProduct = { price, name, type, code };
             document.getElementById('payAmount').value = price;
+            document.getElementById('payAmountDisplay').innerText = price.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('feeBase').innerText = price.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('mobileStickyAmount').innerText = price.toLocaleString('vi-VN') + ' đ';
 
-            // Highlight card
+            // Highlight package card
             ['xemay', 'oto', 'thecung', 'cuuho'].forEach(k => {
                 const el = document.getElementById(`pkg-${k}`);
                 if (el) {
                     if (k === code) {
-                        el.className = 'p-3.5 rounded-2xl border-2 border-[#0B7CFF] bg-blue-50/50 cursor-pointer shadow-xs relative';
+                        el.className = 'p-3.5 rounded-2xl border-2 border-[#0B7CFF] bg-blue-50/50 cursor-pointer transition relative';
                     } else {
                         el.className = 'p-3.5 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer hover:border-[#0B7CFF] transition relative';
                     }
@@ -844,25 +1075,31 @@
         }
 
         // =========================================================================
-        // BƯỚC 1 -> BƯỚC 2: SUBMIT THÔNG TIN & KHỞI TẠO ĐƠN HÀNG PENDING
+        // STEP 1 -> STEP 2: XÁC NHẬN TẠO ĐƠN HÀNG (ORDER CONFIRMATION)
         // =========================================================================
-        async function handleProceedToPayment(e) {
+        async function handleOrderFormSubmit(e) {
             e.preventDefault();
 
             const buyerName = document.getElementById('buyerName').value.trim();
             const buyerPhone = document.getElementById('buyerPhone').value.trim();
             const buyerEmail = document.getElementById('buyerEmail').value.trim();
+            const buyerAddress = document.getElementById('buyerAddress').value.trim();
+            const buyerPlate = document.getElementById('buyerPlate').value.trim();
             const buyerNote = document.getElementById('buyerNote').value.trim();
             const amount = parseFloat(document.getElementById('payAmount').value) || selectedProduct.price;
 
-            if (!buyerName) {
-                alert("Vui lòng nhập Họ và Tên của Quý khách!");
-                document.getElementById('buyerName').focus();
+            // Kiểm tra 3 checkbox bắt buộc
+            const chk1 = document.getElementById('chkConfirmInfo').checked;
+            const chk2 = document.getElementById('chkAgreePlan').checked;
+            const chk3 = document.getElementById('chkInformedConditions').checked;
+
+            if (!chk1 || !chk2 || !chk3) {
+                alert("Vui lòng tích chọn đầy đủ 3 cam kết và xác nhận ở Mục 4 để hoàn tất đặt mua!");
                 return;
             }
-            if (!buyerPhone) {
-                alert("Vui lòng nhập Số điện thoại để hệ thống gửi Giấy chứng nhận điện tử!");
-                document.getElementById('buyerPhone').focus();
+
+            if (!buyerName || !buyerPhone) {
+                alert("Vui lòng điền Họ tên và Số điện thoại!");
                 return;
             }
 
@@ -880,7 +1117,10 @@
                     customer = {
                         id: newCustId,
                         name: buyerName,
+                        full_name: buyerName,
                         phone: buyerPhone,
+                        email: buyerEmail,
+                        address: buyerAddress,
                         zalo: buyerPhone,
                         registered_at: new Date().toISOString().replace('T', ' ').substring(0, 19)
                     };
@@ -888,21 +1128,18 @@
                     localStorage.setItem('pjico_db_customers', JSON.stringify(customers));
                 }
 
-                // 2. Tìm ID sản phẩm
+                // 2. Tìm sản phẩm
                 let products = JSON.parse(localStorage.getItem('pjico_db_products') || JSON.stringify(DEFAULT_PRODUCTS));
                 let matchedProduct = products.find(p => p.name.toLowerCase().includes(selectedProduct.code) || p.product_type === selectedProduct.type);
                 if (!matchedProduct) matchedProduct = products[0];
 
-                // 3. Tạo Đơn Hàng Mới VỚI TRẠNG THÁI BẮT BUỘC: 'pending' (Chờ thanh toán)
+                // 3. Tạo Đơn Hàng Mới (Trạng thái bắt buộc: pending)
                 let orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
                 const newOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id || 0)) + 1 : 1;
                 
-                // Sinh mã đơn hàng: ví dụ PJ2609 + 4 chữ số ngẫu nhiên hoặc ID
                 const dateCode = new Date().getFullYear().toString().slice(-2) + String(new Date().getMonth() + 1).padStart(2, '0') + String(new Date().getDate()).padStart(2, '0');
                 const orderCodeStr = `PJ${dateCode}${String(newOrderId).padStart(3, '0')}`;
                 const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
-
-                // Cú pháp chuyển khoản bắt buộc SEVQR
                 const transferContent = `${SEPAY_CONFIG.prefix} ${orderCodeStr}`;
 
                 const newOrder = {
@@ -911,23 +1148,38 @@
                     customer_id: customer.id,
                     product_id: matchedProduct.id,
                     amount: amount,
-                    status: 'pending', // BẮT BUỘC: pending
+                    status: 'pending',
                     purchased_at: nowStr,
                     customer_name: buyerName,
                     customer_phone: buyerPhone,
                     customer_email: buyerEmail,
+                    customer_address: buyerAddress,
+                    plate_number: buyerPlate,
                     product_name: selectedProduct.name,
                     product_type: selectedProduct.type,
                     payment_method: 'VietinBank VietQR (SePay)',
                     payment_ref: transferContent,
-                    note: buyerNote
+                    note: buyerNote || buyerPlate
                 };
 
-                // Lưu vào LocalStorage (Đảm bảo /admin đọc được ngay lập tức)
+                // Lưu LocalStorage
                 orders.unshift(newOrder);
                 localStorage.setItem('pjico_db_orders', JSON.stringify(orders));
 
-                // 4. Nếu có backend SQLite server.py đang chạy, đồng bộ vào brain.db với status: 'pending'
+                // Lưu hồ sơ khách hàng trung tâm
+                try {
+                    const centralCust = {
+                        name: buyerName,
+                        phone: buyerPhone,
+                        email: buyerEmail,
+                        address: buyerAddress,
+                        plate_number: buyerPlate,
+                        updated_at: nowStr
+                    };
+                    localStorage.setItem('pjico_central_customer', JSON.stringify(centralCust));
+                } catch(e) {}
+
+                // Gửi backend SQLite server.py
                 try {
                     const res = await fetch(`${API_BASE}/api/public/orders`, {
                         method: 'POST',
@@ -936,64 +1188,82 @@
                             customer_name: buyerName,
                             customer_phone: buyerPhone,
                             customer_email: buyerEmail,
-                            customer_address: buyerNote,
-                            plate_number: buyerNote,
+                            customer_address: buyerAddress,
+                            plate_number: buyerPlate,
                             order_code: orderCodeStr,
                             product_id: matchedProduct.id,
                             product_name: selectedProduct.name,
                             amount: amount,
-                            status: 'pending' // Chờ thanh toán
+                            status: 'pending'
                         })
                     });
                     if (res.ok) {
                         const json = await res.json();
-                        if (json.order_id) {
-                            newOrder.server_id = json.order_id;
-                        }
+                        if (json.order_id) newOrder.server_id = json.order_id;
                     }
                 } catch(netErr) {}
 
-                // Cập nhật hồ sơ khách hàng trung tâm trên localStorage
-                try {
-                    const centralCust = {
-                        name: buyerName,
-                        phone: buyerPhone,
-                        email: buyerEmail,
-                        address: buyerNote,
-                        plate_number: buyerNote,
-                        updated_at: nowStr
-                    };
-                    localStorage.setItem('pjico_central_customer', JSON.stringify(centralCust));
-                } catch(e) {}
-
                 currentOrderData = newOrder;
 
-                // 5. Chuyển sang Bước 2: Hiển thị mã QR VietinBank
-                renderStep2PaymentScreen(newOrder);
-                showToast("Đơn hàng đã được khởi tạo với trạng thái Chờ thanh toán (Pending)!");
+                // 4. Chuyển sang Bước 2: Hiển thị màn hình Xác Nhận Đơn Hàng (Order Confirmation)
+                renderOrderConfirmationScreen(newOrder);
+                showToast("✓ Đơn hàng đã được tạo thành công!");
 
             } catch (err) {
                 alert("Đã xảy ra lỗi khởi tạo đơn: " + err.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<span>XÁC NHẬN ĐẶT HÀNG & LẤY MÃ THANH TOÁN (QR)</span><i data-lucide="arrow-right" class="w-5 h-5"></i>';
+                btn.innerHTML = '<span>XÁC NHẬN ĐẶT MUA & THANH TOÁN</span><i data-lucide="arrow-right" class="w-5 h-5"></i>';
                 lucide.createIcons();
             }
         }
 
         // =========================================================================
-        // HIỂN THỊ MÀN HÌNH BƯỚC 2: QUÉT MÃ VIETQR
+        // MÀN HÌNH BƯỚC 2: XÁC NHẬN ĐƠN HÀNG ĐÃ ĐƯỢC TẠO (ORDER CONFIRMATION)
+        // =========================================================================
+        function renderOrderConfirmationScreen(order) {
+            updateStepper('confirm');
+
+            document.getElementById('checkoutStep-1').classList.add('hidden');
+            document.getElementById('checkoutStep-confirm').classList.remove('hidden');
+            document.getElementById('checkoutStep-2').classList.add('hidden');
+            document.getElementById('checkoutStep-3').classList.add('hidden');
+
+            document.getElementById('confirmOrderCode').innerText = '#' + order.order_code;
+            document.getElementById('confirmProductName').innerText = order.product_name;
+            document.getElementById('confirmCustomerName').innerText = order.customer_name;
+            document.getElementById('confirmCustomerPhone').innerText = order.customer_phone;
+            document.getElementById('confirmCustomerNote').innerText = order.plate_number || order.customer_address || 'Theo yêu cầu';
+            document.getElementById('confirmOrderAmount').innerText = order.amount.toLocaleString('vi-VN') + ' đ';
+
+            // Mobile sticky
+            document.getElementById('mobileStickyBtnText').innerText = 'THANH TOÁN NGAY';
+
+            window.scrollTo({ top: 100, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        function copyConfirmOrderCode() {
+            if (!currentOrderData) return;
+            copyText(currentOrderData.order_code, `Đã sao chép mã đơn: ${currentOrderData.order_code}`);
+        }
+
+        function goToPaymentScreen() {
+            if (!currentOrderData) return;
+            renderStep2PaymentScreen(currentOrderData);
+        }
+
+        // =========================================================================
+        // MÀN HÌNH BƯỚC 3: QUÉT MÃ VIETQR & THANH TOÁN ĐƠN HÀNG
         // =========================================================================
         function renderStep2PaymentScreen(order) {
-            // Cập nhật Stepper
             updateStepper(2);
 
-            // Ẩn bước 1, hiện bước 2, ẩn bước 3
             document.getElementById('checkoutStep-1').classList.add('hidden');
+            document.getElementById('checkoutStep-confirm').classList.add('hidden');
             document.getElementById('checkoutStep-2').classList.remove('hidden');
             document.getElementById('checkoutStep-3').classList.add('hidden');
 
-            // Cập nhật nội dung hiển thị
             document.getElementById('pendingOrderCodeBadge').innerText = '#' + order.order_code;
             document.getElementById('qrOrderCodeText').innerText = order.order_code;
             document.getElementById('qrCustomerName').innerText = order.customer_name;
@@ -1006,14 +1276,19 @@
             const content = `${SEPAY_CONFIG.prefix} ${order.order_code}`;
             document.getElementById('qrTransferContent').innerText = content;
 
-            // Sinh link VietQR Chuẩn Napas 24/7
+            // Link ảnh VietQR chuẩn Napas 24/7
             const qrUrl = `https://img.vietqr.io/image/${SEPAY_CONFIG.bank}-${SEPAY_CONFIG.acc}-compact2.png?amount=${order.amount}&addInfo=${encodeURIComponent(content)}&accountName=${encodeURIComponent(SEPAY_CONFIG.holder)}`;
             document.getElementById('vietQrImg').src = qrUrl;
 
-            // Cuộn trang lên trên
+            // Đặt trạng thái ban đầu: PENDING
+            setPaymentStatusDisplay('PENDING');
+
+            // Mobile sticky
+            document.getElementById('mobileStickyBtnText').innerText = 'KIỂM TRA THANH TOÁN';
+
             window.scrollTo({ top: 120, behavior: 'smooth' });
 
-            // Bắt đầu chu trình tự động kiểm tra biến động số dư (polling mỗi 3s)
+            // Bắt đầu chu trình tự động kiểm tra biến động số dư ngầm
             startAutoPolling(order);
 
             lucide.createIcons();
@@ -1023,369 +1298,407 @@
             stopAutoPolling();
             updateStepper(1);
             document.getElementById('checkoutStep-2').classList.add('hidden');
+            document.getElementById('checkoutStep-confirm').classList.add('hidden');
             document.getElementById('checkoutStep-1').classList.remove('hidden');
+            document.getElementById('mobileStickyBtnText').innerText = 'ĐẶT MUA NGAY';
             window.scrollTo({ top: 100, behavior: 'smooth' });
             lucide.createIcons();
         }
 
         // =========================================================================
-        // BƯỚC 2 -> BƯỚC 3: XÁC THỰC THANH TOÁN & CHUYỂN SANG MÀN HÌNH CẢM ƠN
+        // NÚT CHÍNH: KIỂM TRA THANH TOÁN (PAYMENT CHECK LOGIC - 3 TRẠNG THÁI)
         // =========================================================================
-        async function handleCustomerConfirmedTransfer() {
+        async function handleCheckPaymentClick() {
             if (!currentOrderData) return;
 
-            const btn = document.getElementById('btnCustomerConfirm');
+            const btn = document.getElementById('btnCheckPaymentStatus');
+            const originalHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Đang đối soát SePay VietinBank...</span>';
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Đang kiểm tra biến động số dư VietinBank...</span>';
             lucide.createIcons();
 
             try {
-                // Hiển thị thời gian chờ đối soát thực tế 1.5 giây
-                await new Promise(r => setTimeout(r, 1200));
+                // Gọi API backend kiểm tra đơn
+                const checkRes = await fetch(`${API_BASE}/api/public/orders/check?id=${encodeURIComponent(currentOrderData.order_code)}`);
+                if (checkRes.ok) {
+                    const json = await checkRes.json();
+                    if (json.success && json.data) {
+                        const statusResult = json.data.payment_result || (json.data.status === 'paid' ? 'SUCCESS' : 'PENDING');
+                        
+                        if (statusResult === 'SUCCESS') {
+                            setPaymentStatusDisplay('SUCCESS');
+                            currentOrderData.status = 'paid';
+                            currentOrderData.paid_at = json.data.updated_at || new Date().toISOString().replace('T', ' ').substring(0, 19);
+                            updateLocalOrderPaid(currentOrderData);
+                            stopAutoPolling();
 
-                // 1. Thử gọi API xác nhận server nếu có backend
-                let serverSuccess = false;
-                try {
-                    const res = await fetch(`${API_BASE}/api/public/orders/confirm`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            id: currentOrderData.server_id || currentOrderData.id,
-                            phone: currentOrderData.customer_phone,
-                            order_code: currentOrderData.order_code
-                        })
-                    });
-                    if (res.ok) {
-                        const json = await res.json();
-                        if (json.success) serverSuccess = true;
+                            // Chuyển sang màn hình Cảm ơn sau 1.2s
+                            setTimeout(() => {
+                                renderStep3ThankYouScreen(currentOrderData);
+                            }, 1200);
+                            return;
+                        } else if (statusResult === 'MISMATCH') {
+                            setPaymentStatusDisplay('MISMATCH');
+                            showToast("⚠️ Số tiền hoặc nội dung chuyển khoản chưa khớp!");
+                            return;
+                        } else {
+                            setPaymentStatusDisplay('PENDING');
+                            showToast("⏳ Chưa ghi nhận tiền về. Vui lòng thử lại sau ít giây!");
+                            return;
+                        }
                     }
-                } catch(e) {}
+                }
 
-                // 2. Cập nhật trạng thái đơn hàng trong LocalStorage thành 'paid'
+                // Nếu backend offline hoặc không tìm thấy, kiểm tra trạng thái local
                 let orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
-                const idx = orders.findIndex(o => o.order_code === currentOrderData.order_code || o.id === currentOrderData.id);
-                if (idx !== -1) {
-                    orders[idx].status = 'paid';
-                    orders[idx].paid_at = new Date().toISOString().replace('T', ' ').substring(0, 19);
-                    currentOrderData.status = 'paid';
-                    currentOrderData.paid_at = orders[idx].paid_at;
-                    localStorage.setItem('pjico_db_orders', JSON.stringify(orders));
+                const localOrder = orders.find(o => o.order_code === currentOrderData.order_code);
+                if (localOrder && localOrder.status === 'paid') {
+                    setPaymentStatusDisplay('SUCCESS');
+                    stopAutoPolling();
+                    setTimeout(() => renderStep3ThankYouScreen(localOrder), 1000);
+                } else {
+                    setPaymentStatusDisplay('PENDING');
+                    showToast("⏳ Đang chờ xác nhận từ ngân hàng...");
                 }
 
-                // =====================================================================
-                // QUY TẮC CỐT LÕI: TRỪ TỒN KHO NẾU LÀ SẢN PHẨM VẬT LÝ (PHYSICAL)
-                // =====================================================================
-                let products = JSON.parse(localStorage.getItem('pjico_db_products') || JSON.stringify(DEFAULT_PRODUCTS));
-                let prod = products.find(p => p.id === currentOrderData.product_id || p.name === currentOrderData.product_name);
-                if (prod && prod.product_type === 'physical') {
-                    if (prod.stock_quantity !== null && prod.stock_quantity > 0) {
-                        prod.stock_quantity -= 1;
-                        localStorage.setItem('pjico_db_products', JSON.stringify(products));
-                    }
-                }
-
-                // Dừng auto polling
-                stopAutoPolling();
-
-                // 3. CHUYỂN NGAY SANG MÀN HÌNH BƯỚC 3: CẢM ƠN VÀ XÁC NHẬN ĐÃ NHẬN ĐƯỢC TIỀN
-                renderStep3ThankYouScreen(currentOrderData);
-                showToast("Hệ thống đã xác nhận nhận được tiền thành công!");
-
-            } catch (err) {
-                alert("Đã xảy ra lỗi khi xác thực: " + err.message);
+            } catch(e) {
+                setPaymentStatusDisplay('PENDING');
+                showToast("⏳ Đang kết nối ngân hàng để kiểm tra...");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5"></i><span>TÔI ĐÃ CHUYỂN KHOẢN THÀNH CÔNG</span>';
+                btn.innerHTML = originalHtml;
                 lucide.createIcons();
             }
         }
 
+        // Cập nhật 3 trạng thái thanh toán hiển thị trên UI
+        function setPaymentStatusDisplay(state) {
+            const pCard = document.getElementById('statusPendingCard');
+            const mCard = document.getElementById('statusMismatchCard');
+            const sCard = document.getElementById('statusSuccessCard');
+
+            if (pCard) pCard.classList.add('hidden');
+            if (mCard) mCard.classList.add('hidden');
+            if (sCard) sCard.classList.add('hidden');
+
+            if (state === 'SUCCESS') {
+                if (sCard) sCard.classList.remove('hidden');
+            } else if (state === 'MISMATCH') {
+                if (mCard) mCard.classList.remove('hidden');
+            } else {
+                if (pCard) pCard.classList.remove('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function updateLocalOrderPaid(order) {
+            let orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
+            const idx = orders.findIndex(o => o.order_code === order.order_code);
+            if (idx !== -1) {
+                orders[idx].status = 'paid';
+                orders[idx].paid_at = order.paid_at || new Date().toISOString().replace('T', ' ').substring(0, 19);
+                localStorage.setItem('pjico_db_orders', JSON.stringify(orders));
+            }
+        }
+
         // =========================================================================
-        // HIỂN THỊ MÀN HÌNH BƯỚC 3: CẢM ƠN VÀ XÁC NHẬN ĐÃ NHẬN ĐƯỢC TIỀN
+        // MÀN HÌNH BƯỚC 4: CẢM ƠN (THANK YOU SCREEN)
         // =========================================================================
         function renderStep3ThankYouScreen(order) {
-            // Cập nhật Stepper
             updateStepper(3);
 
-            // Ẩn bước 1, ẩn bước 2, hiện bước 3
             document.getElementById('checkoutStep-1').classList.add('hidden');
+            document.getElementById('checkoutStep-confirm').classList.add('hidden');
             document.getElementById('checkoutStep-2').classList.add('hidden');
             document.getElementById('checkoutStep-3').classList.remove('hidden');
 
-            const nowStr = order.paid_at || new Date().toISOString().replace('T', ' ').substring(0, 19);
+            document.getElementById('thankOrderCode').innerText = '#' + order.order_code;
+            document.getElementById('thankProductName').innerText = order.product_name;
+            document.getElementById('thankCustomerName').innerText = order.customer_name;
+            document.getElementById('thankAmount').innerText = order.amount.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('thankPaidAt').innerText = order.paid_at || new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-            // Điền dữ liệu tri ân và biên lai
-            document.getElementById('confirmedCustName').innerText = order.customer_name || 'Quý khách';
-            document.getElementById('confirmedOrderCode').innerText = '#' + (order.order_code || order.id);
-            document.getElementById('confirmedBuyerDisplay').innerText = `${order.customer_name} (${order.customer_phone || '-'})`;
-            document.getElementById('confirmedProductDisplay').innerText = order.product_name;
-            document.getElementById('confirmedAmountDisplay').innerText = Number(order.amount).toLocaleString('vi-VN') + ' đ';
-            document.getElementById('confirmedDateDisplay').innerText = formatDate(nowStr);
-            document.getElementById('confirmedZaloLink').href = `https://zalo.me/${order.customer_phone || '0987501199'}`;
+            // Ẩn mobile sticky bar trên trang cảm ơn
+            const mBar = document.getElementById('mobileStickyBar');
+            if (mBar) mBar.classList.add('hidden');
 
-            // Cuộn trang
-            window.scrollTo({ top: 120, behavior: 'smooth' });
-
-            lucide.createIcons();
-        }
-
-        // =========================================================================
-        // KIỂM TRA ĐƠN HÀNG THỜI GIAN THỰC (POLLING)
-        // =========================================================================
-        function startAutoPolling(order) {
-            stopAutoPolling();
-            pollTimer = setInterval(async () => {
-                await checkCurrentOrderStatus(false);
-            }, 3000);
-        }
-
-        function stopAutoPolling() {
-            if (pollTimer) {
-                clearInterval(pollTimer);
-                pollTimer = null;
-            }
-        }
-
-        async function checkCurrentOrderStatus(isManual = false) {
-            if (!currentOrderData) return;
-
-            const statusText = document.getElementById('autoCheckStatusText');
-            if (isManual && statusText) {
-                statusText.innerText = "Đang kiểm tra SePay VietinBank...";
-            }
-
-            // 1. Kiểm tra trong LocalStorage trước
-            let orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
-            const localOrder = orders.find(o => o.order_code === currentOrderData.order_code || o.id === currentOrderData.id);
-            if (localOrder && localOrder.status === 'paid') {
-                currentOrderData.status = 'paid';
-                currentOrderData.paid_at = localOrder.paid_at;
-                stopAutoPolling();
-                renderStep3ThankYouScreen(currentOrderData);
-                showToast("Hệ thống đã nhận được tiền từ VietinBank!");
-                return;
-            }
-
-            // 2. Thử truy vấn API backend
-            try {
-                const queryId = currentOrderData.server_id || currentOrderData.id;
-                const res = await fetch(`${API_BASE}/api/public/orders/check?id=${queryId}&phone=${encodeURIComponent(currentOrderData.customer_phone)}`);
-                if (res.ok) {
-                    const json = await res.json();
-                    if (json.success && json.data && json.data.status === 'paid') {
-                        currentOrderData.status = 'paid';
-                        currentOrderData.paid_at = json.data.purchased_at;
-                        // Đồng bộ LocalStorage
-                        if (localOrder) {
-                            localOrder.status = 'paid';
-                            localStorage.setItem('pjico_db_orders', JSON.stringify(orders));
-                        }
-                        stopAutoPolling();
-                        renderStep3ThankYouScreen(currentOrderData);
-                        showToast("Hệ thống đã nhận được tiền từ VietinBank!");
-                        return;
-                    }
-                }
-            } catch(e) {}
-
-            if (isManual) {
-                showToast("Đơn hàng đang chờ chuyển khoản từ ứng dụng ngân hàng của Quý khách!");
-                if (statusText) statusText.innerText = "Đang chờ biến động số dư SePay VietinBank...";
-            }
-        }
-
-        // =========================================================================
-        // TRA CỨU ĐƠN HÀNG (LOOKUP)
-        // =========================================================================
-        function performOrderLookup() {
-            const query = document.getElementById('lookupQuery').value.trim().toLowerCase();
-            const resultsContainer = document.getElementById('lookupResultsContainer');
-            const listEl = document.getElementById('lookupOrderList');
-            const emptyEl = document.getElementById('lookupEmptyState');
-
-            if (!query) {
-                alert("Vui lòng nhập Số điện thoại hoặc Mã đơn cần tra cứu!");
-                return;
-            }
-
-            const orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
-            const matched = orders.filter(o => {
-                const phone = (o.customer_phone || '').toLowerCase();
-                const name = (o.customer_name || '').toLowerCase();
-                const code = (o.order_code || '').toLowerCase();
-                const id = String(o.id || '');
-                const ref = (o.payment_ref || '').toLowerCase();
-
-                return phone.includes(query) || code.includes(query) || id === query || ref.includes(query) || name.includes(query);
-            });
-
-            if (matched.length === 0) {
-                resultsContainer.classList.add('hidden');
-                emptyEl.classList.remove('hidden');
-                return;
-            }
-
-            emptyEl.classList.add('hidden');
-            resultsContainer.classList.remove('hidden');
-
-            const statusMap = {
-                paid: { label: 'Đã thanh toán (Tiền vào SePay)', class: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-                pending: { label: 'Chờ thanh toán', class: 'bg-amber-100 text-amber-800 border-amber-300' },
-                completed: { label: 'Hoàn thành (Đã cấp GCN)', class: 'bg-teal-100 text-teal-800 border-teal-300' },
-                processing: { label: 'Đang xử lý cấp đơn', class: 'bg-blue-100 text-blue-800 border-blue-300' },
-                cancelled: { label: 'Đã hủy', class: 'bg-rose-100 text-rose-800 border-rose-300' }
-            };
-
-            listEl.innerHTML = matched.map(o => {
-                const st = statusMap[o.status] || { label: o.status, class: 'bg-slate-100 text-slate-700' };
-                const isPaid = (o.status === 'paid' || o.status === 'completed');
-
-                return `
-                    <div class="p-4 rounded-2xl border ${isPaid ? 'border-emerald-300 bg-emerald-50/30' : 'border-slate-200 bg-white'} shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold text-xs text-slate-400">#${o.order_code || o.id}</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${st.class}">${st.label}</span>
-                            </div>
-                            <h4 class="font-bold text-sm text-[#002D62]">${escapeHtml(o.product_name)}</h4>
-                            <div class="text-xs text-slate-500">
-                                <span>Khách: <strong>${escapeHtml(o.customer_name)}</strong> (${escapeHtml(o.customer_phone || '-')})</span>
-                                <span class="mx-1">•</span>
-                                <span>Ngày: ${formatDate(o.purchased_at)}</span>
-                            </div>
-                        </div>
-
-                        <div class="flex sm:flex-col items-center sm:items-end justify-between gap-2 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
-                            <div class="font-mono font-black text-sm sm:text-base text-emerald-600">
-                                ${Number(o.amount).toLocaleString('vi-VN')} đ
-                            </div>
-                            ${!isPaid ? `
-                                <button onclick="resumeOrderPayment('${o.order_code || o.id}')" class="px-3 py-1.5 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1">
-                                    <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
-                                    <span>Quét Mã Thanh Toán</span>
-                                </button>
-                            ` : `
-                                <button onclick="viewThankYouReceipt('${o.order_code || o.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1">
-                                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                                    <span>Xem Lời Cảm Ơn & Biên Lai</span>
-                                </button>
-                            `}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            lucide.createIcons();
-        }
-
-        function resumeOrderPayment(orderCode) {
-            const orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
-            const o = orders.find(item => item.order_code === orderCode || String(item.id) === String(orderCode));
-            if (!o) return;
-
-            currentOrderData = o;
-            switchTab('pay');
-            renderStep2PaymentScreen(o);
-        }
-
-        function viewThankYouReceipt(orderCode) {
-            const orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
-            const o = orders.find(item => item.order_code === orderCode || String(item.id) === String(orderCode));
-            if (!o) return;
-
-            currentOrderData = o;
-            switchTab('pay');
-            renderStep3ThankYouScreen(o);
-        }
-
-        function startNewOrder() {
-            stopAutoPolling();
-            currentOrderData = null;
-            updateStepper(1);
-            document.getElementById('checkoutStep-3').classList.add('hidden');
-            document.getElementById('checkoutStep-2').classList.add('hidden');
-            document.getElementById('checkoutStep-1').classList.remove('hidden');
-            document.getElementById('orderForm').reset();
-            selectPackage(86000, 'Bảo hiểm Xe Máy TNDS Điện Tử (Tích Xanh)', 'digital', 'xemay');
             window.scrollTo({ top: 100, behavior: 'smooth' });
             lucide.createIcons();
         }
 
+        function goToTrackingFromThankYou() {
+            if (currentOrderData) {
+                switchTab('lookup');
+                document.getElementById('lookupOrderCode').value = currentOrderData.order_code;
+                document.getElementById('lookupPhone').value = currentOrderData.customer_phone;
+                performOrderLookup(currentOrderData.order_code, currentOrderData.customer_phone);
+            } else {
+                switchTab('lookup');
+            }
+        }
+
         // =========================================================================
-        // CẬP NHẬT STEPPER
+        // POLLING NGẦM THỜI GIAN THỰC (AUTO POLLING)
+        // =========================================================================
+        function startAutoPolling(order) {
+            stopAutoPolling();
+            pollingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/public/orders/check?id=${encodeURIComponent(order.order_code)}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json.success && json.data) {
+                            if (json.data.payment_result === 'SUCCESS') {
+                                stopAutoPolling();
+                                setPaymentStatusDisplay('SUCCESS');
+                                order.status = 'paid';
+                                order.paid_at = json.data.updated_at || new Date().toISOString().replace('T', ' ').substring(0, 19);
+                                updateLocalOrderPaid(order);
+                                showToast("✓ Nhận tiền thành công qua VietinBank!");
+                                setTimeout(() => renderStep3ThankYouScreen(order), 1000);
+                            } else if (json.data.payment_result === 'MISMATCH') {
+                                setPaymentStatusDisplay('MISMATCH');
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }, 3000);
+        }
+
+        function stopAutoPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        // =========================================================================
+        // TAB 2: TRA CỨU ĐƠN HÀNG & ORDER TIMELINE
+        // =========================================================================
+        async function handleTrackingSearch(e) {
+            e.preventDefault();
+            const phone = document.getElementById('lookupPhone').value.trim();
+            const code = document.getElementById('lookupOrderCode').value.trim();
+
+            if (!phone && !code) {
+                alert("Vui lòng nhập Số điện thoại hoặc Mã đơn hàng để tra cứu!");
+                return;
+            }
+
+            performOrderLookup(code, phone);
+        }
+
+        async function performOrderLookup(code, phone) {
+            const btn = document.getElementById('btnLookupSubmit');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Đang tra cứu...</span>';
+            lucide.createIcons();
+
+            const resultBox = document.getElementById('lookupResultBox');
+            const notFoundBox = document.getElementById('lookupNotFoundBox');
+            resultBox.classList.add('hidden');
+            notFoundBox.classList.add('hidden');
+
+            try {
+                let order = null;
+
+                // 1. Thử gọi API backend
+                try {
+                    let query = '';
+                    if (code) query = `id=${encodeURIComponent(code)}`;
+                    else if (phone) query = `phone=${encodeURIComponent(phone)}`;
+
+                    const res = await fetch(`${API_BASE}/api/public/orders/check?${query}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json.success && json.data) order = json.data;
+                    }
+                } catch(netErr) {}
+
+                // 2. Fallback LocalStorage
+                if (!order) {
+                    const localOrders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
+                    order = localOrders.find(o => 
+                        (code && (o.order_code === code || String(o.id) === code)) ||
+                        (phone && o.customer_phone === phone)
+                    );
+                }
+
+                if (!order) {
+                    notFoundBox.classList.remove('hidden');
+                    return;
+                }
+
+                // Render kết quả tra cứu
+                renderOrderTrackingResult(order);
+                resultBox.classList.remove('hidden');
+
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                lucide.createIcons();
+            }
+        }
+
+        function renderOrderTrackingResult(order) {
+            document.getElementById('trackOrderCode').innerText = '#' + (order.order_code || order.id);
+            document.getElementById('trackProductName').innerText = order.product_name || 'Bảo hiểm PJICO';
+            document.getElementById('trackCustomerName').innerText = order.customer_name || '-';
+            document.getElementById('trackAmount').innerText = (order.amount || 0).toLocaleString('vi-VN') + ' đ';
+            document.getElementById('trackCreatedAt').innerText = order.purchased_at || order.created_at || '-';
+
+            // Modal GCN info
+            document.getElementById('modalCertOrderCode').innerText = order.order_code || order.id;
+            document.getElementById('modalCertCustName').innerText = order.customer_name || '-';
+            document.getElementById('modalCertCustPhone').innerText = order.customer_phone || '-';
+            document.getElementById('modalCertProdName').innerText = order.product_name || 'Bảo hiểm PJICO';
+
+            const badgeBox = document.getElementById('trackStatusBadge');
+            const certBox = document.getElementById('trackCertBox');
+            const status = (order.status || 'pending').toLowerCase();
+
+            if (status === 'paid' || status === 'completed' || status === 'issued' || status === 'delivered') {
+                badgeBox.innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">✓ Đã Thanh Toán</span>';
+                certBox.classList.remove('hidden');
+            } else if (status === 'cancelled') {
+                badgeBox.innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300">❌ Đã Hủy</span>';
+                certBox.classList.add('hidden');
+            } else {
+                badgeBox.innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">⏳ Chờ Thanh Toán</span>';
+                certBox.classList.add('hidden');
+            }
+
+            // Cập nhật 6 mốc Order Timeline
+            renderTimelineSteps(status);
+        }
+
+        function renderTimelineSteps(status) {
+            const steps = [1, 2, 3, 4, 5, 6];
+            const cancelBox = document.getElementById('tlCancelledBox');
+
+            if (status === 'cancelled') {
+                if (cancelBox) cancelBox.classList.remove('hidden');
+                steps.forEach(s => {
+                    const el = document.getElementById(`tlStep-${s}`);
+                    if (el) el.className = 'p-2.5 rounded-xl bg-slate-100 border border-slate-200 opacity-40 space-y-1';
+                });
+                return;
+            }
+
+            if (cancelBox) cancelBox.classList.add('hidden');
+
+            let activeLevel = 2; // Mặc định 1 & 2 đã xong
+            if (status === 'paid') activeLevel = 4;
+            if (status === 'processing') activeLevel = 4;
+            if (status === 'issued') activeLevel = 5;
+            if (status === 'delivered' || status === 'completed') activeLevel = 6;
+
+            steps.forEach(s => {
+                const el = document.getElementById(`tlStep-${s}`);
+                if (!el) return;
+                const badge = el.querySelector('div:first-child');
+                if (s <= activeLevel) {
+                    el.className = 'p-2.5 rounded-xl bg-emerald-50/70 border-2 border-emerald-500 space-y-1';
+                    if (badge) {
+                        badge.className = 'w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs mx-auto';
+                        badge.innerText = '✓';
+                    }
+                } else {
+                    el.className = 'p-2.5 rounded-xl bg-white border border-slate-200 opacity-60 space-y-1';
+                    if (badge) {
+                        badge.className = 'w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs mx-auto';
+                        badge.innerText = String(s);
+                    }
+                }
+            });
+        }
+
+        // =========================================================================
+        // STEPPER UI & MOBILE STICKY
         // =========================================================================
         function updateStepper(step) {
-            for (let i = 1; i <= 3; i++) {
-                const dot = document.getElementById(`stepDot-${i}`);
-                if (!dot) continue;
-                const badge = dot.querySelector('.step-badge');
-                const title = dot.querySelector('.step-title');
+            currentCheckoutStep = step;
+            const dots = {
+                1: document.getElementById('stepDot-1'),
+                'confirm': document.getElementById('stepDot-confirm'),
+                2: document.getElementById('stepDot-2'),
+                3: document.getElementById('stepDot-3')
+            };
 
-                if (i < step) {
-                    dot.className = 'flex flex-col items-center gap-1 opacity-100';
-                    badge.className = 'w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-xs step-badge';
-                    badge.innerHTML = '✓';
-                    title.className = 'text-[11px] sm:text-xs font-bold text-emerald-700 step-title';
-                } else if (i === step) {
-                    dot.className = 'flex flex-col items-center gap-1 opacity-100';
-                    badge.className = 'w-8 h-8 rounded-full bg-[#002D62] text-white flex items-center justify-center font-bold text-xs shadow-md step-badge ring-4 ring-blue-100';
-                    badge.innerHTML = i;
-                    title.className = 'text-[11px] sm:text-xs font-bold text-[#002D62] step-title';
-                } else {
-                    dot.className = 'flex flex-col items-center gap-1 opacity-40';
-                    badge.className = 'w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs step-badge';
-                    badge.innerHTML = i;
-                    title.className = 'text-[11px] sm:text-xs font-semibold text-slate-500 step-title';
-                }
+            Object.keys(dots).forEach(k => {
+                if (dots[k]) dots[k].classList.add('opacity-40');
+            });
+
+            if (step === 1) {
+                if (dots[1]) dots[1].classList.remove('opacity-40');
+            } else if (step === 'confirm') {
+                if (dots[1]) dots[1].classList.remove('opacity-40');
+                if (dots['confirm']) dots['confirm'].classList.remove('opacity-40');
+            } else if (step === 2) {
+                if (dots[1]) dots[1].classList.remove('opacity-40');
+                if (dots['confirm']) dots['confirm'].classList.remove('opacity-40');
+                if (dots[2]) dots[2].classList.remove('opacity-40');
+            } else if (step === 3) {
+                Object.keys(dots).forEach(k => {
+                    if (dots[k]) dots[k].classList.remove('opacity-40');
+                });
             }
         }
 
-        // =========================================================================
-        // TIỆN ÍCH
-        // =========================================================================
-        function copyText(text, labelName) {
-            if (!text) return;
-            navigator.clipboard.writeText(String(text)).then(() => {
-                showToast(`Đã sao chép ${labelName}: ${text}`);
-            }).catch(() => {
-                showToast(`Sao chép: ${text}`);
-            });
+        function handleMobileStickyAction() {
+            if (currentCheckoutStep === 1) {
+                document.getElementById('btnProceedPayment')?.click();
+            } else if (currentCheckoutStep === 'confirm') {
+                goToPaymentScreen();
+            } else if (currentCheckoutStep === 2) {
+                handleCheckPaymentClick();
+            }
         }
 
-        function showToast(message) {
+        // Modal GCN
+        function openCertificateModal() {
+            document.getElementById('certModal')?.classList.remove('hidden');
+            lucide.createIcons();
+        }
+        function closeCertificateModal() {
+            document.getElementById('certModal')?.classList.add('hidden');
+        }
+
+        // Helper Toast & Copy
+        function showToast(msg) {
             const toast = document.getElementById('toastNotification');
-            const msgEl = document.getElementById('toastMessage');
-            if (!toast || !msgEl) return;
+            const text = document.getElementById('toastMessage');
+            if (!toast || !text) return;
 
-            msgEl.innerText = message;
+            text.innerText = msg;
             toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
             setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-24', 'opacity-0');
-            }, 3500);
+            }, 3000);
         }
 
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            try {
-                const d = new Date(dateStr);
-                if (isNaN(d.getTime())) return dateStr;
-                return d.toLocaleString('vi-VN', { hour12: false });
-            } catch {
-                return dateStr;
+        function copyText(str, successMsg) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(str).then(() => {
+                    showToast(successMsg || "Đã sao chép thành công!");
+                }).catch(() => fallbackCopy(str, successMsg));
+            } else {
+                fallbackCopy(str, successMsg);
             }
         }
 
-        function escapeHtml(text) {
-            if (typeof text !== 'string') return text;
-            return text.replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
+        function fallbackCopy(str, successMsg) {
+            const el = document.createElement('textarea');
+            el.value = str;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast(successMsg || "Đã sao chép thành công!");
         }
     </script>
 </body>
