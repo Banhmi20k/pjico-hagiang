@@ -88,18 +88,134 @@ def is_valid_vietnam_phone(phone_str):
         return False
     return bool(re.match(r'^0[35789]\d{8}$', normalized))
 
-def log_audit(conn, entity_type, entity_id, action, old_value=None, new_value=None, actor='system'):
-    """Ghi vết kiểm toán (Audit Log) theo dõi các thay đổi quan trọng"""
+def log_audit(conn, entity_type, entity_id, action, old_value=None, new_value=None, actor='system', reason=None):
+    """Ghi vết kiểm toán (Audit Log) theo dõi các thay đổi quan trọng kèm lý do (Phase 4)"""
     try:
         cur = conn.cursor()
         old_str = json.dumps(old_value, ensure_ascii=False) if isinstance(old_value, (dict, list)) else (str(old_value) if old_value is not None else None)
         new_str = json.dumps(new_value, ensure_ascii=False) if isinstance(new_value, (dict, list)) else (str(new_value) if new_value is not None else None)
         cur.execute("""
-            INSERT INTO audit_logs (entity_type, entity_id, action, old_value, new_value, actor, timestamp)
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
-        """, (str(entity_type), str(entity_id), str(action), old_str, new_str, str(actor)))
+            INSERT INTO audit_logs (entity_type, entity_id, action, old_value, new_value, actor, reason, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+        """, (str(entity_type), str(entity_id), str(action), old_str, new_str, str(actor), str(reason) if reason else None))
     except Exception as e:
         print(f"Error logging audit: {e}")
+
+# =========================================================================
+# PHASE 4: NOTIFICATION SERVICE, ORDER STATUS RULES & RBAC
+# =========================================================================
+
+class NotificationService:
+    """Hệ thống trừu tượng hóa thông báo khách hàng (Zalo, SMS, Email, System) (Section 10 & 11)"""
+    @staticmethod
+    def send(conn, event_type, recipient, data, channel='SYSTEM'):
+        order_id = data.get('order_id')
+        order_code = data.get('order_code') or str(order_id or '')
+        amount = float(data.get('amount') or data.get('total_amount') or 0)
+        received = float(data.get('received') or data.get('received_amount') or 0)
+        expected = float(data.get('expected') or data.get('expected_amount') or amount)
+        tracking_url = f"https://pjicohagiang.xyz/tra-cuu-don-hang?order={order_code}&phone={recipient}"
+
+        msg_map = {
+            'ORDER_CREATED': f"PJICO Hà Giang đã ghi nhận yêu cầu đặt mua của Quý khách. Mã đơn: {order_code}. Số tiền: {amount:,.0f} VNĐ. Trạng thái: Chờ thanh toán.",
+            'PAYMENT_SUCCESS': f"PJICO Hà Giang xác nhận đã nhận thanh toán đơn {order_code}. Hồ sơ đang được xử lý.",
+            'PAYMENT_MISMATCH': f"PJICO Hà Giang thông báo: Giao dịch thanh toán đơn {order_code} chưa đủ số tiền (Đã nhận {received:,.0f}/{expected:,.0f} VNĐ). Quý khách vui lòng liên hệ hotline 0987.501.199 để được hỗ trợ.",
+            'ORDER_PROCESSING': f"PJICO Hà Giang đang tiến hành thẩm định và cấp đơn bảo hiểm cho mã đơn {order_code}.",
+            'POLICY_ISSUED': f"Giấy chứng nhận/hợp đồng của Quý khách đã được cấp. Mã đơn: {order_code}. Vui lòng truy cập đường dẫn để xem hồ sơ: {tracking_url}",
+            'POLICY_DELIVERED': f"Giấy chứng nhận bảo hiểm cho mã đơn {order_code} đã được gửi tới Quý khách thành công. Cảm ơn Quý khách đã đồng hành cùng PJICO Hà Giang."
+        }
+        msg = msg_map.get(event_type, f"Thông báo PJICO Hà Giang về đơn hàng #{order_code}: {event_type}")
+        try:
+            cur = conn.cursor()
+            db_oid = data.get('db_order_id') or (int(order_id) if str(order_id).isdigit() else None)
+            cur.execute("""
+                INSERT INTO notifications (order_id, customer_id, recipient, channel, event_type, message, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'SENT', CURRENT_TIMESTAMP);
+            """, (db_oid, data.get('customer_id'), str(recipient or '0987501199'), channel, event_type, msg))
+            print(f"[NOTIFICATION] [{channel}] To {recipient} ({event_type}): {msg}")
+        except Exception as e:
+            print(f"Error in NotificationService.send: {e}")
+        return msg
+
+
+class OrderStatusRules:
+    """State Machine quản lý luồng chuyển trạng thái đơn hàng nghiêm ngặt (Section 14 & 15)"""
+    VALID_FLOW = [
+        'NEW',
+        'CONSULTING',
+        'QUOTED',
+        'WAITING_CONFIRM',
+        'PENDING_PAYMENT',
+        'PAID',
+        'PROCESSING',
+        'ISSUED',
+        'DELIVERED'
+    ]
+
+    @classmethod
+    def normalize_status(cls, status):
+        if not status:
+            return 'NEW'
+        s = str(status).strip()
+        legacy_map = {
+            'pending': 'PENDING_PAYMENT',
+            'paid': 'PAID',
+            'processing': 'PROCESSING',
+            'completed': 'ISSUED',
+            'cancelled': 'CANCELLED'
+        }
+        return legacy_map.get(s.lower(), s.upper())
+
+    @classmethod
+    def can_transition(cls, current_status, next_status, is_admin=False, is_paid=False):
+        cur = cls.normalize_status(current_status)
+        nxt = cls.normalize_status(next_status)
+
+        if cur == nxt:
+            return True, "Trạng thái không đổi"
+
+        # Cancellation rules (Section 15)
+        if nxt == 'CANCELLED':
+            if cur in ['NEW', 'CONSULTING', 'QUOTED', 'WAITING_CONFIRM', 'PENDING_PAYMENT']:
+                return True, "Hủy đơn hàng hợp lệ"
+            elif cur in ['PAID', 'PROCESSING', 'ISSUED', 'DELIVERED']:
+                return False, "Đơn hàng đã thanh toán không thể hủy trực tiếp sang CANCELLED. Vui lòng chuyển sang REFUND_PENDING để xử lý hoàn tiền."
+            return False, "Không thể hủy đơn hàng từ trạng thái này"
+
+        # Refund flow (Section 15)
+        if nxt == 'REFUND_PENDING':
+            if cur in ['PAID', 'PROCESSING']:
+                return True, "Chuyển sang chờ hoàn tiền"
+            return False, "Chỉ đơn hàng đã thanh toán mới có thể yêu cầu hoàn tiền"
+
+        if nxt == 'REFUNDED':
+            if cur == 'REFUND_PENDING' or is_admin:
+                return True, "Xác nhận đã hoàn tiền"
+            return False, "Phải qua bước REFUND_PENDING trước khi xác nhận REFUNDED"
+
+        # Normal forward progression (Section 14)
+        if cur in cls.VALID_FLOW and nxt in cls.VALID_FLOW:
+            cur_idx = cls.VALID_FLOW.index(cur)
+            nxt_idx = cls.VALID_FLOW.index(nxt)
+
+            # Rule: Không cho PENDING_PAYMENT -> ISSUED nếu chưa PAID
+            if nxt in ['ISSUED', 'DELIVERED'] and not is_paid and cur_idx < cls.VALID_FLOW.index('PAID'):
+                return False, f"Không thể chuyển sang {nxt} khi đơn hàng chưa được thanh toán (PAID)!"
+
+            # 1-step forward
+            if nxt_idx == cur_idx + 1:
+                return True, "Chuyển bước hợp lệ"
+            elif nxt_idx > cur_idx:
+                if is_admin:
+                    return True, "Quản trị viên duyệt chuyển bước vượt cấp"
+                return False, f"Không thể nhảy cóc từ {cur} sang {nxt}. Cần thực hiện tuần tự các bước."
+            elif nxt_idx < cur_idx:
+                if is_admin:
+                    return True, "Quản trị viên quay lại trạng thái trước"
+                return False, f"Không được phép quay lùi trạng thái từ {cur} về {nxt}."
+
+        return False, f"Chuyển trạng thái từ {cur} sang {nxt} không được hỗ trợ"
+
 
 def sanitize_customer_for_public(c):
     """Che giấu thông tin nhạy cảm (CCCD/MST) khi trả dữ liệu qua API public"""
@@ -442,6 +558,99 @@ def init_database():
         cur.execute("DROP TABLE payments;")
         cur.execute("ALTER TABLE payments_new RENAME TO payments;")
 
+    # Phase 4 Migration: Ensure staff roles, policies, notifications, and indexes
+    cur.execute("PRAGMA table_info(admin_users);")
+    admin_cols = [r[1] for r in cur.fetchall()]
+    if 'role' not in admin_cols:
+        cur.execute("ALTER TABLE admin_users ADD COLUMN role TEXT DEFAULT 'ADMIN';")
+
+    cur.execute("PRAGMA table_info(orders);")
+    order_cols = [r[1] for r in cur.fetchall()]
+    for col_name, col_type in [
+        ('staff_assigned', 'TEXT'),
+        ('policy_number', 'TEXT'),
+        ('policy_expiry_date', 'TEXT'),
+        ('document_url', 'TEXT')
+    ]:
+        if col_name not in order_cols:
+            cur.execute(f"ALTER TABLE orders ADD COLUMN {col_name} {col_type};")
+
+    # 10. Bảng Giấy chứng nhận bảo hiểm / Hợp đồng (policies) (Section 13 & 16)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS policies (
+        policy_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        policy_number TEXT UNIQUE NOT NULL,
+        order_id INTEGER NOT NULL,
+        customer_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        insured_object TEXT,
+        plate_number TEXT,
+        issue_date TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        expiry_date TEXT NOT NULL,
+        premium NUMERIC NOT NULL,
+        status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'EXPIRED', 'CANCELLED', 'RENEWED')),
+        document_url TEXT,
+        certificate_data TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+    );
+    """)
+
+    # 11. Bảng Thông báo khách hàng (notifications) (Section 10)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS notifications (
+        notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER,
+        customer_id INTEGER,
+        recipient TEXT NOT NULL,
+        channel TEXT NOT NULL CHECK (channel IN ('ZALO', 'SMS', 'EMAIL', 'SYSTEM')),
+        event_type TEXT NOT NULL,
+        message TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'SENT' CHECK (status IN ('PENDING', 'SENT', 'FAILED')),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    # 12. Bổ sung trường reason vào audit_logs nếu thiếu
+    cur.execute("PRAGMA table_info(audit_logs);")
+    audit_cols = [r[1] for r in cur.fetchall()]
+    if 'reason' not in audit_cols:
+        cur.execute("ALTER TABLE audit_logs ADD COLUMN reason TEXT;")
+
+    # 13. Hiệu năng & Indexes (Section 21)
+    indexes = [
+        ("idx_customers_phone", "customers", "phone"),
+        ("idx_orders_order_code", "orders", "order_code"),
+        ("idx_orders_status", "orders", "status"),
+        ("idx_orders_created_at", "orders", "created_at"),
+        ("idx_orders_plate_number", "orders", "plate_number"),
+        ("idx_payments_transaction_id", "payments", "transaction_id"),
+        ("idx_payments_status", "payments", "status"),
+        ("idx_policies_policy_number", "policies", "policy_number")
+    ]
+    for idx_name, tbl, col in indexes:
+        try:
+            cur.execute(f"CREATE INDEX IF NOT EXISTS {idx_name} ON {tbl}({col});")
+        except Exception:
+            pass
+
+    # Tạo các tài khoản phân quyền mẫu (Section 17)
+    sample_roles = [
+        ("admin", "pjico@2026", "ADMIN"),
+        ("sales_hagiang", "pjico@sales2026", "SALES"),
+        ("ketoan_hagiang", "pjico@ketoan2026", "ACCOUNTING"),
+        ("xuly_hagiang", "pjico@xuly2026", "PROCESSING")
+    ]
+    for u, p, r in sample_roles:
+        cur.execute("SELECT id FROM admin_users WHERE username = ?;", (u,))
+        if not cur.fetchone():
+            cur.execute("INSERT INTO admin_users (username, password_hash, role) VALUES (?, ?, ?);",
+                        (u, hash_password(p), r))
+
+
     # 9. Bảng kiểm toán thay đổi (audit_logs)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS audit_logs (
@@ -540,6 +749,18 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return True
         return False
 
+    def get_current_user_info(self):
+        """Lấy username và role của người dùng hiện tại (Section 17)"""
+        username = self.get_current_username()
+        if not username:
+            return None, None
+        conn = get_db_connection()
+        cur = conn.cursor()
+        row = cur.execute("SELECT role FROM admin_users WHERE username = ?;", (username,)).fetchone()
+        conn.close()
+        role = row['role'].upper() if (row and row['role']) else ('ADMIN' if username == 'admin' else 'SALES')
+        return username, role
+
     def get_current_username(self):
         """Lấy username của quản trị viên từ token hiện tại"""
         auth_header = self.headers.get('Authorization', '')
@@ -585,7 +806,64 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(content)
                 return
 
+        # 1.5. Phục vụ trang tra cứu đơn hàng công khai /tra-cuu-don-hang (Section 12)
+        if path in ['/tra-cuu-don-hang', '/tracuu']:
+            tracuu_file = os.path.join(BASE_DIR, "tra-cuu-don-hang.html")
+            if not os.path.exists(tracuu_file):
+                tracuu_file = os.path.join(BASE_DIR, "thanhtoan.html")
+            if os.path.exists(tracuu_file):
+                with open(tracuu_file, 'rb') as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(content)))
+                self.end_headers()
+                self.wfile.write(content)
+                return
+
         # 2. Public API Endpoints (Kiểm tra đơn, tra cứu khách hàng theo SĐT để auto-fill)
+        # GET /api/public/orders/track (Tra cứu đơn hàng bắt buộc SĐT + Mã đơn - Section 12)
+        if path == '/api/public/orders/track':
+            self.handle_public_track_order(parsed_url.query)
+            return
+
+        # GET /api/documents/:id/download (Tải / Xem Giấy chứng nhận bảo hiểm an toàn - Section 13)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'documents' and parts[3] == 'download':
+            self.handle_download_document(parts[2], parsed_url.query)
+            return
+
+        # GET /api/customers/:id/profile (Hồ sơ khách hàng 360 độ - Section 5)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'customers' and parts[3] == 'profile':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_get_customer_profile(parts[2])
+            return
+
+        # GET /api/admin/kpis (Báo cáo kinh doanh & tỷ lệ chuyển đổi phễu - Section 19)
+        if path == '/api/admin/kpis':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_admin_kpis()
+            return
+
+        # GET /api/admin/renewals (Danh sách hợp đồng sắp hết hạn - Section 16)
+        if path == '/api/admin/renewals':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_admin_renewals()
+            return
+
+        # GET /api/audit-logs (Lịch sử thay đổi hệ thống - Section 18)
+        if path == '/api/audit-logs':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_get_audit_logs(parsed_url.query)
+            return
+
         if path == '/api/public/orders/check':
             self.handle_public_check_order(parsed_url.query)
             return
@@ -622,7 +900,10 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.handle_get_quote_by_id(item_id)
                 return
             elif resource == 'orders':
-                self.handle_get_order_by_id(item_id)
+                if self.is_authenticated():
+                    self.handle_get_order_detail(item_id)
+                else:
+                    self.handle_get_order_by_id(item_id)
                 return
 
         # 3. API Endpoints bảo mật (Yêu cầu đăng nhập quản trị viên)
@@ -710,6 +991,38 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         # 7. Tạo đơn hàng từ cổng thanh toán /thanhtoan (Backward compatible)
         if path == '/api/public/orders':
             self.handle_public_create_order(payload)
+            return
+
+        # POST /api/orders/:id/transition (Chuyển trạng thái đơn hàng theo quy tắc & RBAC - Section 14)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[3] == 'transition':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_order_transition(parts[2], payload)
+            return
+
+        # POST /api/orders/:id/issue-policy (Cấp giấy chứng nhận bảo hiểm điện tử - Section 2 & 14)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[3] == 'issue-policy':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_issue_policy(parts[2], payload)
+            return
+
+        # POST /api/orders/:id/deliver-policy (Đánh dấu đã gửi khách & thông báo - Section 2 & 14)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[3] == 'deliver-policy':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_deliver_policy(parts[2], payload)
+            return
+
+        # POST /api/admin/payments/:id/match (Khớp giao dịch Manual Review với đơn hàng - Section 9)
+        if len(parts) == 5 and parts[0] == 'api' and parts[1] == 'admin' and parts[2] == 'payments' and parts[4] == 'match':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_admin_match_payment(parts[3], payload)
             return
 
         # POST /api/orders/:id/reopen-payment (Tạo lại/Gia hạn thanh toán khi đơn hết hạn)
@@ -845,13 +1158,17 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         token = secrets.token_hex(24)
         ACTIVE_SESSIONS[token] = username
 
+        user_role = user.get('role') or ('ADMIN' if username == 'admin' else 'SALES')
         self.send_json({
             "success": True,
             "message": "Đăng nhập thành công",
             "token": token,
+            "username": username,
+            "role": user_role,
             "user": {
                 "id": user['id'],
-                "username": user['username']
+                "username": user['username'],
+                "role": user_role
             }
         })
 
@@ -2348,6 +2665,1015 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         finally:
             conn.close()
 
+
+
+    # =========================================================================
+    # PHASE 4: ORDER MANAGEMENT, CUSTOMER 360, TRACKING & ADVANCED ANALYTICS
+    # =========================================================================
+
+    def handle_get_orders(self):
+        """
+        Admin lấy danh sách đơn hàng với đầy đủ bộ lọc, tìm kiếm, KPI badges và phân trang (Section 1, 2, 6, 7, 21)
+        """
+        parsed_url = urllib.parse.urlparse(self.path)
+        params = urllib.parse.parse_qs(parsed_url.query)
+
+        search_q = params.get('search', [None])[0]
+        status_filter = params.get('status', [None])[0]
+        payment_filter = params.get('payment_status', [None])[0]
+        product_filter = params.get('product_id', [None])[0]
+        staff_filter = params.get('staff', [None])[0]
+        from_date = params.get('from_date', [None])[0]
+        to_date = params.get('to_date', [None])[0]
+        min_amt = params.get('min_amount', [None])[0]
+        max_amt = params.get('max_amount', [None])[0]
+
+        try:
+            page = max(1, int(params.get('page', [1])[0]))
+            limit = min(500, max(1, int(params.get('limit', [100])[0])))
+        except Exception:
+            page = 1
+            limit = 100
+        offset = (page - 1) * limit
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # 1. Tính toán số lượng cho tất cả các KPI badges
+            kpi_query = """
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN UPPER(COALESCE(o.status, 'NEW')) = 'NEW' THEN 1 ELSE 0 END) as kpi_new,
+                SUM(CASE WHEN UPPER(o.status) = 'CONSULTING' THEN 1 ELSE 0 END) as kpi_consulting,
+                SUM(CASE WHEN UPPER(o.status) = 'QUOTED' THEN 1 ELSE 0 END) as kpi_quoted,
+                SUM(CASE WHEN UPPER(o.status) = 'WAITING_CONFIRM' THEN 1 ELSE 0 END) as kpi_waiting_confirm,
+                SUM(CASE WHEN UPPER(o.status) IN ('PENDING_PAYMENT', 'PENDING') THEN 1 ELSE 0 END) as kpi_pending_payment,
+                SUM(CASE WHEN UPPER(o.status) IN ('PAID') THEN 1 ELSE 0 END) as kpi_paid,
+                SUM(CASE WHEN UPPER(o.status) IN ('PROCESSING') THEN 1 ELSE 0 END) as kpi_processing,
+                SUM(CASE WHEN UPPER(o.status) IN ('ISSUED', 'COMPLETED') THEN 1 ELSE 0 END) as kpi_issued,
+                SUM(CASE WHEN UPPER(o.status) = 'DELIVERED' THEN 1 ELSE 0 END) as kpi_delivered,
+                SUM(CASE WHEN UPPER(o.status) IN ('CANCELLED') THEN 1 ELSE 0 END) as kpi_cancelled,
+                SUM(CASE WHEN UPPER(o.status) = 'REFUND_PENDING' THEN 1 ELSE 0 END) as kpi_refund_pending,
+                SUM(CASE WHEN UPPER(o.status) = 'REFUNDED' THEN 1 ELSE 0 END) as kpi_refunded
+            FROM orders o;
+            """
+            kpi_row = cur.execute(kpi_query).fetchone()
+            kpi_dict = {
+                'TOTAL': kpi_row['total'] or 0,
+                'NEW': kpi_row['kpi_new'] or 0,
+                'CONSULTING': kpi_row['kpi_consulting'] or 0,
+                'QUOTED': kpi_row['kpi_quoted'] or 0,
+                'WAITING_CONFIRM': kpi_row['kpi_waiting_confirm'] or 0,
+                'PENDING_PAYMENT': kpi_row['kpi_pending_payment'] or 0,
+                'PAID': kpi_row['kpi_paid'] or 0,
+                'PROCESSING': kpi_row['kpi_processing'] or 0,
+                'ISSUED': kpi_row['kpi_issued'] or 0,
+                'DELIVERED': kpi_row['kpi_delivered'] or 0,
+                'CANCELLED': kpi_row['kpi_cancelled'] or 0,
+                'REFUND_PENDING': kpi_row['kpi_refund_pending'] or 0,
+                'REFUNDED': kpi_row['kpi_refunded'] or 0
+            }
+
+            # 2. Xây dựng câu truy vấn có điều kiện lọc
+            base_sql = """
+            FROM orders o
+            JOIN customers c ON o.customer_id = c.id
+            LEFT JOIN products p ON o.product_id = p.id
+            LEFT JOIN payments pm ON o.id = pm.order_id
+            WHERE 1=1
+            """
+            sql_params = []
+
+            # Tìm kiếm tổng hợp (Search - Section 6)
+            if search_q:
+                q_clean = f"%{search_q.strip()}%"
+                base_sql += """ AND (
+                    o.order_code LIKE ? OR 
+                    c.phone LIKE ? OR 
+                    c.name LIKE ? OR 
+                    c.full_name LIKE ? OR 
+                    o.plate_number LIKE ? OR 
+                    pm.transaction_id LIKE ? OR
+                    pm.transaction_code LIKE ?
+                )"""
+                sql_params.extend([q_clean, q_clean, q_clean, q_clean, q_clean, q_clean, q_clean])
+
+            # Bộ lọc trạng thái đơn (Status Filter - Section 1 & 7)
+            if status_filter and status_filter.upper() != 'ALL':
+                std_st = OrderStatusRules.normalize_status(status_filter)
+                if std_st == 'PENDING_PAYMENT':
+                    base_sql += " AND UPPER(o.status) IN ('PENDING_PAYMENT', 'PENDING')"
+                elif std_st == 'PAID':
+                    base_sql += " AND UPPER(o.status) IN ('PAID')"
+                elif std_st == 'PROCESSING':
+                    base_sql += " AND UPPER(o.status) IN ('PROCESSING')"
+                elif std_st == 'ISSUED':
+                    base_sql += " AND UPPER(o.status) IN ('ISSUED', 'COMPLETED')"
+                elif std_st == 'CANCELLED':
+                    base_sql += " AND UPPER(o.status) IN ('CANCELLED')"
+                else:
+                    base_sql += " AND UPPER(o.status) = ?"
+                    sql_params.append(std_st)
+
+            # Bộ lọc trạng thái thanh toán (Payment Filter)
+            if payment_filter and payment_filter.upper() != 'ALL':
+                base_sql += " AND UPPER(COALESCE(pm.status, 'PENDING')) = ?"
+                sql_params.append(payment_filter.upper())
+
+            # Bộ lọc sản phẩm
+            if product_filter and product_filter.upper() != 'ALL':
+                base_sql += " AND o.product_id = ?"
+                sql_params.append(int(product_filter))
+
+            # Bộ lọc nhân viên phụ trách
+            if staff_filter and staff_filter.upper() != 'ALL':
+                base_sql += " AND o.staff_assigned LIKE ?"
+                sql_params.append(f"%{staff_filter}%")
+
+            # Bộ lọc khoảng ngày
+            if from_date:
+                base_sql += " AND date(o.created_at) >= date(?)"
+                sql_params.append(from_date)
+            if to_date:
+                base_sql += " AND date(o.created_at) <= date(?)"
+                sql_params.append(to_date)
+
+            # Bộ lọc khoảng tiền
+            if min_amt:
+                base_sql += " AND o.amount >= ?"
+                sql_params.append(float(min_amt))
+            if max_amt:
+                base_sql += " AND o.amount <= ?"
+                sql_params.append(float(max_amt))
+
+            # Đếm tổng kết quả thỏa điều kiện
+            count_sql = "SELECT COUNT(*) " + base_sql
+            total_filtered = cur.execute(count_sql, tuple(sql_params)).fetchone()[0]
+
+            # Lấy dữ liệu với phân trang
+            data_sql = """
+            SELECT 
+                o.id,
+                o.order_code,
+                o.customer_id,
+                o.product_id,
+                o.amount,
+                o.total_amount,
+                o.status,
+                o.created_at,
+                o.updated_at,
+                o.purchased_at,
+                o.insured_object,
+                o.vehicle_type,
+                o.plate_number,
+                o.insurance_start,
+                o.insurance_end,
+                o.payment_deadline,
+                o.staff_assigned,
+                o.policy_number,
+                o.policy_expiry_date,
+                o.document_url,
+                c.name as customer_name,
+                c.full_name,
+                c.phone as customer_phone,
+                c.email as customer_email,
+                c.address as customer_address,
+                p.name as product_name,
+                p.product_type,
+                pm.payment_id,
+                pm.status as payment_status,
+                pm.expected_amount,
+                pm.received_amount,
+                pm.transaction_id,
+                pm.transaction_code,
+                pm.transaction_time,
+                pm.raw_content
+            """ + base_sql + " ORDER BY o.id DESC LIMIT ? OFFSET ?;"
+            
+            sql_params.extend([limit, offset])
+            rows = cur.execute(data_sql, tuple(sql_params)).fetchall()
+
+            orders_list = []
+            for r in rows:
+                d = dict(r)
+                d['status_standard'] = OrderStatusRules.normalize_status(d.get('status'))
+                d['customer_name'] = d.get('full_name') or d.get('customer_name')
+                orders_list.append(d)
+
+            # Trả về kèm KPIs và pagination
+            self.send_json({
+                "success": True,
+                "data": orders_list,
+                "total": total_filtered,
+                "page": page,
+                "limit": limit,
+                "kpis": kpi_dict
+            })
+        except Exception as e:
+            self.send_error_json("Lỗi tải danh sách đơn hàng: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_get_order_detail(self, order_id_or_code):
+        """
+        Chi tiết đơn hàng đầy đủ các Section: Khách hàng, Sản phẩm, Bảo hiểm, Báo giá, Thanh toán, Trạng thái, Lịch sử, Tài liệu (Section 3, 4)
+        """
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # 1. Thông tin đơn hàng
+            query = """
+            SELECT 
+                o.*,
+                c.name as customer_name, c.full_name, c.phone as customer_phone,
+                c.email as customer_email, c.address as customer_address,
+                c.identity_no as customer_identity_no, c.tax_code as customer_tax_code,
+                p.name as product_name, p.product_type, p.price as product_price, p.stock_quantity,
+                pm.payment_id, pm.status as payment_status, pm.expected_amount, pm.received_amount,
+                pm.transaction_id, pm.transaction_code, pm.transaction_time, pm.raw_content, pm.qr_content,
+                pol.policy_id, pol.policy_number, pol.issue_date, pol.start_date as policy_start,
+                pol.expiry_date as policy_expiry, pol.status as policy_status, pol.document_url as policy_doc
+            FROM orders o
+            JOIN customers c ON o.customer_id = c.id
+            LEFT JOIN products p ON o.product_id = p.id
+            LEFT JOIN payments pm ON o.id = pm.order_id
+            LEFT JOIN policies pol ON o.id = pol.order_id
+            WHERE o.id = ? OR o.order_code = ?;
+            """
+            row = cur.execute(query, (order_id_or_code, order_id_or_code)).fetchone()
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng", 404)
+                return
+
+            order = dict(row)
+            order_id = order['id']
+            order_code = order['order_code']
+
+            # 2. Báo giá liên kết (Quote)
+            quote = None
+            if order.get('quote_id'):
+                q_row = cur.execute("SELECT * FROM quotes WHERE quote_id = ?;", (order['quote_id'],)).fetchone()
+                if q_row:
+                    quote = dict(q_row)
+
+            # 3. Lịch sử thay đổi (Audit Log - Section 18)
+            audits = cur.execute("""
+                SELECT * FROM audit_logs 
+                WHERE (entity_type = 'order' AND entity_id = ?) 
+                   OR (entity_type = 'order' AND entity_id = ?)
+                   OR (entity_type = 'payment' AND entity_id = ?)
+                ORDER BY audit_id ASC;
+            """, (str(order_id), str(order_code), str(order.get('payment_id') or order_id))).fetchall()
+            audit_list = [dict(a) for a in audits]
+
+            # 4. Tạo timeline các bước (Section 4)
+            timeline = []
+            steps = OrderStatusRules.VALID_FLOW
+            cur_norm = OrderStatusRules.normalize_status(order['status'])
+            cur_idx = steps.index(cur_norm) if cur_norm in steps else -1
+
+            # Lấy audit logs tương ứng với status updates
+            status_logs = {a['new_value']: a for a in audit_list if a['action'] in ('CREATE', 'STATUS_UPDATE', 'STATUS_TRANSITION', 'SEPAY_WEBHOOK_SUCCESS', 'ADMIN_MANUAL_PAID')}
+
+            for idx, step in enumerate(steps):
+                matched_log = status_logs.get(step)
+                timeline.append({
+                    "step": step,
+                    "completed": idx <= cur_idx if cur_idx >= 0 else False,
+                    "current": step == cur_norm,
+                    "time": matched_log['timestamp'] if matched_log else None,
+                    "actor": matched_log['actor'] if matched_log else None
+                })
+
+            # 5. Danh sách thông báo đã gửi
+            notifs = cur.execute("SELECT * FROM notifications WHERE order_id = ? ORDER BY notification_id DESC;", (order_id,)).fetchall()
+            notif_list = [dict(n) for n in notifs]
+
+            self.send_json({
+                "success": True,
+                "data": {
+                    "order": order,
+                    "quote": quote,
+                    "timeline": timeline,
+                    "audit_logs": audit_list,
+                    "notifications": notif_list,
+                    "standard_status": cur_norm
+                }
+            })
+        except Exception as e:
+            self.send_error_json("Lỗi đọc chi tiết đơn hàng: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_order_transition(self, order_id_or_code, payload):
+        """
+        Chuyển trạng thái đơn hàng tuân thủ state machine và RBAC (Section 14 & 17)
+        """
+        username, user_role = self.get_current_user_info()
+        next_status = payload.get('next_status') or payload.get('status')
+        reason = payload.get('reason', '').strip()
+        assigned_staff = payload.get('staff_assigned')
+
+        if not next_status:
+            self.send_error_json("Thiếu trạng thái tiếp theo (next_status)", 400)
+            return
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            row = cur.execute("""
+                SELECT o.id, o.order_code, o.status, o.customer_id, o.amount, o.staff_assigned,
+                       c.phone, c.name, pm.status as payment_status
+                FROM orders o
+                JOIN customers c ON o.customer_id = c.id
+                LEFT JOIN payments pm ON o.id = pm.order_id
+                WHERE o.id = ? OR o.order_code = ?;
+            """, (order_id_or_code, order_id_or_code)).fetchone()
+
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng", 404)
+                return
+
+            o_id, o_code, cur_status, cust_id, o_amount, cur_staff, c_phone, c_name, pm_status = row
+            cur_norm = OrderStatusRules.normalize_status(cur_status)
+            nxt_norm = OrderStatusRules.normalize_status(next_status)
+            is_admin = (user_role == 'ADMIN')
+            is_paid = (str(cur_status).lower() == 'paid' or cur_norm in ['PAID', 'PROCESSING', 'ISSUED', 'DELIVERED'] or pm_status == 'SUCCESS')
+
+            # Kiểm tra phân quyền RBAC (Section 17)
+            if user_role == 'SALES':
+                if nxt_norm in ['PAID', 'PROCESSING', 'ISSUED', 'DELIVERED', 'REFUNDED']:
+                    self.send_error_json(f"Nhân viên SALES không có quyền chuyển đơn hàng sang trạng thái {nxt_norm}", 403)
+                    return
+            elif user_role == 'ACCOUNTING':
+                if nxt_norm in ['ISSUED', 'DELIVERED']:
+                    self.send_error_json(f"Bộ phận KẾ TOÁN không có quyền cấp đơn ({nxt_norm})", 403)
+                    return
+            elif user_role == 'PROCESSING':
+                if nxt_norm in ['PAID']:
+                    self.send_error_json(f"Bộ phận XỬ LÝ KHÔNG có quyền thay đổi trạng thái thanh toán ({nxt_norm})", 403)
+                    return
+
+            # Kiểm tra luật chuyển đổi State Machine (Section 14 & 15)
+            can_go, msg = OrderStatusRules.can_transition(cur_status, next_status, is_admin=is_admin, is_paid=is_paid)
+            if not can_go:
+                self.send_error_json(msg, 400)
+                return
+
+            # Cập nhật đơn hàng
+            updates = ["status = ?", "updated_at = CURRENT_TIMESTAMP"]
+            params = [nxt_norm]
+            if assigned_staff:
+                updates.append("staff_assigned = ?")
+                params.append(assigned_staff)
+            params.append(o_id)
+
+            cur.execute(f"UPDATE orders SET {', '.join(updates)} WHERE id = ?;", tuple(params))
+
+            # Ghi audit log
+            log_audit(conn, 'order', o_id, 'STATUS_TRANSITION', cur_norm, nxt_norm, actor=username or 'admin', reason=reason)
+
+            # Gửi thông báo tự động tương ứng theo event (Section 10)
+            if nxt_norm == 'PROCESSING':
+                NotificationService.send(conn, 'ORDER_PROCESSING', c_phone, {'order_code': o_code, 'db_order_id': o_id, 'customer_id': cust_id})
+            elif nxt_norm == 'DELIVERED':
+                NotificationService.send(conn, 'POLICY_DELIVERED', c_phone, {'order_code': o_code, 'db_order_id': o_id, 'customer_id': cust_id})
+
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": f"Chuyển trạng thái đơn hàng #{o_code} thành {nxt_norm} thành công",
+                "old_status": cur_norm,
+                "new_status": nxt_norm
+            })
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi khi chuyển trạng thái: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_issue_policy(self, order_id_or_code, payload):
+        """
+        Cấp đơn bảo hiểm điện tử & sinh số GCN (Section 2, 14, 16)
+        """
+        username, user_role = self.get_current_user_info()
+        if user_role not in ('ADMIN', 'PROCESSING'):
+            self.send_error_json("Chỉ ADMIN hoặc bộ phận XỬ LÝ (PROCESSING) mới có quyền cấp đơn bảo hiểm", 403)
+            return
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            row = cur.execute("""
+                SELECT o.id, o.order_code, o.status, o.customer_id, o.amount, o.product_name,
+                       o.insured_object, o.plate_number, o.insurance_start, o.insurance_end,
+                       c.phone, c.name, pm.status as payment_status
+                FROM orders o
+                JOIN customers c ON o.customer_id = c.id
+                LEFT JOIN payments pm ON o.id = pm.order_id
+                WHERE o.id = ? OR o.order_code = ?;
+            """, (order_id_or_code, order_id_or_code)).fetchone()
+
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng", 404)
+                return
+
+            o_id, o_code, cur_status, cust_id, amount, prod_name, ins_obj, plate, ins_start, ins_end, phone, c_name, pm_status = row
+            cur_norm = OrderStatusRules.normalize_status(cur_status)
+
+            # Ràng buộc: Không được cấp đơn nếu chưa thanh toán (Section 14)
+            if cur_norm not in ['PAID', 'PROCESSING'] and pm_status != 'SUCCESS':
+                self.send_error_json("Không thể cấp đơn bảo hiểm: Đơn hàng chưa được thanh toán (PAID)!", 400)
+                return
+
+            # Sinh số GCN duy nhất: PJ-HG-YYYYMMDD-XXXX
+            today_str = datetime.now().strftime('%Y%m%d')
+            rand_hex = secrets.token_hex(2).upper()
+            policy_number = f"PJ-HG-{today_str}-{rand_hex}"
+
+            # Tính ngày hiệu lực & hết hạn (Section 16 - Renewal Ready)
+            now = datetime.now()
+            start_dt = datetime.strptime(ins_start[:10], '%Y-%m-%d') if ins_start else now
+            expiry_dt = start_dt + timedelta(days=365)
+            expiry_str = expiry_dt.strftime('%Y-%m-%d %H:%M:%S')
+            start_str = start_dt.strftime('%Y-%m-%d %H:%M:%S')
+            issue_date = now.strftime('%Y-%m-%d %H:%M:%S')
+
+            doc_url = f"/api/documents/{policy_number}/download"
+
+            # Lưu vào bảng policies
+            cur.execute("""
+                INSERT INTO policies (
+                    policy_number, order_id, customer_id, product_name, insured_object,
+                    plate_number, issue_date, start_date, expiry_date, premium, status,
+                    document_url, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, CURRENT_TIMESTAMP);
+            """, (policy_number, o_id, cust_id, prod_name or 'Bảo hiểm PJICO', ins_obj or plate or 'Phương tiện', plate, issue_date, start_str, expiry_str, amount, doc_url))
+
+            # Cập nhật order
+            cur.execute("""
+                UPDATE orders 
+                SET status = 'ISSUED', policy_number = ?, policy_expiry_date = ?, document_url = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+            """, (policy_number, expiry_str, doc_url, o_id))
+
+            log_audit(conn, 'order', o_id, 'POLICY_ISSUED', cur_norm, 'ISSUED', actor=username or 'admin', reason=f"Cấp GCN {policy_number}")
+            log_audit(conn, 'policy', policy_number, 'CREATE', None, {'order_id': o_id, 'expiry': expiry_str}, actor=username or 'admin')
+
+            # Gửi thông báo đến khách hàng (Section 10 & 11)
+            NotificationService.send(conn, 'POLICY_ISSUED', phone, {
+                'order_code': o_code, 'db_order_id': o_id, 'customer_id': cust_id, 'policy_number': policy_number
+            })
+
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": f"Đã cấp Giấy chứng nhận bảo hiểm thành công: {policy_number}",
+                "policy_number": policy_number,
+                "order_code": o_code,
+                "expiry_date": expiry_str,
+                "document_url": doc_url
+            })
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi khi cấp đơn: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_deliver_policy(self, order_id_or_code, payload):
+        """Đánh dấu đã giao GCN đến khách hàng (Section 2, 4)"""
+        username, user_role = self.get_current_user_info()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            row = cur.execute("""
+                SELECT o.id, o.order_code, o.status, o.customer_id, c.phone
+                FROM orders o JOIN customers c ON o.customer_id = c.id
+                WHERE o.id = ? OR o.order_code = ?;
+            """, (order_id_or_code, order_id_or_code)).fetchone()
+
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng", 404)
+                return
+
+            o_id, o_code, cur_status, cust_id, phone = row
+            cur.execute("UPDATE orders SET status = 'DELIVERED', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
+            log_audit(conn, 'order', o_id, 'STATUS_TRANSITION', cur_status, 'DELIVERED', actor=username or 'admin', reason="Đã bàn giao khách hàng")
+
+            NotificationService.send(conn, 'POLICY_DELIVERED', phone, {
+                'order_code': o_code, 'db_order_id': o_id, 'customer_id': cust_id
+            })
+
+            conn.commit()
+            sync_db_copies()
+            self.send_json({"success": True, "message": f"Đã cập nhật trạng thái đơn #{o_code} sang DELIVERED"})
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi giao đơn: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_get_customer_profile(self, customer_id):
+        """Hồ sơ khách hàng 360 độ: Master info, khảo sát, báo giá, đơn hàng, thanh toán, hợp đồng (Section 5)"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cust_row = cur.execute("SELECT * FROM customers WHERE id = ? OR phone = ?;", (customer_id, customer_id)).fetchone()
+            if not cust_row:
+                self.send_error_json("Không tìm thấy khách hàng", 404)
+                return
+
+            cust = dict(cust_row)
+            c_id = cust['id']
+
+            # Lịch sử khảo sát
+            surveys = [dict(r) for r in cur.execute("SELECT * FROM surveys WHERE customer_id = ? ORDER BY survey_id DESC;", (c_id,)).fetchall()]
+
+            # Lịch sử giấy yêu cầu
+            apps = [dict(r) for r in cur.execute("SELECT * FROM applications WHERE customer_id = ? ORDER BY application_id DESC;", (c_id,)).fetchall()]
+
+            # Lịch sử báo giá
+            quotes = [dict(r) for r in cur.execute("SELECT * FROM quotes WHERE customer_id = ? ORDER BY quote_id DESC;", (c_id,)).fetchall()]
+
+            # Lịch sử đơn hàng kèm thanh toán
+            orders = [dict(r) for r in cur.execute("""
+                SELECT o.*, pm.status as payment_status, pm.transaction_id, pm.received_amount
+                FROM orders o LEFT JOIN payments pm ON o.id = pm.order_id
+                WHERE o.customer_id = ? ORDER BY o.id DESC;
+            """, (c_id,)).fetchall()]
+
+            # Lịch sử Giấy chứng nhận bảo hiểm
+            policies = [dict(r) for r in cur.execute("SELECT * FROM policies WHERE customer_id = ? ORDER BY policy_id DESC;", (c_id,)).fetchall()]
+
+            # Các sản phẩm quan tâm (Distinct products)
+            interested_products = []
+            seen_prods = set()
+            for o in orders:
+                if o.get('product_name') and o['product_name'] not in seen_prods:
+                    seen_prods.add(o['product_name'])
+                    interested_products.append(o['product_name'])
+            for s in surveys:
+                if s.get('product_name') and s['product_name'] not in seen_prods:
+                    seen_prods.add(s['product_name'])
+                    interested_products.append(s['product_name'])
+
+            self.send_json({
+                "success": True,
+                "data": {
+                    "customer": cust,
+                    "interested_products": interested_products,
+                    "surveys": surveys,
+                    "applications": apps,
+                    "quotes": quotes,
+                    "orders": orders,
+                    "policies": policies
+                }
+            })
+        except Exception as e:
+            self.send_error_json("Lỗi đọc hồ sơ khách hàng: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_public_track_order(self, query_string):
+        """
+        Tra cứu đơn hàng công khai bắt buộc cả SĐT và Mã đơn (Section 12)
+        Tuyệt đối không cho tra cứu chỉ bằng Order ID đơn lẻ nhằm bảo vệ dữ liệu khách hàng.
+        """
+        params = urllib.parse.parse_qs(query_string)
+        order_code = params.get('order', params.get('order_code', [None]))[0]
+        phone = params.get('phone', [None])[0]
+
+        if not order_code or not phone:
+            self.send_error_json("Để bảo mật, vui lòng nhập chính xác cả Số điện thoại và Mã đơn hàng.", 400)
+            return
+
+        norm_phone = normalize_vietnam_phone(phone)
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            query = """
+            SELECT 
+                o.id, o.order_code, o.amount, o.status, o.created_at, o.purchased_at,
+                o.plate_number, o.insured_object, o.insurance_start, o.insurance_end,
+                o.policy_number, o.policy_expiry_date, o.document_url,
+                p.name as product_name, p.product_type,
+                pm.status as payment_status, pm.received_amount, pm.expected_amount,
+                c.name as customer_name, c.phone as customer_phone
+            FROM orders o
+            JOIN customers c ON o.customer_id = c.id
+            LEFT JOIN products p ON o.product_id = p.id
+            LEFT JOIN payments pm ON o.id = pm.order_id
+            WHERE (o.order_code = ? OR o.id = ?) AND c.phone = ?;
+            """
+            row = cur.execute(query, (order_code.strip(), order_code.strip(), norm_phone)).fetchone()
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng khớp với Số điện thoại và Mã đơn đã cung cấp.", 404)
+                return
+
+            d = dict(row)
+            std_status = OrderStatusRules.normalize_status(d.get('status'))
+
+            # Tạo timeline tiến trình trực quan
+            timeline_steps = [
+                {"key": "NEW", "title": "Tiếp nhận đơn", "desc": "Đơn hàng đã được khởi tạo"},
+                {"key": "PENDING_PAYMENT", "title": "Chờ thanh toán", "desc": "Chờ chuyển khoản VietQR"},
+                {"key": "PAID", "title": "Đã thanh toán", "desc": "PJICO đã nhận tiền thành công"},
+                {"key": "PROCESSING", "title": "Đang cấp đơn", "desc": "Đang kiểm tra & cấp GCN điện tử"},
+                {"key": "ISSUED", "title": "Đã cấp bảo hiểm", "desc": "GCN điện tử đã phát hành"},
+                {"key": "DELIVERED", "title": "Hoàn tất", "desc": "Hồ sơ đã gửi tới khách hàng"}
+            ]
+
+            cur_order_idx = 0
+            if std_status in ['PENDING_PAYMENT', 'WAITING_CONFIRM']:
+                cur_order_idx = 1
+            elif std_status == 'PAID':
+                cur_order_idx = 2
+            elif std_status == 'PROCESSING':
+                cur_order_idx = 3
+            elif std_status in ['ISSUED', 'COMPLETED']:
+                cur_order_idx = 4
+            elif std_status == 'DELIVERED':
+                cur_order_idx = 5
+
+            steps_status = []
+            for i, st in enumerate(timeline_steps):
+                steps_status.append({
+                    "step": st['key'],
+                    "title": st['title'],
+                    "desc": st['desc'],
+                    "done": i <= cur_order_idx,
+                    "current": i == cur_order_idx
+                })
+
+            # Ẩn bớt họ tên nhạy cảm: "Nguyễn Văn A" -> "Nguyễn V***"
+            raw_name = d.get('customer_name') or ''
+            words = raw_name.split()
+            masked_name = (words[0] + " " + words[-1][0] + "***") if len(words) > 1 else raw_name
+
+            res = {
+                "success": True,
+                "order_code": d['order_code'],
+                "customer_name_masked": masked_name,
+                "product_name": d.get('product_name'),
+                "amount": float(d.get('amount') or 0),
+                "created_at": d.get('created_at'),
+                "status": std_status,
+                "payment_status": d.get('payment_status') or 'PENDING',
+                "timeline": steps_status,
+                "has_policy": bool(d.get('policy_number')),
+                "policy_number": d.get('policy_number'),
+                "policy_expiry": d.get('policy_expiry_date'),
+                "certificate_url": f"/api/documents/{d['order_code']}/download?phone={norm_phone}" if d.get('policy_number') else None
+            }
+            self.send_json(res)
+        except Exception as e:
+            self.send_error_json("Lỗi tra cứu: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_download_document(self, identifier, query_string):
+        """
+        Tải / Xem Giấy chứng nhận bảo hiểm an toàn có kiểm tra quyền (Section 13)
+        Yêu cầu token Admin HOẶC khớp số điện thoại của đơn hàng.
+        """
+        params = urllib.parse.parse_qs(query_string)
+        phone = params.get('phone', [None])[0]
+        norm_phone = normalize_vietnam_phone(phone) if phone else None
+        is_auth = self.is_authenticated()
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # Tra cứu theo policy_number hoặc order_code hoặc id
+            query = """
+            SELECT pol.*, o.order_code, o.amount, o.insured_object, o.plate_number,
+                   c.name as customer_name, c.phone as customer_phone, c.address as customer_address,
+                   c.identity_no as customer_identity
+            FROM policies pol
+            JOIN orders o ON pol.order_id = o.id
+            JOIN customers c ON pol.customer_id = c.id
+            WHERE pol.policy_number = ? OR o.order_code = ? OR o.id = ?;
+            """
+            row = cur.execute(query, (identifier, identifier, identifier)).fetchone()
+            if not row:
+                self.send_error_json("Không tìm thấy Giấy chứng nhận bảo hiểm tương ứng", 404)
+                return
+
+            pol = dict(row)
+
+            # Kiểm tra quyền truy cập (Section 13)
+            if not is_auth:
+                if not norm_phone or norm_phone != pol.get('customer_phone'):
+                    self.send_error_json("Quyền truy cập bị từ chối: Số điện thoại không khớp với người thụ hưởng bảo hiểm", 403)
+                    return
+
+            # Xuất tài liệu Giấy Chứng Nhận Điện Tử PJICO Hà Giang chuẩn
+            html_doc = f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>GIẤY CHỨNG NHẬN BẢO HIỂM ĐIỆN TỬ - PJICO HÀ GIANG</title>
+    <style>
+        body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; color: #1e293b; }}
+        .cert-card {{ max-width: 800px; margin: 0 auto; background: white; border: 2px solid #005a9e; border-radius: 12px; padding: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }}
+        .header {{ text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; }}
+        .logo-title {{ font-size: 20px; font-weight: 800; color: #005a9e; letter-spacing: 1px; }}
+        .company-sub {{ font-size: 13px; color: #64748b; margin-top: 4px; }}
+        .cert-title {{ font-size: 24px; font-weight: 800; color: #d97706; margin: 20px 0 5px 0; text-transform: uppercase; }}
+        .cert-num {{ font-size: 15px; font-weight: 700; color: #005a9e; }}
+        .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 25px; }}
+        .item {{ padding: 10px; background: #f8fafc; border-radius: 6px; border-left: 3px solid #005a9e; }}
+        .label {{ font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; }}
+        .value {{ font-size: 15px; font-weight: 700; color: #0f172a; margin-top: 3px; }}
+        .stamp-box {{ margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; }}
+        .stamp {{ text-align: center; color: #b91c1c; border: 2px dashed #b91c1c; padding: 12px 20px; border-radius: 8px; font-weight: 800; }}
+        .btn-print {{ margin-top: 20px; text-align: center; }}
+        .btn {{ background: #005a9e; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: bold; cursor: pointer; }}
+        @media print {{ .btn-print {{ display: none; }} body {{ background: white; padding: 0; }} .cert-card {{ box-shadow: none; border: 1px solid #ccc; }} }}
+    </style>
+</head>
+<body>
+    <div class="cert-card">
+        <div class="header">
+            <div class="logo-title">TỔNG CÔNG TY CỔ PHẦN BẢO HIỂM PETROLIMEX - PJICO</div>
+            <div class="company-sub">CÔNG TY BẢO HIỂM PJICO HÀ GIANG • Hotline: 0987.501.199 • Website: pjicohagiang.xyz</div>
+            <div class="cert-title">GIẤY CHỨNG NHẬN BẢO HIỂM ĐIỆN TỬ</div>
+            <div class="cert-num">Số GCN: {pol['policy_number']}</div>
+        </div>
+        <div class="grid">
+            <div class="item"><div class="label">Chủ hợp đồng / Khách hàng</div><div class="value">{pol['customer_name']}</div></div>
+            <div class="item"><div class="label">Số điện thoại liên hệ</div><div class="value">{pol['customer_phone']}</div></div>
+            <div class="item"><div class="label">Sản phẩm bảo hiểm</div><div class="value">{pol['product_name']}</div></div>
+            <div class="item"><div class="label">Đối tượng / Biển số xe</div><div class="value">{pol['plate_number'] or pol['insured_object'] or 'Theo hợp đồng'}</div></div>
+            <div class="item"><div class="label">Thời hạn hiệu lực từ</div><div class="value">{pol['start_date'][:10]}</div></div>
+            <div class="item"><div class="label">Thời hạn hết hiệu lực</div><div class="value">{pol['expiry_date'][:10]}</div></div>
+            <div class="item"><div class="label">Phí bảo hiểm đã nộp</div><div class="value">{pol['premium']:,.0f} VNĐ</div></div>
+            <div class="item"><div class="label">Mã đơn hàng liên kết</div><div class="value">#{pol['order_code']}</div></div>
+        </div>
+        <div class="stamp-box">
+            <div style="font-size: 12px; color: #64748b;">
+                Ngày phát hành: {pol['issue_date'][:19]}<br>
+                Xác thực điện tử qua mã QR / Hệ thống quản trị PJICO Hà Giang
+            </div>
+            <div class="stamp">
+                PJICO HÀ GIANG<br>
+                ĐÃ KÝ SỐ ĐIỆN TỬ
+            </div>
+        </div>
+        <div class="btn-print">
+            <button class="btn" onclick="window.print()">In / Lưu Chứng Nhận (PDF)</button>
+        </div>
+    </div>
+</body>
+</html>
+"""
+            body = html_doc.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            self.send_error_json("Lỗi đọc tài liệu: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_admin_kpis(self):
+        """Báo cáo chỉ số kinh doanh & tỷ lệ chuyển đổi phễu (Section 19)"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            today_str = datetime.now().strftime('%Y-%m-%d')
+            month_str = datetime.now().strftime('%Y-%m')
+
+            rev_today = cur.execute("""
+                SELECT COALESCE(SUM(amount), 0) FROM orders 
+                WHERE status IN ('PAID', 'paid', 'PROCESSING', 'processing', 'ISSUED', 'completed', 'DELIVERED')
+                  AND date(created_at) = date(?);
+            """, (today_str,)).fetchone()[0]
+
+            rev_month = cur.execute("""
+                SELECT COALESCE(SUM(amount), 0) FROM orders 
+                WHERE status IN ('PAID', 'paid', 'PROCESSING', 'processing', 'ISSUED', 'completed', 'DELIVERED')
+                  AND strftime('%Y-%m', created_at) = ?;
+            """, (month_str,)).fetchone()[0]
+
+            total_orders = cur.execute("SELECT COUNT(*) FROM orders;").fetchone()[0]
+            paid_orders = cur.execute("""
+                SELECT COUNT(*) FROM orders 
+                WHERE status IN ('PAID', 'paid', 'PROCESSING', 'processing', 'ISSUED', 'completed', 'DELIVERED');
+            """).fetchone()[0]
+
+            total_rev = cur.execute("""
+                SELECT COALESCE(SUM(amount), 0) FROM orders 
+                WHERE status IN ('PAID', 'paid', 'PROCESSING', 'processing', 'ISSUED', 'completed', 'DELIVERED');
+            """).fetchone()[0]
+
+            aov = (total_rev / paid_orders) if paid_orders > 0 else 0
+
+            # Phễu chuyển đổi: Survey -> Quote -> Order -> Paid -> Issued -> Delivered
+            surveys_cnt = cur.execute("SELECT COUNT(*) FROM surveys;").fetchone()[0]
+            quotes_cnt = cur.execute("SELECT COUNT(*) FROM quotes;").fetchone()[0]
+            orders_cnt = total_orders
+            paid_cnt = paid_orders
+            issued_cnt = cur.execute("SELECT COUNT(*) FROM orders WHERE status IN ('ISSUED', 'completed', 'DELIVERED');").fetchone()[0]
+            delivered_cnt = cur.execute("SELECT COUNT(*) FROM orders WHERE status = 'DELIVERED';").fetchone()[0]
+
+            self.send_json({
+                "success": True,
+                "kpis": {
+                    "revenue_today": float(rev_today),
+                    "revenue_month": float(rev_month),
+                    "total_orders": total_orders,
+                    "paid_orders": paid_orders,
+                    "average_order_value": round(aov, 0),
+                    "funnel": {
+                        "surveys": surveys_cnt,
+                        "quotes": quotes_cnt,
+                        "orders": orders_cnt,
+                        "paid": paid_cnt,
+                        "issued": issued_cnt,
+                        "delivered": delivered_cnt,
+                        "rates": {
+                            "survey_to_quote": round((quotes_cnt / surveys_cnt * 100) if surveys_cnt > 0 else 0, 1),
+                            "quote_to_order": round((orders_cnt / quotes_cnt * 100) if quotes_cnt > 0 else 0, 1),
+                            "order_to_paid": round((paid_cnt / orders_cnt * 100) if orders_cnt > 0 else 0, 1),
+                            "paid_to_issued": round((issued_cnt / paid_cnt * 100) if paid_cnt > 0 else 0, 1),
+                            "issued_to_delivered": round((delivered_cnt / issued_cnt * 100) if issued_cnt > 0 else 0, 1)
+                        }
+                    }
+                }
+            })
+        except Exception as e:
+            self.send_error_json("Lỗi đọc số liệu KPI: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_admin_renewals(self):
+        """Danh sách hợp đồng sắp hết hạn 30, 15, 7 ngày phục vụ tái tục (Section 16)"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            today = datetime.now().date()
+            rows = cur.execute("""
+                SELECT pol.*, c.name as customer_name, c.phone as customer_phone, o.order_code
+                FROM policies pol
+                JOIN customers c ON pol.customer_id = c.id
+                JOIN orders o ON pol.order_id = o.id
+                WHERE pol.status = 'ACTIVE'
+                ORDER BY pol.expiry_date ASC;
+            """).fetchall()
+
+            due_30 = []
+            due_15 = []
+            due_7 = []
+            expired = []
+
+            for r in rows:
+                d = dict(r)
+                try:
+                    exp_date = datetime.strptime(d['expiry_date'][:10], '%Y-%m-%d').date()
+                    days_left = (exp_date - today).days
+                    d['days_left'] = days_left
+                    if days_left < 0:
+                        expired.append(d)
+                    elif days_left <= 7:
+                        due_7.append(d)
+                    elif days_left <= 15:
+                        due_15.append(d)
+                    elif days_left <= 30:
+                        due_30.append(d)
+                except Exception:
+                    pass
+
+            self.send_json({
+                "success": True,
+                "renewals": {
+                    "due_in_7_days": due_7,
+                    "due_in_15_days": due_15,
+                    "due_in_30_days": due_30,
+                    "expired": expired,
+                    "counts": {
+                        "due_7": len(due_7),
+                        "due_15": len(due_15),
+                        "due_30": len(due_30),
+                        "expired": len(expired)
+                    }
+                }
+            })
+        except Exception as e:
+            self.send_error_json("Lỗi kiểm tra tái tục: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_admin_match_payment(self, payment_id, payload):
+        """Khớp giao dịch Manual Review với mã đơn hàng (Section 9)"""
+        username, user_role = self.get_current_user_info()
+        if user_role not in ('ADMIN', 'ACCOUNTING'):
+            self.send_error_json("Chỉ ADMIN hoặc KẾ TOÁN (ACCOUNTING) mới có quyền khớp thanh toán", 403)
+            return
+
+        order_code = payload.get('order_code') or payload.get('order_id')
+        reason = payload.get('reason', 'Admin đối soát khớp giao dịch thủ công').strip()
+
+        if not order_code:
+            self.send_error_json("Vui lòng cung cấp mã đơn hàng (order_code) để khớp", 400)
+            return
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            pm_row = cur.execute("SELECT * FROM payments WHERE payment_id = ?;", (payment_id,)).fetchone()
+            if not pm_row:
+                self.send_error_json("Không tìm thấy giao dịch thanh toán", 404)
+                return
+
+            pm = dict(pm_row)
+            order_row = cur.execute("""
+                SELECT o.id, o.order_code, o.amount, o.status, c.phone, c.name, p.product_type, p.stock_quantity, o.product_id
+                FROM orders o 
+                JOIN customers c ON o.customer_id = c.id
+                LEFT JOIN products p ON o.product_id = p.id
+                WHERE o.order_code = ? OR o.id = ?;
+            """, (order_code, order_code)).fetchone()
+
+            if not order_row:
+                self.send_error_json(f"Không tìm thấy đơn hàng #{order_code}", 404)
+                return
+
+            o_id, o_code, o_amount, o_status, c_phone, c_name, p_type, p_stock, p_id = order_row
+            rec_amount = float(pm.get('received_amount') or 0)
+            exp_amount = float(o_amount or 0)
+
+            # Cập nhật payment
+            new_pm_status = 'SUCCESS' if rec_amount >= exp_amount else 'MISMATCH'
+            cur.execute("""
+                UPDATE payments
+                SET order_id = ?, status = ?, expected_amount = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE payment_id = ?;
+            """, (o_id, new_pm_status, exp_amount, payment_id))
+
+            # Nếu đủ tiền -> Đơn chuyển sang PAID
+            old_order_status = o_status
+            if new_pm_status == 'SUCCESS':
+                cur.execute("UPDATE orders SET status = 'PAID', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
+                if p_type == 'physical' and p_stock is not None and p_stock > 0:
+                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+
+                # Gửi thông báo thành công
+                NotificationService.send(conn, 'PAYMENT_SUCCESS', c_phone, {
+                    'order_code': o_code, 'db_order_id': o_id
+                })
+
+            log_audit(conn, 'payment', payment_id, 'MANUAL_MATCH', pm.get('status'), new_pm_status, actor=username or 'admin', reason=reason)
+            log_audit(conn, 'order', o_id, 'STATUS_UPDATE', old_order_status, 'PAID' if new_pm_status == 'SUCCESS' else old_order_status, actor=username or 'admin', reason=reason)
+
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": f"Đã khớp giao dịch {payment_id} với đơn hàng #{o_code}",
+                "payment_status": new_pm_status,
+                "order_code": o_code
+            })
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi khớp thanh toán: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_get_audit_logs(self, query_string):
+        """Truy vấn nhật ký kiểm toán hệ thống (Section 18)"""
+        params = urllib.parse.parse_qs(query_string)
+        entity_type = params.get('entity_type', [None])[0]
+        entity_id = params.get('entity_id', [None])[0]
+        limit = min(200, max(1, int(params.get('limit', [50])[0])))
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            sql = "SELECT * FROM audit_logs WHERE 1=1"
+            sql_params = []
+            if entity_type:
+                sql += " AND entity_type = ?"
+                sql_params.append(entity_type)
+            if entity_id:
+                sql += " AND entity_id = ?"
+                sql_params.append(str(entity_id))
+            sql += " ORDER BY audit_id DESC LIMIT ?;"
+            sql_params.append(limit)
+
+            rows = cur.execute(sql, tuple(sql_params)).fetchall()
+            self.send_json({"success": True, "count": len(rows), "data": [dict(r) for r in rows]})
+        except Exception as e:
+            self.send_error_json("Lỗi đọc audit log: " + str(e))
+        finally:
+            conn.close()
 
 def run_server():
     init_database()

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Đơn Hàng & Giấy Chứng Nhận Bảo Hiểm - PJICO Hà Giang</title>
+    <link rel="icon" href="/hagiang" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .pjico-blue { color: #005a9e; }
+        .bg-pjico-blue { background-color: #005a9e; }
+        .pjico-orange { color: #ea580c; }
+        .bg-pjico-orange { background-color: #ea580c; }
+        .timeline-line { position: absolute; left: 18px; top: 30px; bottom: 0; width: 3px; background: #e2e8f0; }
+        .timeline-item.done .timeline-circle { background-color: #10b981; border-color: #10b981; color: white; }
+        .timeline-item.active .timeline-circle { background-color: #005a9e; border-color: #005a9e; color: white; box-shadow: 0 0 0 4px rgba(0, 90, 158, 0.2); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-800">
+
+    <!-- HEADER -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-pjico-blue rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-md">
+                    PJ
+                </div>
+                <div>
+                    <div class="font-extrabold text-base sm:text-lg text-slate-900 leading-tight">BẢO HIỂM PJICO HÀ GIANG</div>
+                    <div class="text-xs text-slate-500 font-medium">Hệ thống tra cứu hồ sơ điện tử an toàn</div>
+                </div>
+            </a>
+            <div class="flex items-center space-x-3">
+                <a href="/" class="hidden sm:inline-flex items-center text-sm font-semibold text-slate-600 hover:text-pjico-blue transition">
+                    <i class="fa-solid fa-house mr-1.5"></i> Trang Chủ
+                </a>
+                <a href="/thanhtoan" class="inline-flex items-center text-sm font-semibold text-slate-600 hover:text-pjico-blue transition">
+                    <i class="fa-solid fa-credit-card mr-1.5"></i> Cổng Thanh Toán
+                </a>
+                <a href="tel:0987501199" class="bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg font-bold flex items-center shadow-sm transition">
+                    <i class="fa-solid fa-phone mr-1.5"></i> 0987.501.199
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
+        <!-- Title Box -->
+        <div class="text-center mb-8">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-pjico-blue mb-3">
+                <i class="fa-solid fa-shield-halved mr-1.5"></i> TRA CỨU BẢO MẬT 2 LỚP
+            </span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Tra Cứu Hồ Sơ & Giấy Chứng Nhận</h1>
+            <p class="text-slate-500 text-sm sm:text-base mt-2 max-w-lg mx-auto">
+                Nhập chính xác Số điện thoại đặt mua và Mã đơn hàng để kiểm tra tiến trình cấp đơn và tải Giấy chứng nhận bảo hiểm điện tử.
+            </p>
+        </div>
+
+        <!-- SEARCH FORM CARD -->
+        <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8 mb-8">
+            <form id="trackingForm" onsubmit="handleTrackingSubmit(event)">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                            Số điện thoại đặt mua <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i class="fa-solid fa-phone"></i>
+                            </span>
+                            <input type="tel" id="trackPhone" required placeholder="Ví dụ: 0987501199"
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                            Mã đơn hàng (Order Code) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i class="fa-solid fa-receipt"></i>
+                            </span>
+                            <input type="text" id="trackOrder" required placeholder="Ví dụ: PJ260930001"
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm font-semibold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                    <div class="text-xs text-slate-500 flex items-center">
+                        <i class="fa-solid fa-lock text-emerald-600 mr-1.5"></i> Dữ liệu bảo mật tuân thủ tiêu chuẩn an toàn thông tin
+                    </div>
+                    <button type="submit" id="btnSearch"
+                        class="w-full sm:w-auto px-6 py-3 bg-pjico-blue hover:bg-blue-800 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>TRA CỨU TIẾN TRÌNH</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ERROR ALERT -->
+        <div id="errorAlert" class="hidden bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-6 text-sm flex items-start space-x-3">
+            <i class="fa-solid fa-circle-exclamation mt-0.5 text-base text-red-500"></i>
+            <div id="errorMsg" class="font-medium"></div>
+        </div>
+
+        <!-- RESULT SECTION -->
+        <div id="resultSection" class="hidden space-y-6">
+            <!-- Order Header Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-900 to-pjico-blue p-5 text-white flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <div class="text-xs font-semibold text-blue-200 uppercase tracking-wider">Thông Tin Đơn Hàng</div>
+                        <div class="text-xl sm:text-2xl font-black mt-0.5 flex items-center space-x-2">
+                            <span id="resOrderCode">PJ260930001</span>
+                            <span id="resBadgeStatus" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white text-pjico-blue">ĐÃ THANH TOÁN</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-blue-200">Tổng phí bảo hiểm</div>
+                        <div id="resAmount" class="text-xl sm:text-2xl font-black text-amber-300">0 VNĐ</div>
+                    </div>
+                </div>
+
+                <div class="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-slate-50/50">
+                    <div>
+                        <span class="text-xs text-slate-500 font-semibold block uppercase">Người đặt mua</span>
+                        <span id="resCustomerName" class="font-bold text-slate-800 text-base">Nguyễn V***</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 font-semibold block uppercase">Sản phẩm bảo hiểm</span>
+                        <span id="resProductName" class="font-bold text-slate-800 text-base">Bảo hiểm xe</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 font-semibold block uppercase">Ngày đặt đơn</span>
+                        <span id="resCreatedAt" class="font-semibold text-slate-700">-</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 font-semibold block uppercase">Trạng thái thanh toán</span>
+                        <span id="resPaymentStatus" class="font-bold text-emerald-600">ĐÃ NHẬN ĐỦ</span>
+                    </div>
+                </div>
+
+                <!-- Certificate CTA Box (When policy is issued) -->
+                <div id="policyBox" class="hidden p-5 bg-amber-50 border-t border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                            <i class="fa-solid fa-certificate"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-amber-900 text-sm sm:text-base flex items-center">
+                                Giấy Chứng Nhận Điện Tử Đã Cấp
+                                <i class="fa-solid fa-circle-check text-emerald-600 ml-1.5"></i>
+                            </div>
+                            <div class="text-xs text-amber-700 font-medium">
+                                Số GCN: <strong id="resPolicyNum" class="font-bold">PJ-HG-2026...</strong> • Hết hạn: <span id="resPolicyExpiry">2027-09-30</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a id="btnDownloadCert" href="#" target="_blank"
+                        class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-file-arrow-down"></i>
+                        <span>XEM & TẢI GCN</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- TIMELINE CARD -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                <h3 class="font-extrabold text-base sm:text-lg text-slate-900 mb-6 flex items-center">
+                    <i class="fa-solid fa-timeline text-pjico-blue mr-2"></i> Tiến Trình Xử Lý Đơn Hàng
+                </h3>
+
+                <div id="timelineContainer" class="relative pl-2 sm:pl-4 space-y-6">
+                    <!-- Dynamic timeline items rendered here -->
+                </div>
+            </div>
+
+            <!-- SUPPORT CARD -->
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-sm flex flex-col sm:flex-row items-center justify-between gap-4 text-blue-900">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold">Cần hỗ trợ tra cứu hoặc cập nhật thông tin?</div>
+                        <div class="text-xs text-blue-700">Liên hệ trực tiếp giám định viên & tư vấn viên PJICO Hà Giang</div>
+                    </div>
+                </div>
+                <a href="tel:0987501199" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs shadow-sm transition whitespace-nowrap">
+                    <i class="fa-solid fa-phone mr-1"></i> Gọi Hotline 24/7
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4">
+            <p class="font-bold text-slate-700">CÔNG TY BẢO HIỂM PJICO HÀ GIANG - THÀNH VIÊN TỔNG CÔNG TY CP BẢO HIỂM PETROLIMEX</p>
+            <p class="mt-1">Địa chỉ: Tổ 10, Phường Trần Phú, TP. Hà Giang, Tỉnh Hà Giang • Hotline: 0987.501.199</p>
+            <p class="mt-2 text-slate-400">© 2026 PJICO Hà Giang. Bảo lưu mọi quyền.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tự động điền order_code và phone từ URL query params nếu có
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderParam = urlParams.get('order') || urlParams.get('order_code') || urlParams.get('id');
+            const phoneParam = urlParams.get('phone');
+            if (orderParam) document.getElementById('trackOrder').value = orderParam;
+            if (phoneParam) document.getElementById('trackPhone').value = phoneParam;
+            if (orderParam && phoneParam) {
+                document.getElementById('trackingForm').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        async function handleTrackingSubmit(e) {
+            e.preventDefault();
+            const phone = document.getElementById('trackPhone').value.trim();
+            const order = document.getElementById('trackOrder').value.trim();
+            const errorAlert = document.getElementById('errorAlert');
+            const errorMsg = document.getElementById('errorMsg');
+            const resultSection = document.getElementById('resultSection');
+            const btnSearch = document.getElementById('btnSearch');
+
+            errorAlert.classList.add('hidden');
+            resultSection.classList.add('hidden');
+
+            if (!phone || !order) {
+                errorMsg.innerText = "Vui lòng nhập đầy đủ Số điện thoại và Mã đơn hàng.";
+                errorAlert.classList.remove('hidden');
+                return;
+            }
+
+            btnSearch.disabled = true;
+            btnSearch.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>ĐANG TRA CỨU...</span>`;
+
+            try {
+                const res = await fetch(`/api/public/orders/track?order=${encodeURIComponent(order)}&phone=${encodeURIComponent(phone)}`);
+                const json = await res.json();
+
+                if (!res.ok || !json.success) {
+                    errorMsg.innerText = json.error || json.message || "Không tìm thấy hồ sơ bảo hiểm khớp với thông tin.";
+                    errorAlert.classList.remove('hidden');
+                    return;
+                }
+
+                renderTrackingResult(json, phone);
+                resultSection.classList.remove('hidden');
+                resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } catch (err) {
+                errorMsg.innerText = "Lỗi kết nối máy chủ. Vui lòng thử lại sau.";
+                errorAlert.classList.remove('hidden');
+            } finally {
+                btnSearch.disabled = false;
+                btnSearch.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> <span>TRA CỨU TIẾN TRÌNH</span>`;
+            }
+        }
+
+        function renderTrackingResult(data, phone) {
+            document.getElementById('resOrderCode').innerText = '#' + data.order_code;
+            document.getElementById('resAmount').innerText = (data.amount || 0).toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('resCustomerName').innerText = data.customer_name_masked || 'Quý khách';
+            document.getElementById('resProductName').innerText = data.product_name || 'Bảo hiểm PJICO';
+            document.getElementById('resCreatedAt').innerText = data.created_at ? data.created_at.substring(0, 16) : '-';
+
+            // Badge trạng thái
+            const badgeEl = document.getElementById('resBadgeStatus');
+            const pmStatusEl = document.getElementById('resPaymentStatus');
+
+            const statusMap = {
+                'NEW': { label: 'TIẾP NHẬN', color: 'bg-slate-100 text-slate-800' },
+                'PENDING_PAYMENT': { label: 'CHỜ CHUYỂN KHOẢN', color: 'bg-amber-100 text-amber-800' },
+                'PAID': { label: 'ĐÃ THANH TOÁN', color: 'bg-blue-100 text-pjico-blue' },
+                'PROCESSING': { label: 'ĐANG CẤP ĐƠN', color: 'bg-indigo-100 text-indigo-800' },
+                'ISSUED': { label: 'ĐÃ CẤP BẢO HIỂM', color: 'bg-emerald-100 text-emerald-800' },
+                'DELIVERED': { label: 'HOÀN TẤT', color: 'bg-emerald-600 text-white' },
+                'CANCELLED': { label: 'ĐÃ HỦY', color: 'bg-red-100 text-red-800' }
+            };
+
+            const curSt = statusMap[data.status] || { label: data.status, color: 'bg-slate-100 text-slate-800' };
+            badgeEl.className = `px-2.5 py-0.5 rounded-full text-xs font-bold ${curSt.color}`;
+            badgeEl.innerText = curSt.label;
+
+            if (data.payment_status === 'SUCCESS') {
+                pmStatusEl.className = 'font-bold text-emerald-600';
+                pmStatusEl.innerText = 'ĐÃ THANH TOÁN THÀNH CÔNG';
+            } else if (data.payment_status === 'MISMATCH') {
+                pmStatusEl.className = 'font-bold text-amber-600';
+                pmStatusEl.innerText = 'CHƯA ĐỦ TIỀN (MISMATCH)';
+            } else {
+                pmStatusEl.className = 'font-bold text-amber-600';
+                pmStatusEl.innerText = 'CHỜ CHUYỂN KHOẢN';
+            }
+
+            // Certificate CTA
+            const policyBox = document.getElementById('policyBox');
+            if (data.has_policy) {
+                policyBox.classList.remove('hidden');
+                document.getElementById('resPolicyNum').innerText = data.policy_number;
+                document.getElementById('resPolicyExpiry').innerText = (data.policy_expiry || '').substring(0, 10);
+                document.getElementById('btnDownloadCert').href = data.certificate_url || `/api/documents/${data.order_code}/download?phone=${encodeURIComponent(phone)}`;
+            } else {
+                policyBox.classList.add('hidden');
+            }
+
+            // Render Timeline
+            const container = document.getElementById('timelineContainer');
+            container.innerHTML = '';
+
+            const steps = data.timeline || [];
+            steps.forEach((step, idx) => {
+                const isLast = idx === steps.length - 1;
+                const isDone = step.done;
+                const isCurrent = step.current;
+
+                const item = document.createElement('div');
+                item.className = 'relative flex items-start space-x-4';
+
+                let iconHtml = '<i class="fa-solid fa-circle text-[8px]"></i>';
+                let circleClass = 'bg-slate-100 text-slate-400 border-2 border-slate-300';
+
+                if (isDone) {
+                    iconHtml = '<i class="fa-solid fa-check text-xs"></i>';
+                    circleClass = 'bg-emerald-500 text-white border-2 border-emerald-500';
+                }
+                if (isCurrent) {
+                    circleClass = 'bg-pjico-blue text-white border-2 border-pjico-blue ring-4 ring-blue-100';
+                }
+
+                item.innerHTML = `
+                    ${!isLast ? '<div class="absolute left-4 top-8 bottom-0 w-0.5 ' + (isDone ? 'bg-emerald-500' : 'bg-slate-200') + '"></div>' : ''}
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 ${circleClass}">
+                        ${iconHtml}
+                    </div>
+                    <div class="pb-6">
+                        <div class="font-extrabold text-sm sm:text-base ${isCurrent ? 'text-pjico-blue' : (isDone ? 'text-slate-800' : 'text-slate-400')}">
+                            ${step.title}
+                            ${isCurrent ? '<span class="ml-2 text-xs px-2 py-0.5 bg-blue-100 text-pjico-blue rounded-full font-bold">Hiện tại</span>' : ''}
+                        </div>
+                        <div class="text-xs sm:text-sm text-slate-500 mt-0.5">${step.desc}</div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
