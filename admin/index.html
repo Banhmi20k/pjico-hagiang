@@ -317,32 +317,52 @@
             <!-- ========================================================================= -->
             <div id="tabContent-orders" class="tab-panel space-y-4 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-3xl border border-slate-200 shadow-xs">
-                    <!-- Header thanh công cụ -->
+                    <!-- Header thanh công cụ (Chuẩn hóa Phase 3: Bộ lọc Thanh toán & Đối soát SePay) -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-lg font-bold text-[#002D62]">Danh Sách Đơn Hàng (Bảng: orders)</h2>
+                            <h2 class="text-lg font-bold text-[#002D62] flex items-center gap-2">
+                                <span>Danh Sách Đơn Hàng & Thanh Toán</span>
+                                <span id="manualReviewBadge" class="hidden px-2.5 py-0.5 rounded-full text-[11px] font-black bg-purple-100 text-purple-800 border border-purple-300">
+                                    ⚠️ Có giao dịch cần đối soát
+                                </span>
+                            </h2>
                             <p class="text-xs text-slate-500">
-                                ⚡ <strong class="text-emerald-700">Quy tắc tự động:</strong> Chỉ tự động trừ tồn kho nếu mua <strong>Sản phẩm vật lý</strong>. Sản phẩm số / dịch vụ giữ nguyên tồn kho!
+                                ⚡ Quản lý toàn diện: Mã đơn • Khách hàng • Cần thu • Đã nhận • Trạng thái SePay VietQR • Thao tác duyệt tiền.
                             </p>
                         </div>
-                        <button onclick="openOrderModal()" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs sm:text-sm flex items-center gap-2 shadow transition cursor-pointer self-start sm:self-auto">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                            <span>Thêm Đơn Hàng Mới</span>
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Bộ lọc trạng thái thanh toán -->
+                            <div class="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-200">
+                                <span class="text-xs text-slate-500 font-medium">Lọc TT:</span>
+                                <select id="filterPaymentStatus" onchange="onPaymentFilterChange()" class="text-xs font-bold text-slate-700 bg-transparent outline-none cursor-pointer">
+                                    <option value="ALL">Tất cả thanh toán</option>
+                                    <option value="PENDING">Chờ thanh toán (PENDING)</option>
+                                    <option value="SUCCESS">Đã nhận tiền (SUCCESS)</option>
+                                    <option value="MISMATCH">Sai số tiền (MISMATCH)</option>
+                                    <option value="MANUAL_REVIEW">Cần đối soát (MANUAL_REVIEW)</option>
+                                    <option value="REFUNDED">Hoàn tiền (REFUNDED)</option>
+                                </select>
+                            </div>
+                            <button onclick="openOrderModal()" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center gap-1.5 shadow transition cursor-pointer">
+                                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                <span>Thêm Đơn</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Bảng danh sách đơn hàng -->
                     <div class="overflow-x-auto mt-4">
                         <table class="w-full text-left text-xs sm:text-sm border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold">
+                                <tr class="bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold text-xs">
                                     <th class="p-3">Mã ĐH</th>
                                     <th class="p-3">Khách Hàng</th>
-                                    <th class="p-3">Sản Phẩm Đặt Mua</th>
-                                    <th class="p-3">Loại SP</th>
-                                    <th class="p-3">Số Tiền</th>
-                                    <th class="p-3">Trạng Thái</th>
-                                    <th class="p-3">Ngày Mua</th>
+                                    <th class="p-3">Sản Phẩm</th>
+                                    <th class="p-3">Cần Thu</th>
+                                    <th class="p-3">Đã Nhận</th>
+                                    <th class="p-3">TT Thanh Toán</th>
+                                    <th class="p-3">Mã GD SePay</th>
+                                    <th class="p-3">TT Đơn</th>
                                     <th class="p-3 text-right">Thao Tác</th>
                                 </tr>
                             </thead>
@@ -351,6 +371,37 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- BẢNG ĐỐI SOÁT GIAO DỊCH CHƯA KHỚP (MANUAL REVIEW) -->
+                    <div id="manualReviewBox" class="mt-6 pt-5 border-t-2 border-dashed border-purple-200 space-y-3 hidden">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-purple-900 flex items-center gap-1.5">
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-purple-600"></i>
+                                <span>GIAO DỊCH BIẾN ĐỘNG SỐ DƯ CHƯA TỰ ĐỘNG KHỚP (MANUAL REVIEW)</span>
+                            </h3>
+                            <button onclick="loadManualReviewPayments()" class="text-xs text-purple-700 hover:underline flex items-center gap-1 cursor-pointer">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                                <span>Tải lại</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto bg-purple-50/40 rounded-2xl border border-purple-200 p-1">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="text-purple-800 border-b border-purple-200 font-bold">
+                                        <th class="p-2.5">Mã GD (SePay)</th>
+                                        <th class="p-2.5">Thời Gian</th>
+                                        <th class="p-2.5">Số Tiền Nhận</th>
+                                        <th class="p-2.5">Nội Dung Chuyển Khoản</th>
+                                        <th class="p-2.5 text-right">Thao Tác Đối Soát</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBodyManualReview" class="divide-y divide-purple-100 text-slate-700">
+                                    <!-- Render bằng JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
@@ -1513,50 +1564,90 @@
             renderOrders(cachedOrders);
         }
 
+        let currentPaymentFilter = 'ALL';
+
+        function onPaymentFilterChange() {
+            const sel = document.getElementById('filterPaymentStatus');
+            currentPaymentFilter = sel ? sel.value : 'ALL';
+            renderOrders(cachedOrders);
+        }
+
         function renderOrders(list) {
             const tbody = document.getElementById('tableBodyOrders');
             if (!list || list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 text-slate-400">Chưa có đơn hàng nào</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center p-8 text-slate-400">Chưa có đơn hàng nào</td></tr>';
                 return;
             }
 
-            const statusMap = {
-                pending: { label: 'Chờ thanh toán', class: 'bg-amber-100 text-amber-800 border-amber-300' },
+            // Áp dụng bộ lọc thanh toán (Payment Status Filter)
+            let filteredList = list;
+            if (currentPaymentFilter !== 'ALL') {
+                filteredList = list.filter(o => {
+                    const pmSt = String(o.payment_status || (o.status === 'paid' ? 'SUCCESS' : 'PENDING')).toUpperCase();
+                    return pmSt === currentPaymentFilter;
+                });
+            }
+
+            if (filteredList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center p-8 text-slate-400">Không có đơn hàng nào phù hợp bộ lọc "${currentPaymentFilter}"</td></tr>`;
+                return;
+            }
+
+            const orderStatusMap = {
+                pending: { label: 'Chờ xử lý', class: 'bg-amber-100 text-amber-800 border-amber-300' },
+                pending_payment: { label: 'Chờ thanh toán', class: 'bg-amber-100 text-amber-800 border-amber-300' },
                 paid: { label: 'Đã thanh toán', class: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
                 processing: { label: 'Đang xử lý', class: 'bg-blue-100 text-blue-800 border-blue-300' },
                 completed: { label: 'Hoàn thành', class: 'bg-teal-100 text-teal-800 border-teal-300' },
+                expired: { label: 'Hết hạn', class: 'bg-slate-100 text-slate-700 border-slate-300' },
                 cancelled: { label: 'Đã hủy', class: 'bg-rose-100 text-rose-800 border-rose-300' }
             };
 
-            tbody.innerHTML = list.map(o => {
-                const st = statusMap[o.status] || { label: o.status, class: 'bg-slate-100 text-slate-700' };
+            const paymentStatusMap = {
+                SUCCESS: { label: '✓ THÀNH CÔNG', class: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+                PENDING: { label: '⏳ CHỜ TIỀN VỀ', class: 'bg-amber-100 text-amber-800 border-amber-300' },
+                MISMATCH: { label: '⚠️ SAI TIỀN', class: 'bg-rose-100 text-rose-800 border-rose-300' },
+                MANUAL_REVIEW: { label: '🔍 CẦN ĐỐI SOÁT', class: 'bg-purple-100 text-purple-800 border-purple-300' },
+                REFUNDED: { label: '↩ HOÀN TIỀN', class: 'bg-slate-100 text-slate-700 border-slate-300' },
+                FAILED: { label: '✗ THẤT BẠI', class: 'bg-rose-100 text-rose-800 border-rose-300' }
+            };
 
-                let typeBadge = '';
-                if (o.product_type === 'physical') {
-                    typeBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-50 text-amber-800 border border-amber-200">📦 Vật lý</span>';
-                } else if (o.product_type === 'digital') {
-                    typeBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-50 text-blue-800 border border-blue-200">⚡ Số</span>';
-                } else {
-                    typeBadge = '<span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-purple-50 text-purple-800 border border-purple-200">🛠️ Dịch vụ</span>';
-                }
+            tbody.innerHTML = filteredList.map(o => {
+                const oSt = orderStatusMap[String(o.status).toLowerCase()] || { label: o.status, class: 'bg-slate-100 text-slate-700 border-slate-200' };
+                const rawPmStatus = String(o.payment_status || (o.status === 'paid' ? 'SUCCESS' : 'PENDING')).toUpperCase();
+                const pmSt = paymentStatusMap[rawPmStatus] || { label: rawPmStatus, class: 'bg-slate-100 text-slate-700 border-slate-200' };
+
+                const expAmt = Number(o.expected_amount || o.amount || 0);
+                const recAmt = Number(o.received_amount || (o.status === 'paid' ? expAmt : 0));
+                const orderCodeDisplay = o.order_code ? `<span class="font-mono font-bold text-[#0B7CFF] block">${escapeHtml(o.order_code)}</span><span class="text-[10px] text-slate-400">#${o.id}</span>` : `<span class="font-mono font-bold text-slate-400">#${o.id}</span>`;
 
                 return `
-                    <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-                        <td class="p-3 font-mono font-bold text-slate-400">#${o.id}</td>
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-100 text-xs">
+                        <td class="p-3">${orderCodeDisplay}</td>
                         <td class="p-3">
-                            <span class="font-bold text-slate-800 block">${escapeHtml(o.customer_name || 'Khách vãng lai')}</span>
-                            <span class="text-[11px] font-mono text-slate-500">${escapeHtml(o.customer_phone || '-')}</span>
+                            <strong class="text-slate-800 block">${escapeHtml(o.customer_name || 'Khách vãng lai')}</strong>
+                            <span class="font-mono text-[11px] text-slate-500">${escapeHtml(o.customer_phone || '-')}</span>
                         </td>
-                        <td class="p-3 font-semibold text-slate-800">${escapeHtml(o.product_name)}</td>
-                        <td class="p-3">${typeBadge}</td>
-                        <td class="p-3 font-bold text-emerald-600 font-mono">${Number(o.amount).toLocaleString('vi-VN')} đ</td>
                         <td class="p-3">
-                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${st.class}">${st.label}</span>
+                            <span class="font-medium text-slate-800 block">${escapeHtml(o.product_name)}</span>
+                            ${o.plate_number ? `<span class="text-[10px] font-mono text-slate-500">BS: ${escapeHtml(o.plate_number)}</span>` : ''}
                         </td>
-                        <td class="p-3 text-slate-500 text-xs">${formatDate(o.purchased_at)}</td>
+                        <td class="p-3 font-mono font-bold text-slate-700">${expAmt.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-3 font-mono font-bold ${recAmt >= expAmt && expAmt > 0 ? 'text-emerald-700' : (recAmt > 0 ? 'text-amber-700' : 'text-slate-400')}">
+                            ${recAmt.toLocaleString('vi-VN')} đ
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-wider ${pmSt.class}">${pmSt.label}</span>
+                        </td>
+                        <td class="p-3 font-mono text-[11px] text-slate-500">
+                            ${escapeHtml(o.transaction_id || o.transaction_code || '-')}
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${oSt.class}">${oSt.label}</span>
+                        </td>
                         <td class="p-3 text-right space-x-1 whitespace-nowrap">
-                            ${o.status === 'pending' ? `
-                                <button onclick="approveOrderPayment(${o.id})" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1" title="Duyệt Đã Nhận Tiền (SePay)">
+                            ${o.status !== 'paid' && o.status !== 'completed' ? `
+                                <button onclick="approveOrderPayment(${o.id}, '${o.order_code || o.id}')" class="px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition cursor-pointer shadow-xs inline-flex items-center gap-1" title="Duyệt Đã Nhận Tiền (Manual Confirm)">
                                     <i data-lucide="check" class="w-3 h-3"></i>
                                     <span>Duyệt Tiền</span>
                                 </button>
@@ -1572,7 +1663,99 @@
                 `;
             }).join('');
 
+            loadManualReviewPayments();
             lucide.createIcons();
+        }
+
+        async function approveOrderPayment(id, code) {
+            if (!confirm(`Xác nhận đã nhận được tiền cho đơn hàng #${code || id}? Trạng thái sẽ chuyển sang ĐÃ THANH TOÁN (Paid) và lưu vết kiểm toán.`)) return;
+
+            if (isBackendActive) {
+                try {
+                    const res = await fetchWithAuth(`${API_BASE}/api/orders/${id}/confirm-payment`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                        showToast(json.message || `Đã duyệt đơn hàng #${code} thành công!`);
+                        loadOrders();
+                        loadProducts();
+                        loadStats();
+                        return;
+                    } else {
+                        alert("Lỗi: " + json.error);
+                        return;
+                    }
+                } catch(e) {}
+            }
+
+            updateOrderLocal(id, 'paid');
+            showToast(`Đã duyệt đơn hàng #${code || id} thành công!`);
+            loadOrders();
+            loadStats();
+        }
+
+        async function loadManualReviewPayments() {
+            if (!isBackendActive) return;
+            try {
+                const res = await fetchWithAuth(`${API_BASE}/api/admin/payments?status=MANUAL_REVIEW`);
+                if (res.ok) {
+                    const json = await res.json();
+                    const badge = document.getElementById('manualReviewBadge');
+                    const box = document.getElementById('manualReviewBox');
+                    const tbody = document.getElementById('tableBodyManualReview');
+
+                    if (json.success && json.data && json.data.length > 0) {
+                        if (badge) badge.classList.remove('hidden');
+                        if (box) box.classList.remove('hidden');
+                        if (tbody) {
+                            tbody.innerHTML = json.data.map(p => `
+                                <tr class="hover:bg-purple-100/50 transition">
+                                    <td class="p-2.5 font-mono font-bold text-purple-900">${escapeHtml(p.transaction_id || '-')}</td>
+                                    <td class="p-2.5 font-mono text-[11px] text-slate-500">${formatDate(p.transaction_time || p.created_at)}</td>
+                                    <td class="p-2.5 font-mono font-bold text-emerald-700">${Number(p.received_amount).toLocaleString('vi-VN')} đ</td>
+                                    <td class="p-2.5 text-slate-700 max-w-xs break-all">${escapeHtml(p.raw_content || '-')}</td>
+                                    <td class="p-2.5 text-right">
+                                        <button onclick="promptMatchPayment('${p.payment_id}', '${p.transaction_id}', ${p.received_amount})" class="px-2.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs inline-flex items-center gap-1 shadow cursor-pointer">
+                                            <i data-lucide="link" class="w-3 h-3"></i>
+                                            <span>Khớp Đơn Này</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('');
+                            lucide.createIcons();
+                        }
+                    } else {
+                        if (badge) badge.classList.add('hidden');
+                        if (box) box.classList.add('hidden');
+                    }
+                }
+            } catch(e) {}
+        }
+
+        async function promptMatchPayment(pmId, txId, amount) {
+            const orderCode = prompt(`Nhập Mã đơn hàng (ví dụ PJ2609...) hoặc ID đơn hàng để khớp với giao dịch ${txId} (${Number(amount).toLocaleString('vi-VN')} đ):`);
+            if (!orderCode || !orderCode.trim()) return;
+
+            try {
+                const res = await fetchWithAuth(`${API_BASE}/api/orders/${encodeURIComponent(orderCode.trim())}/confirm-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payment_id: pmId, transaction_id: txId })
+                });
+                const json = await res.json();
+                if (json.success) {
+                    showToast(`✓ Đã khớp giao dịch và duyệt đơn #${orderCode.trim()} thành công!`);
+                    loadOrders();
+                    loadStats();
+                } else {
+                    alert("Lỗi khớp đơn: " + json.error);
+                }
+            } catch(err) {
+                alert("Lỗi kết nối: " + err.message);
+            }
         }
 
         async function approveOrderPayment(id) {

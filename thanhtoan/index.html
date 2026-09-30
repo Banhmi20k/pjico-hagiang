@@ -427,6 +427,30 @@
                     </button>
                 </div>
 
+                <!-- THANH ĐẾM NGƯỢC THỜI HẠN THANH TOÁN (TTL 30 PHÚT) -->
+                <div id="paymentTimerBar" class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-center justify-between text-xs sm:text-sm text-blue-900 shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="timer" class="w-4 h-4 text-[#0B7CFF] animate-pulse"></i>
+                        <span class="font-medium">Thời gian thanh toán còn lại:</span>
+                    </div>
+                    <div id="paymentCountdownText" class="font-mono font-black text-sm sm:text-base text-[#0B7CFF] tracking-wider">30:00</div>
+                </div>
+
+                <!-- CẢNH BÁO KHI ĐƠN HẾT HẠN (EXPIRED) -->
+                <div id="paymentExpiredCard" class="hidden p-5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-xs sm:text-sm text-rose-900 space-y-3 text-center animate-fadeIn">
+                    <div class="flex items-center justify-center gap-2 text-rose-700 font-bold text-sm sm:text-base">
+                        <i data-lucide="clock-alert" class="w-5 h-5 text-rose-600"></i>
+                        <span>ĐƠN HÀNG ĐÃ HẾT HẠN THANH TOÁN (TTL 30 PHÚT)</span>
+                    </div>
+                    <p class="text-slate-600 text-xs leading-relaxed max-w-lg mx-auto">
+                        Mã QR thanh toán cũ đã tự động tạm khóa để đảm bảo an toàn giao dịch. Quý khách vui lòng nhấn nút bên dưới để tạo lại hạn thanh toán mới cho đơn hàng này.
+                    </p>
+                    <button type="button" onclick="reopenExpiredOrderPayment()" class="px-6 py-3 rounded-xl bg-[#002D62] hover:bg-[#0B7CFF] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 mx-auto shadow-md transition cursor-pointer">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>TẠO LẠI THANH TOÁN</span>
+                    </button>
+                </div>
+
                 <!-- Bố cục 2 cột: Hướng dẫn & Mã QR -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     
@@ -510,14 +534,33 @@
                             </div>
 
                             <!-- Trạng thái: Mismatch (Không khớp số tiền) -->
-                            <div id="statusMismatchCard" class="hidden p-3.5 rounded-2xl bg-rose-50 border border-rose-300 text-xs text-rose-900 flex items-start gap-2.5">
-                                <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5"></i>
-                                <div>
-                                    <span class="font-bold">Đã nhận giao dịch nhưng số tiền hoặc nội dung chưa khớp</span>
-                                    <p class="text-[11px] text-rose-800 mt-0.5">
-                                        Vui lòng kiểm tra lại biên lai hoặc liên hệ ngay hotline <strong>0906.069.368</strong> để chuyên viên PJICO Hà Giang hỗ trợ đối soát thủ công cho bạn.
-                                    </p>
+                            <div id="statusMismatchCard" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-300 text-xs text-rose-900 space-y-2">
+                                <div class="flex items-start gap-2.5">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5"></i>
+                                    <div>
+                                        <span class="font-bold">Số tiền thanh toán chưa khớp</span>
+                                        <p class="text-[11px] text-rose-800 mt-0.5">
+                                            Hệ thống đã nhận được tiền nhưng số tiền chưa đủ so với giá trị đơn hàng. Đơn hàng chưa thể tự động cấp giấy chứng nhận.
+                                        </p>
+                                    </div>
                                 </div>
+                                <div class="p-2.5 bg-white/80 rounded-xl border border-rose-200 text-[11px] space-y-1">
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Số tiền cần thanh toán:</span>
+                                        <strong id="mismatchExpAmt" class="font-mono text-slate-800">-</strong>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-slate-500">Số tiền hệ thống đã nhận:</span>
+                                        <strong id="mismatchRecAmt" class="font-mono text-amber-700">-</strong>
+                                    </div>
+                                    <div class="flex justify-between border-t border-rose-100 pt-1">
+                                        <span class="text-slate-500 font-bold">Số tiền còn thiếu:</span>
+                                        <strong id="mismatchDiffAmt" class="font-mono text-rose-600 font-black">-</strong>
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-600">
+                                    Vui lòng chuyển tiếp số tiền còn thiếu với đúng nội dung hoặc liên hệ hotline <strong class="text-[#0B7CFF]">0906.069.368</strong> để được hỗ trợ đối soát.
+                                </p>
                             </div>
 
                             <!-- Trạng thái: Success (Thành công) -->
@@ -548,7 +591,7 @@
                     <div class="lg:col-span-5 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col items-center text-center space-y-4">
                         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Quét Mã VietQR Chuyển Khoản Nhanh</span>
                         
-                        <div class="p-3 bg-white border-2 border-slate-200 rounded-3xl shadow-md max-w-[280px] w-full pulse-subtle">
+                        <div id="vietQrContainer" class="p-3 bg-white border-2 border-slate-200 rounded-3xl shadow-md max-w-[280px] w-full pulse-subtle transition-all duration-300">
                             <img id="vietQrImg" src="" alt="Mã VietQR Thanh Toán PJICO" class="w-full h-auto rounded-2xl block">
                         </div>
 
@@ -608,12 +651,12 @@
                         </div>
                     </div>
 
-                    <!-- Thông báo CSKH -->
+                    <!-- Thông báo CSKH Chuẩn Phase 3 -->
                     <div class="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-900 text-left flex items-start gap-2.5">
                         <i data-lucide="info" class="w-4 h-4 text-[#0B7CFF] flex-shrink-0 mt-0.5"></i>
                         <p class="leading-relaxed">
-                            <strong>Nhân viên đang kiểm tra hồ sơ và thực hiện cấp giấy chứng nhận/hợp đồng.</strong> 
-                            Giấy chứng nhận điện tử có tích xanh xác thực sẽ được gửi trực tiếp tới Zalo / Số điện thoại của Quý khách trong ít phút!
+                            <strong>Hồ sơ đang được nhân viên PJICO kiểm tra và xử lý cấp đơn.</strong> 
+                            Giấy chứng nhận điện tử có tích xanh xác thực sẽ được cấp và gửi đến Zalo/SĐT Quý khách sau khi hoàn tất đối soát hồ sơ.
                         </p>
                     </div>
 
@@ -1288,11 +1331,87 @@
 
             window.scrollTo({ top: 120, behavior: 'smooth' });
 
+            // Bắt đầu đếm ngược thời gian thanh toán (TTL)
+            startPaymentCountdown(order.payment_deadline || order.deadline);
+            const expiredCard = document.getElementById('paymentExpiredCard');
+            if (expiredCard) expiredCard.classList.add('hidden');
+            const qrBox = document.getElementById('vietQrContainer');
+            if (qrBox) qrBox.classList.remove('opacity-25', 'pointer-events-none');
+            const checkBtn = document.getElementById('btnCheckPaymentStatus');
+            if (checkBtn) checkBtn.disabled = false;
+
             // Bắt đầu chu trình tự động kiểm tra biến động số dư ngầm
             startAutoPolling(order);
 
             lucide.createIcons();
         }
+        // =========================================================================
+        // ĐẾM NGƯỢC THỜI HẠN THANH TOÁN (PAYMENT COUNTDOWN TIMER - TTL 30 PHÚT)
+        // =========================================================================
+        function startPaymentCountdown(deadlineStr) {
+            stopPaymentCountdown();
+            const timerText = document.getElementById('paymentCountdownText');
+            const expiredCard = document.getElementById('paymentExpiredCard');
+            const qrBox = document.getElementById('vietQrContainer');
+            const checkBtn = document.getElementById('btnCheckPaymentStatus');
+
+            function tick() {
+                let target = deadlineStr ? new Date(deadlineStr).getTime() : (Date.now() + 30 * 60 * 1000);
+                let diff = Math.max(0, Math.floor((target - Date.now()) / 1000));
+                let m = Math.floor(diff / 60);
+                let s = diff % 60;
+                if (timerText) timerText.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                if (diff <= 0) {
+                    stopPaymentCountdown();
+                    if (expiredCard) expiredCard.classList.remove('hidden');
+                    if (qrBox) qrBox.classList.add('opacity-25', 'pointer-events-none');
+                    if (checkBtn) checkBtn.disabled = true;
+                    setPaymentStatusDisplay('EXPIRED');
+                }
+            }
+            tick();
+            paymentCountdownInterval = setInterval(tick, 1000);
+        }
+
+        function stopPaymentCountdown() {
+            if (paymentCountdownInterval) {
+                clearInterval(paymentCountdownInterval);
+                paymentCountdownInterval = null;
+            }
+        }
+
+        async function reopenExpiredOrderPayment() {
+            if (!currentOrderData) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/orders/${encodeURIComponent(currentOrderData.order_code)}/reopen-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const json = await res.json();
+                if (json.success) {
+                    currentOrderData.deadline = json.deadline;
+                    const expiredCard = document.getElementById('paymentExpiredCard');
+                    const qrBox = document.getElementById('vietQrContainer');
+                    const checkBtn = document.getElementById('btnCheckPaymentStatus');
+
+                    if (expiredCard) expiredCard.classList.add('hidden');
+                    if (qrBox) qrBox.classList.remove('opacity-25', 'pointer-events-none');
+                    if (checkBtn) checkBtn.disabled = false;
+
+                    setPaymentStatusDisplay('PENDING');
+                    startPaymentCountdown(json.deadline);
+                    startAutoPolling(currentOrderData);
+                    showToast("✓ Đã tạo lại thời hạn thanh toán mới!");
+                } else {
+                    alert("Không thể tạo lại thanh toán: " + json.error);
+                }
+            } catch(e) {
+                alert("Lỗi kết nối máy chủ: " + e.message);
+            }
+        }
+
 
         function returnToStep1() {
             stopAutoPolling();
@@ -1306,7 +1425,7 @@
         }
 
         // =========================================================================
-        // NÚT CHÍNH: KIỂM TRA THANH TOÁN (PAYMENT CHECK LOGIC - 3 TRẠNG THÁI)
+        // NÚT CHÍNH: KIỂM TRA THANH TOÁN (PAYMENT CHECK LOGIC - 4 TRẠNG THÁI)
         // =========================================================================
         async function handleCheckPaymentClick() {
             if (!currentOrderData) return;
@@ -1318,48 +1437,67 @@
             lucide.createIcons();
 
             try {
-                // Gọi API backend kiểm tra đơn
-                const checkRes = await fetch(`${API_BASE}/api/public/orders/check?id=${encodeURIComponent(currentOrderData.order_code)}`);
-                if (checkRes.ok) {
-                    const json = await checkRes.json();
-                    if (json.success && json.data) {
-                        const statusResult = json.data.payment_result || (json.data.status === 'paid' ? 'SUCCESS' : 'PENDING');
-                        
-                        if (statusResult === 'SUCCESS') {
-                            setPaymentStatusDisplay('SUCCESS');
-                            currentOrderData.status = 'paid';
-                            currentOrderData.paid_at = json.data.updated_at || new Date().toISOString().replace('T', ' ').substring(0, 19);
-                            updateLocalOrderPaid(currentOrderData);
-                            stopAutoPolling();
+                // 1. Thử gọi API chuẩn hóa Phase 3: GET /api/orders/:id/payment-status
+                let json = null;
+                try {
+                    const checkRes = await fetch(`${API_BASE}/api/orders/${encodeURIComponent(currentOrderData.order_code)}/payment-status`);
+                    if (checkRes.ok) json = await checkRes.json();
+                } catch(netErr) {}
 
-                            // Chuyển sang màn hình Cảm ơn sau 1.2s
-                            setTimeout(() => {
-                                renderStep3ThankYouScreen(currentOrderData);
-                            }, 1200);
-                            return;
-                        } else if (statusResult === 'MISMATCH') {
-                            setPaymentStatusDisplay('MISMATCH');
-                            showToast("⚠️ Số tiền hoặc nội dung chuyển khoản chưa khớp!");
-                            return;
-                        } else {
-                            setPaymentStatusDisplay('PENDING');
-                            showToast("⏳ Chưa ghi nhận tiền về. Vui lòng thử lại sau ít giây!");
-                            return;
+                // Fallback gọi GET /api/public/orders/check?id=...
+                if (!json || !json.success) {
+                    try {
+                        const fallbackRes = await fetch(`${API_BASE}/api/public/orders/check?id=${encodeURIComponent(currentOrderData.order_code)}`);
+                        if (fallbackRes.ok) {
+                            const fData = await fallbackRes.json();
+                            if (fData.success && fData.data) {
+                                json = {
+                                    success: true,
+                                    status: fData.data.payment_result === 'SUCCESS' ? 'PAID' : (fData.data.is_expired ? 'EXPIRED' : (fData.data.payment_result || 'PENDING_PAYMENT')),
+                                    paymentStatus: fData.data.payment_result || 'PENDING',
+                                    expectedAmount: fData.data.expected_amount || fData.data.amount,
+                                    receivedAmount: fData.data.received_amount || 0,
+                                    transactionTime: fData.data.transaction_time || fData.data.updated_at,
+                                    isExpired: fData.data.is_expired
+                                };
+                            }
                         }
+                    } catch(fErr) {}
+                }
+
+                if (json && json.success) {
+                    if (json.status === 'PAID' || json.paymentStatus === 'SUCCESS') {
+                        stopPaymentCountdown();
+                        stopAutoPolling();
+                        setPaymentStatusDisplay('SUCCESS');
+                        currentOrderData.status = 'paid';
+                        currentOrderData.paid_at = json.transactionTime || new Date().toISOString().replace('T', ' ').substring(0, 19);
+                        updateLocalOrderPaid(currentOrderData);
+
+                        setTimeout(() => {
+                            renderStep3ThankYouScreen(currentOrderData);
+                        }, 1200);
+                        return;
+                    } else if (json.status === 'EXPIRED' || json.isExpired) {
+                        stopPaymentCountdown();
+                        stopAutoPolling();
+                        setPaymentStatusDisplay('EXPIRED');
+                        showToast("⚠️ Đơn hàng đã hết thời gian thanh toán. Vui lòng tạo lại!");
+                        return;
+                    } else if (json.status === 'MISMATCH' || json.paymentStatus === 'MISMATCH') {
+                        setPaymentStatusDisplay('MISMATCH', json.expectedAmount, json.receivedAmount);
+                        showToast("⚠️ Số tiền chuyển khoản chưa khớp!");
+                        return;
+                    } else {
+                        setPaymentStatusDisplay('PENDING');
+                        showToast("⏳ Hệ thống đang kiểm tra biến động số dư. Vui lòng đợi trong giây lát!");
+                        return;
                     }
                 }
 
-                // Nếu backend offline hoặc không tìm thấy, kiểm tra trạng thái local
-                let orders = JSON.parse(localStorage.getItem('pjico_db_orders') || '[]');
-                const localOrder = orders.find(o => o.order_code === currentOrderData.order_code);
-                if (localOrder && localOrder.status === 'paid') {
-                    setPaymentStatusDisplay('SUCCESS');
-                    stopAutoPolling();
-                    setTimeout(() => renderStep3ThankYouScreen(localOrder), 1000);
-                } else {
-                    setPaymentStatusDisplay('PENDING');
-                    showToast("⏳ Đang chờ xác nhận từ ngân hàng...");
-                }
+                // Nếu máy chủ chưa phản hồi
+                setPaymentStatusDisplay('PENDING');
+                showToast("⏳ Đang kết nối ngân hàng để kiểm tra...");
 
             } catch(e) {
                 setPaymentStatusDisplay('PENDING');
@@ -1371,22 +1509,45 @@
             }
         }
 
-        // Cập nhật 3 trạng thái thanh toán hiển thị trên UI
-        function setPaymentStatusDisplay(state) {
+        // Cập nhật 4 trạng thái thanh toán hiển thị trên UI
+        function setPaymentStatusDisplay(state, expAmt, recAmt) {
             const pCard = document.getElementById('statusPendingCard');
             const mCard = document.getElementById('statusMismatchCard');
             const sCard = document.getElementById('statusSuccessCard');
+            const expCard = document.getElementById('paymentExpiredCard');
+            const qrBox = document.getElementById('vietQrContainer');
+            const checkBtn = document.getElementById('btnCheckPaymentStatus');
 
             if (pCard) pCard.classList.add('hidden');
             if (mCard) mCard.classList.add('hidden');
             if (sCard) sCard.classList.add('hidden');
+            if (expCard) expCard.classList.add('hidden');
 
             if (state === 'SUCCESS') {
                 if (sCard) sCard.classList.remove('hidden');
+                if (qrBox) qrBox.classList.remove('opacity-25', 'pointer-events-none');
+                if (checkBtn) checkBtn.disabled = false;
             } else if (state === 'MISMATCH') {
-                if (mCard) mCard.classList.remove('hidden');
+                if (mCard) {
+                    mCard.classList.remove('hidden');
+                    const exp = expAmt || (currentOrderData ? currentOrderData.amount : 0);
+                    const rec = recAmt || 0;
+                    const diff = Math.max(0, exp - rec);
+                    const expEl = document.getElementById('mismatchExpAmt');
+                    const recEl = document.getElementById('mismatchRecAmt');
+                    const diffEl = document.getElementById('mismatchDiffAmt');
+                    if (expEl) expEl.innerText = exp.toLocaleString('vi-VN') + ' đ';
+                    if (recEl) recEl.innerText = rec.toLocaleString('vi-VN') + ' đ';
+                    if (diffEl) diffEl.innerText = diff.toLocaleString('vi-VN') + ' đ';
+                }
+            } else if (state === 'EXPIRED') {
+                if (expCard) expCard.classList.remove('hidden');
+                if (qrBox) qrBox.classList.add('opacity-25', 'pointer-events-none');
+                if (checkBtn) checkBtn.disabled = true;
             } else {
                 if (pCard) pCard.classList.remove('hidden');
+                if (qrBox) qrBox.classList.remove('opacity-25', 'pointer-events-none');
+                if (checkBtn) checkBtn.disabled = false;
             }
             lucide.createIcons();
         }

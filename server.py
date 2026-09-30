@@ -16,7 +16,7 @@ import hashlib
 import secrets
 import urllib.parse
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Đảm bảo in tiếng Việt trên Windows không bị lỗi cp1252
 if hasattr(sys.stdout, 'reconfigure'):
@@ -28,7 +28,7 @@ PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Quản lý phiên đăng nhập
-ACTIVE_SESSIONS = set()
+ACTIVE_SESSIONS = {}  # token -> username
 
 # Đường dẫn file database brain.db
 DB_PATHS = [
@@ -382,12 +382,12 @@ def init_database():
     cur.execute("UPDATE orders SET total_amount = amount WHERE total_amount IS NULL;")
     cur.execute("UPDATE orders SET created_at = purchased_at WHERE created_at IS NULL;")
 
-    # 8. Bảng thanh toán (payments)
+    # 8. Bảng thanh toán (payments) - Chuẩn hóa Phase 3: Hỗ trợ MANUAL_REVIEW, raw_content và nullable order_id
     cur.execute("""
     CREATE TABLE IF NOT EXISTS payments (
         payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id INTEGER NOT NULL,
-        expected_amount NUMERIC NOT NULL,
+        order_id INTEGER,
+        expected_amount NUMERIC NOT NULL DEFAULT 0,
         received_amount NUMERIC DEFAULT 0,
         transaction_id TEXT,
         transaction_code TEXT,
@@ -395,13 +395,52 @@ def init_database():
         bank_name TEXT DEFAULT 'VietinBank',
         account_number TEXT DEFAULT '106006104248',
         qr_content TEXT,
+        raw_content TEXT,
         status TEXT NOT NULL DEFAULT 'PENDING'
-            CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'MISMATCH', 'REFUNDED')),
+            CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'MISMATCH', 'REFUNDED', 'MANUAL_REVIEW')),
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT,
-        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
     );
     """)
+
+    # Tự động di trú bảng payments nếu chưa có trạng thái MANUAL_REVIEW
+    cur.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='payments';")
+    pm_sql_row = cur.fetchone()
+    if pm_sql_row and 'MANUAL_REVIEW' not in pm_sql_row[0]:
+        cur.execute("""
+        CREATE TABLE payments_new (
+            payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER,
+            expected_amount NUMERIC NOT NULL DEFAULT 0,
+            received_amount NUMERIC DEFAULT 0,
+            transaction_id TEXT,
+            transaction_code TEXT,
+            transaction_time TEXT,
+            bank_name TEXT DEFAULT 'VietinBank',
+            account_number TEXT DEFAULT '106006104248',
+            qr_content TEXT,
+            raw_content TEXT,
+            status TEXT NOT NULL DEFAULT 'PENDING'
+                CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'MISMATCH', 'REFUNDED', 'MANUAL_REVIEW')),
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT,
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+        );
+        """)
+        cur.execute("""
+        INSERT INTO payments_new (
+            payment_id, order_id, expected_amount, received_amount, transaction_id,
+            transaction_code, transaction_time, bank_name, account_number, qr_content,
+            status, created_at, updated_at
+        ) SELECT
+            payment_id, order_id, expected_amount, received_amount, transaction_id,
+            transaction_code, transaction_time, bank_name, account_number, qr_content,
+            status, created_at, updated_at
+        FROM payments;
+        """)
+        cur.execute("DROP TABLE payments;")
+        cur.execute("ALTER TABLE payments_new RENAME TO payments;")
 
     # 9. Bảng kiểm toán thay đổi (audit_logs)
     cur.execute("""
@@ -501,6 +540,17 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return True
         return False
 
+    def get_current_username(self):
+        """Lấy username của quản trị viên từ token hiện tại"""
+        auth_header = self.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.split('Bearer ', 1)[1].strip()
+            if isinstance(ACTIVE_SESSIONS, dict):
+                return ACTIVE_SESSIONS.get(token)
+            elif token in ACTIVE_SESSIONS:
+                return 'admin'
+        return None
+
     def do_GET(self):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path.rstrip('/')
@@ -550,6 +600,11 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_get_orders_by_phone(parts[3])
             return
 
+        # GET /api/orders/:id/payment-status (Chuẩn hóa Phase 3: Tra cứu trạng thái thanh toán)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[3] == 'payment-status':
+            self.handle_get_order_payment_status(parts[2])
+            return
+
         # GET /api/<resource>/:id
         if len(parts) == 3 and parts[0] == 'api':
             resource = parts[1]
@@ -571,6 +626,13 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
         # 3. API Endpoints bảo mật (Yêu cầu đăng nhập quản trị viên)
+        if path == '/api/admin/payments':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                return
+            self.handle_admin_get_payments(parsed_url.query)
+            return
+
         if path in ('/api/stats', '/api/products', '/api/customers', '/api/orders', '/api/surveys', '/api/applications', '/api/quotes', '/api/verify-token'):
             if not self.is_authenticated():
                 self.send_error_json("Phiên làm việc hết hạn hoặc chưa đăng nhập", 401)
@@ -607,6 +669,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path.rstrip('/')
+        parts = parsed_url.path.strip('/').split('/')
 
         try:
             payload = self.get_parsed_body()
@@ -649,8 +712,24 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_public_create_order(payload)
             return
 
-        # 8. Xác nhận thanh toán từ trang /thanhtoan (Backward compatible)
+        # POST /api/orders/:id/reopen-payment (Tạo lại/Gia hạn thanh toán khi đơn hết hạn)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[3] == 'reopen-payment':
+            self.handle_reopen_order_payment(parts[2], payload)
+            return
+
+        # POST /api/orders/:id/confirm-payment (Admin duyệt thanh toán thủ công)
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[3] == 'confirm-payment':
+            if not self.is_authenticated():
+                self.send_error_json("Yêu cầu quyền quản trị viên để duyệt thanh toán", 401)
+                return
+            self.handle_admin_confirm_payment(parts[2], payload)
+            return
+
+        # 8. Xác nhận thanh toán (Audit & Khóa chặt: Chỉ cho phép Quản trị viên đã đăng nhập)
         if path == '/api/public/orders/confirm':
+            if not self.is_authenticated():
+                self.send_error_json("Quyền truy cập bị từ chối: Không cho phép tự đánh dấu đơn hàng đã thanh toán qua client.", 401)
+                return
             self.handle_public_confirm_order(payload)
             return
 
@@ -764,7 +843,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         token = secrets.token_hex(24)
-        ACTIVE_SESSIONS.add(token)
+        ACTIVE_SESSIONS[token] = username
 
         self.send_json({
             "success": True,
@@ -780,7 +859,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         auth_header = self.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):
             token = auth_header.split('Bearer ', 1)[1].strip()
-            ACTIVE_SESSIONS.discard(token)
+            ACTIVE_SESSIONS.pop(token, None)
         self.send_json({"success": True, "message": "Đăng xuất thành công"})
 
     def handle_change_password(self, data):
@@ -1419,7 +1498,12 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             pm.payment_id,
             pm.status as payment_status,
             pm.qr_content,
-            pm.received_amount
+            pm.received_amount,
+            pm.expected_amount,
+            pm.transaction_id,
+            pm.transaction_code,
+            pm.transaction_time,
+            pm.raw_content
         FROM orders o
         JOIN customers c ON o.customer_id = c.id
         LEFT JOIN products p ON o.product_id = p.id
@@ -1577,6 +1661,11 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                     cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
                     stock_deducted = True
 
+            # Thời hạn thanh toán (TTL 30 phút theo yêu cầu Phase 3)
+            payment_deadline = data.get('payment_deadline')
+            if not payment_deadline:
+                payment_deadline = (datetime.now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
+
             # 5. Lưu đơn hàng (orders)
             cur.execute("""
                 INSERT INTO orders (
@@ -1597,7 +1686,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 order_code, data.get('quote_id'), p_name, cust_info.get('full_name') or customer_name,
                 cust_info.get('phone'), cust_info.get('address'), data.get('insured_object'),
                 data.get('vehicle_type'), data.get('plate_number'), data.get('insurance_start'), data.get('insurance_end'),
-                data.get('premium') or amount, data.get('discount') or 0, amount, data.get('payment_deadline')
+                data.get('premium') or amount, data.get('discount') or 0, amount, payment_deadline
             ))
             order_id = cur.lastrowid
 
@@ -1628,6 +1717,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "amount": amount,
                 "status": status,
                 "stock_deducted": stock_deducted,
+                "payment_deadline": payment_deadline,
                 "payment": {
                     "payment_id": payment_id,
                     "bank": "VietinBank",
@@ -1635,7 +1725,8 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                     "holder": "NGUYEN HUY VINH",
                     "qr_content": qr_content,
                     "expected_amount": amount,
-                    "status": pm_status
+                    "status": pm_status,
+                    "deadline": payment_deadline
                 }
             }, 201)
         except Exception as e:
@@ -1737,7 +1828,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             if order_id:
                 cur.execute("""
                     SELECT o.id, o.order_code, o.amount, o.status, o.purchased_at,
-                           o.plate_number, o.customer_address, c.email as customer_email, o.created_at, o.updated_at,
+                           o.plate_number, o.customer_address, c.email as customer_email, o.payment_deadline, o.created_at, o.updated_at,
                            c.name as customer_name, c.phone as customer_phone,
                            p.name as product_name, p.product_type,
                            pm.status as payment_status, pm.received_amount, pm.expected_amount,
@@ -1752,7 +1843,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 norm_phone = normalize_vietnam_phone(phone)
                 cur.execute("""
                     SELECT o.id, o.order_code, o.amount, o.status, o.purchased_at,
-                           o.plate_number, o.customer_address, c.email as customer_email, o.created_at, o.updated_at,
+                           o.plate_number, o.customer_address, c.email as customer_email, o.payment_deadline, o.created_at, o.updated_at,
                            c.name as customer_name, c.phone as customer_phone,
                            p.name as product_name, p.product_type,
                            pm.status as payment_status, pm.received_amount, pm.expected_amount,
@@ -1776,17 +1867,36 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             d = dict(row)
             o_status = str(d.get('status') or '').lower()
             pm_status = str(d.get('payment_status') or '').upper()
-            rec_amt = d.get('received_amount') or 0
-            exp_amt = d.get('amount') or 0
+            rec_amt = float(d.get('received_amount') or 0)
+            exp_amt = float(d.get('expected_amount') or d.get('amount') or 0)
+            deadline_str = d.get('payment_deadline')
 
-            # Tính toán 3 trạng thái thanh toán chuẩn: SUCCESS, PENDING, MISMATCH
+            # Kiểm tra thời hạn thanh toán (Expiration TTL)
+            is_expired = False
+            if deadline_str and o_status not in ['paid', 'completed', 'delivered', 'issued']:
+                try:
+                    deadline_dt = datetime.strptime(deadline_str[:19], '%Y-%m-%d %H:%M:%S')
+                    if datetime.now() > deadline_dt:
+                        is_expired = True
+                        cur.execute("UPDATE orders SET updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (d['id'],))
+                        conn.commit()
+                        sync_db_copies()
+                except Exception:
+                    pass
+
+            # Tính toán 4 trạng thái thanh toán chuẩn: SUCCESS, PENDING, MISMATCH, EXPIRED
             if o_status in ['paid', 'completed', 'delivered', 'issued'] or pm_status == 'SUCCESS':
                 d['payment_result'] = 'SUCCESS'
+            elif is_expired:
+                d['payment_result'] = 'EXPIRED'
             elif rec_amt > 0 and rec_amt != exp_amt:
                 d['payment_result'] = 'MISMATCH'
             else:
                 d['payment_result'] = 'PENDING'
 
+            d['is_expired'] = is_expired
+            d['expected_amount'] = exp_amt
+            d['received_amount'] = rec_amt
             self.send_json({"success": True, "data": d})
         except Exception as e:
             self.send_error_json("Lỗi tra cứu đơn: " + str(e))
@@ -1868,7 +1978,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
     def handle_sepay_webhook(self, payload):
         """Xử lý webhook biến động số dư SePay (VietinBank SEVQR) - Tuyệt đối không thay đổi cú pháp"""
         content = str(payload.get('content') or payload.get('description') or '').strip()
-        amount = payload.get('transferAmount') or payload.get('amount') or 0
+        amount = float(payload.get('transferAmount') or payload.get('amount') or 0)
         transaction_id = str(payload.get('id') or payload.get('transaction_id') or '').strip()
         transaction_code = str(payload.get('code') or payload.get('referenceCode') or '').strip()
         transaction_date = payload.get('transactionDate') or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1876,14 +1986,15 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            # 1. Kiểm tra idempotency (giao dịch đã xử lý chưa)
+            # 1. Kiểm tra idempotency (Chống xử lý trùng lặp giao dịch)
             if transaction_id:
                 existing_tx = cur.execute("SELECT * FROM payments WHERE transaction_id = ?;", (transaction_id,)).fetchone()
                 if existing_tx:
                     self.send_json({"success": True, "message": "Giao dịch này đã được ghi nhận trước đó (Idempotent)"})
                     return
 
-            # 2. Tìm mã đơn hàng hoặc số điện thoại trong nội dung chuyển khoản
+            # 2. Khớp giao dịch (Transaction Matching)
+            # Ưu tiên 1: Mã đơn hàng (order_code) dạng PJ...
             order_codes = [m.upper() for m in re.findall(r'\bPJ[A-Za-z0-9_-]+\b', content, re.IGNORECASE) if m.upper() != 'PJICO']
             phone_match = re.search(r'0[35789]\d{8}', content)
             target_order = None
@@ -1892,7 +2003,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             if order_codes:
                 matched_code = order_codes[0]
                 cur.execute("""
-                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity, o.amount, o.status
+                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity, o.amount, o.status, o.order_code
                     FROM orders o
                     LEFT JOIN products p ON o.product_id = p.id
                     WHERE o.order_code = ?
@@ -1900,10 +2011,11 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 """, (matched_code,))
                 target_order = cur.fetchone()
 
+            # Ưu tiên 2: Fallback qua số điện thoại khách hàng
             if not target_order and phone_match:
                 matched_phone = phone_match.group(0)
                 cur.execute("""
-                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity, o.amount, o.status
+                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity, o.amount, o.status, o.order_code
                     FROM orders o
                     JOIN customers c ON o.customer_id = c.id
                     LEFT JOIN products p ON o.product_id = p.id
@@ -1914,28 +2026,57 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             order_updated = False
             print(f"DEBUG SePay: transaction_id={transaction_id}, content={content}, matched_code={matched_code}, target_order={target_order}")
+            
             if target_order:
-                o_id, p_id, p_type, p_stock, exp_amount, o_status = target_order
-                if o_status != 'paid':
-                    cur.execute("UPDATE orders SET status = 'paid', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
-                    if p_type == 'physical' and p_stock is not None and p_stock > 0:
-                        cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
-                    order_updated = True
+                o_id, p_id, p_type, p_stock, exp_amount, o_status, o_code = target_order
+                exp_amount = float(exp_amount or 0)
 
-                # Cập nhật payments với transaction_id
-                cur.execute("""
-                    UPDATE payments
-                    SET status = 'SUCCESS', received_amount = ?, transaction_id = ?,
-                        transaction_code = ?, transaction_time = ?, updated_at = CURRENT_TIMESTAMP
-                    WHERE order_id = ?;
-                """, (amount, transaction_id if transaction_id else None, transaction_code if transaction_code else None, transaction_date, o_id))
-                print(f"DEBUG SePay updated payments rowcount={cur.rowcount} for order_id={o_id}")
+                # Kiểm tra so khớp số tiền (Amount Validation)
+                if amount >= exp_amount:
+                    # THANH TOÁN THÀNH CÔNG (SUCCESS hoặc OVERPAYMENT)
+                    if o_status != 'paid':
+                        cur.execute("UPDATE orders SET status = 'paid', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
+                        if p_type == 'physical' and p_stock is not None and p_stock > 0:
+                            cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+                        order_updated = True
 
-                log_audit(conn, 'order', o_id, 'STATUS_UPDATE', o_status, 'paid', actor='sepay')
-                log_audit(conn, 'payment', o_id, 'SEPAY_WEBHOOK_SUCCESS', None, {'amount': amount, 'tx': transaction_id}, actor='sepay')
+                    cur.execute("""
+                        UPDATE payments
+                        SET status = 'SUCCESS', received_amount = ?, transaction_id = ?,
+                            transaction_code = ?, transaction_time = ?, raw_content = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE order_id = ?;
+                    """, (amount, transaction_id if transaction_id else None, transaction_code if transaction_code else None, transaction_date, content, o_id))
+
+                    if amount > exp_amount:
+                        log_audit(conn, 'payment', o_id, 'OVERPAYMENT', None, {'expected': exp_amount, 'received': amount, 'excess': amount - exp_amount, 'tx': transaction_id}, actor='sepay')
+
+                    log_audit(conn, 'order', o_id, 'STATUS_UPDATE', o_status, 'paid', actor='sepay')
+                    log_audit(conn, 'payment', o_id, 'SEPAY_WEBHOOK_SUCCESS', None, {'amount': amount, 'tx': transaction_id}, actor='sepay')
+                else:
+                    # SỐ TIỀN THANH TOÁN THIẾU (MISMATCH) -> KHÔNG ĐƯỢC TỰ ĐỘNG PAID
+                    cur.execute("""
+                        UPDATE payments
+                        SET status = 'MISMATCH', received_amount = ?, transaction_id = ?,
+                            transaction_code = ?, transaction_time = ?, raw_content = ?, updated_at = CURRENT_TIMESTAMP
+                        WHERE order_id = ?;
+                    """, (amount, transaction_id if transaction_id else None, transaction_code if transaction_code else None, transaction_date, content, o_id))
+
+                    log_audit(conn, 'payment', o_id, 'UNDERPAYMENT_MISMATCH', None, {'expected': exp_amount, 'received': amount, 'missing': exp_amount - amount, 'tx': transaction_id}, actor='sepay')
             else:
-                # Ghi log giao dịch chưa khớp đơn để admin đối soát
-                log_audit(conn, 'sepay', 'unmatched', 'PAYMENT_RECEIVED', None, {'content': content, 'amount': amount, 'tx': transaction_id}, actor='sepay')
+                # GIAO DỊCH KHÔNG TỰ KHỚP -> ĐƯA VÀO TRẠNG THÁI MANUAL_REVIEW ĐỂ ADMIN ĐỐI SOÁT
+                cur.execute("""
+                    INSERT INTO payments (
+                        order_id, expected_amount, received_amount, transaction_id,
+                        transaction_code, transaction_time, bank_name, account_number,
+                        raw_content, status, created_at
+                    ) VALUES (
+                        NULL, ?, ?, ?,
+                        ?, ?, 'VietinBank', '106006104248',
+                        ?, 'MANUAL_REVIEW', CURRENT_TIMESTAMP
+                    );
+                """, (amount, amount, transaction_id if transaction_id else None, transaction_code if transaction_code else None, transaction_date, content))
+                pm_id = cur.lastrowid
+                log_audit(conn, 'payment', pm_id, 'MANUAL_REVIEW_UNMATCHED', None, {'content': content, 'amount': amount, 'tx': transaction_id}, actor='sepay')
 
             conn.commit()
             sync_db_copies()
@@ -1969,6 +2110,243 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "revenue": float(revenue)
             }
         })
+
+
+
+    # =========================================================================
+    # PHASE 3: PAYMENT STATUS, REOPEN EXPIRED, MANUAL REVIEW & ADMIN PAYMENTS
+    # =========================================================================
+    def handle_get_order_payment_status(self, order_id_or_code):
+        """Lấy trạng thái thanh toán chuẩn hóa không lộ secret: GET /api/orders/:orderId/payment-status"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT o.id, o.order_code, o.amount, o.status, o.payment_deadline,
+                       o.created_at, o.updated_at,
+                       c.name as customer_name, c.phone as customer_phone,
+                       pm.status as payment_status, pm.received_amount, pm.expected_amount,
+                       pm.transaction_code, pm.transaction_id, pm.transaction_time, pm.qr_content
+                FROM orders o
+                JOIN customers c ON o.customer_id = c.id
+                LEFT JOIN payments pm ON o.id = pm.order_id
+                WHERE o.id = ? OR o.order_code = ?
+                ORDER BY o.id DESC LIMIT 1;
+            """, (order_id_or_code, order_id_or_code))
+            row = cur.fetchone()
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng", 404)
+                return
+
+            d = dict(row)
+            o_status = str(d.get('status') or '').lower()
+            pm_status = str(d.get('payment_status') or '').upper()
+            deadline_str = d.get('payment_deadline')
+            exp_amt = float(d.get('expected_amount') or d.get('amount') or 0)
+            rec_amt = float(d.get('received_amount') or 0)
+
+            # Kiểm tra hết hạn thanh toán
+            is_expired = False
+            if deadline_str and o_status not in ('paid', 'completed', 'delivered', 'issued'):
+                try:
+                    deadline_dt = datetime.strptime(deadline_str[:19], '%Y-%m-%d %H:%M:%S')
+                    if datetime.now() > deadline_dt:
+                        is_expired = True
+                        cur.execute("UPDATE orders SET updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (d['id'],))
+                        conn.commit()
+                        sync_db_copies()
+                except Exception:
+                    pass
+
+            # Xác định trạng thái chuẩn
+            if o_status in ('paid', 'completed', 'delivered', 'issued') or pm_status == 'SUCCESS':
+                std_status = 'PAID'
+                std_payment_status = 'SUCCESS'
+            elif is_expired:
+                std_status = 'EXPIRED'
+                std_payment_status = 'FAILED'
+            elif rec_amt > 0 and rec_amt != exp_amt:
+                std_status = 'MISMATCH'
+                std_payment_status = 'MISMATCH'
+            else:
+                std_status = 'PENDING_PAYMENT'
+                std_payment_status = pm_status or 'PENDING'
+
+            resp = {
+                "success": True,
+                "orderId": d.get('order_code') or str(d.get('id')),
+                "id": d.get('id'),
+                "status": std_status,
+                "expectedAmount": exp_amt,
+                "receivedAmount": rec_amt,
+                "paymentStatus": std_payment_status,
+                "transactionTime": d.get('transaction_time'),
+                "transactionId": d.get('transaction_id'),
+                "deadline": deadline_str,
+                "isExpired": is_expired,
+                "qrContent": d.get('qr_content') or f"SEVQR PJICO {d.get('order_code')}"
+            }
+            self.send_json(resp)
+        except Exception as e:
+            self.send_error_json("Lỗi đọc trạng thái thanh toán: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_reopen_order_payment(self, order_id_or_code, payload):
+        """Khách tạo lại thanh toán khi đơn hết hạn: POST /api/orders/:id/reopen-payment"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT o.id, o.order_code, o.amount, o.status, o.product_id, p.name as product_name
+                FROM orders o
+                LEFT JOIN products p ON o.product_id = p.id
+                WHERE o.id = ? OR o.order_code = ?;
+            """, (order_id_or_code, order_id_or_code))
+            row = cur.fetchone()
+            if not row:
+                self.send_error_json("Không tìm thấy đơn hàng để tạo lại thanh toán", 404)
+                return
+
+            o_id, o_code, amount, cur_status, p_id, p_name = row
+            if str(cur_status).lower() in ('paid', 'completed'):
+                self.send_json({"success": True, "message": "Đơn hàng này đã thanh toán thành công", "status": "PAID"})
+                return
+
+            new_deadline = (datetime.now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
+            cur.execute("""
+                UPDATE orders
+                SET status = 'pending', payment_deadline = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+            """, (new_deadline, o_id))
+
+            # Cập nhật payment
+            cur.execute("""
+                UPDATE payments
+                SET status = 'PENDING', updated_at = CURRENT_TIMESTAMP
+                WHERE order_id = ?;
+            """, (o_id,))
+
+            log_audit(conn, 'order', o_id, 'REOPEN_PAYMENT', cur_status, 'PENDING_PAYMENT', actor='customer')
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": "Đã gia hạn thời gian thanh toán thêm 30 phút",
+                "order_id": o_id,
+                "order_code": o_code,
+                "deadline": new_deadline,
+                "expected_amount": float(amount),
+                "status": "PENDING_PAYMENT",
+                "payment": {
+                    "bank": "VietinBank",
+                    "account": "106006104248",
+                    "holder": "NGUYEN HUY VINH",
+                    "qr_content": f"SEVQR PJICO {o_code}",
+                    "expected_amount": float(amount),
+                    "status": "PENDING",
+                    "deadline": new_deadline
+                }
+            })
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi khi gia hạn thanh toán: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_admin_confirm_payment(self, order_id_or_code, payload):
+        """Admin xác nhận thanh toán thủ công (Manual Review / Xác nhận tiền về)"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT o.id, o.order_code, o.status, o.product_id, p.product_type, p.stock_quantity,
+                       o.amount, c.name as customer_name, c.phone as customer_phone
+                FROM orders o
+                LEFT JOIN products p ON o.product_id = p.id
+                JOIN customers c ON o.customer_id = c.id
+                WHERE o.id = ? OR o.order_code = ?;
+            """, (order_id_or_code, order_id_or_code))
+            target_order = cur.fetchone()
+            if not target_order:
+                self.send_error_json("Không tìm thấy đơn hàng để xác nhận", 404)
+                return
+
+            o_id, o_code, cur_status, p_id, p_type, p_stock, o_amount, c_name, c_phone = target_order
+            admin_user = self.get_current_username() or 'admin'
+
+            if str(cur_status).lower() not in ('paid', 'completed'):
+                cur.execute("UPDATE orders SET status = 'paid', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
+                if p_type == 'physical' and p_stock is not None and p_stock > 0:
+                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+
+                pm_id = payload.get('payment_id')
+                tx_id = payload.get('transaction_id')
+                if pm_id:
+                    cur.execute("""
+                        UPDATE payments
+                        SET order_id = ?, status = 'SUCCESS', updated_at = CURRENT_TIMESTAMP
+                        WHERE payment_id = ?;
+                    """, (o_id, pm_id))
+                else:
+                    cur.execute("""
+                        UPDATE payments
+                        SET status = 'SUCCESS', received_amount = expected_amount, updated_at = CURRENT_TIMESTAMP
+                        WHERE order_id = ?;
+                    """, (o_id,))
+
+                log_audit(conn, 'order', o_id, 'ADMIN_MANUAL_PAID', cur_status, 'paid', actor=admin_user)
+                log_audit(conn, 'payment', pm_id or o_id, 'ADMIN_MANUAL_SUCCESS', None, o_amount, actor=admin_user)
+                conn.commit()
+                sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": f"Quản trị viên đã duyệt thanh toán thành công cho đơn hàng #{o_code}",
+                "order_id": o_id,
+                "order_code": o_code,
+                "status": "paid",
+                "customer_name": c_name
+            })
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi duyệt thanh toán: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_admin_get_payments(self, query_string):
+        """Danh sách thanh toán cho Dashboard Admin: GET /api/admin/payments"""
+        params = urllib.parse.parse_qs(query_string)
+        status_filter = params.get('status', [None])[0]
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            sql = """
+                SELECT pm.payment_id, pm.order_id, pm.expected_amount, pm.received_amount,
+                       pm.transaction_id, pm.transaction_code, pm.transaction_time,
+                       pm.bank_name, pm.account_number, pm.qr_content, pm.raw_content,
+                       pm.status as payment_status, pm.created_at, pm.updated_at,
+                       o.order_code, o.status as order_status, o.product_name,
+                       c.name as customer_name, c.phone as customer_phone
+                FROM payments pm
+                LEFT JOIN orders o ON pm.order_id = o.id
+                LEFT JOIN customers c ON o.customer_id = c.id
+            """
+            sql_params = []
+            if status_filter and status_filter.upper() != 'ALL':
+                sql += " WHERE pm.status = ?"
+                sql_params.append(status_filter.upper())
+
+            sql += " ORDER BY pm.payment_id DESC LIMIT 200;"
+            cur.execute(sql, tuple(sql_params))
+            rows = [dict(r) for r in cur.fetchall()]
+            self.send_json({"success": True, "count": len(rows), "data": rows})
+        except Exception as e:
+            self.send_error_json("Lỗi đọc danh sách thanh toán: " + str(e))
+        finally:
+            conn.close()
 
 
 def run_server():
