@@ -3,6 +3,7 @@ PJICO HÀ GIANG - ADMIN BACKEND SERVER & API (CÓ BẢO MẬT ĐĂNG NHẬP)
 Phục vụ Landing Page tại '/' và Admin Panel tại '/admin'
 Quản lý trực tiếp cơ sở dữ liệu SQLite 'brain.db'
 Tài khoản mặc định: admin | Mật khẩu mặc định: pjico@2026
+Kiến trúc hệ thống: CUSTOMER -> SURVEY -> APPLICATION -> QUOTE -> ORDER -> PAYMENT -> POLICY
 """
 
 import http.server
@@ -14,6 +15,7 @@ import sys
 import hashlib
 import secrets
 import urllib.parse
+import re
 from datetime import datetime
 
 # Đảm bảo in tiếng Việt trên Windows không bị lỗi cp1252
@@ -64,8 +66,153 @@ def sync_db_copies():
             except Exception:
                 pass
 
+# =========================================================================
+# HELPER FUNCTIONS: VALIDATION, AUDIT LOG, CENTRAL CUSTOMER
+# =========================================================================
+
+def normalize_vietnam_phone(phone_str):
+    """Chuẩn hóa số điện thoại Việt Nam về dạng 10 chữ số (bắt đầu bằng 0)"""
+    if not phone_str:
+        return None
+    cleaned = re.sub(r'[\s\.\-\(\)]', '', str(phone_str).strip())
+    if cleaned.startswith('+84'):
+        cleaned = '0' + cleaned[3:]
+    elif cleaned.startswith('84') and len(cleaned) == 11:
+        cleaned = '0' + cleaned[2:]
+    return cleaned
+
+def is_valid_vietnam_phone(phone_str):
+    """Kiểm tra số điện thoại Việt Nam hợp lệ (10 chữ số bắt đầu bằng 03, 05, 07, 08, 09)"""
+    normalized = normalize_vietnam_phone(phone_str)
+    if not normalized:
+        return False
+    return bool(re.match(r'^0[35789]\d{8}$', normalized))
+
+def log_audit(conn, entity_type, entity_id, action, old_value=None, new_value=None, actor='system'):
+    """Ghi vết kiểm toán (Audit Log) theo dõi các thay đổi quan trọng"""
+    try:
+        cur = conn.cursor()
+        old_str = json.dumps(old_value, ensure_ascii=False) if isinstance(old_value, (dict, list)) else (str(old_value) if old_value is not None else None)
+        new_str = json.dumps(new_value, ensure_ascii=False) if isinstance(new_value, (dict, list)) else (str(new_value) if new_value is not None else None)
+        cur.execute("""
+            INSERT INTO audit_logs (entity_type, entity_id, action, old_value, new_value, actor, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+        """, (str(entity_type), str(entity_id), str(action), old_str, new_str, str(actor)))
+    except Exception as e:
+        print(f"Error logging audit: {e}")
+
+def sanitize_customer_for_public(c):
+    """Che giấu thông tin nhạy cảm (CCCD/MST) khi trả dữ liệu qua API public"""
+    if not c:
+        return None
+    d = dict(c)
+    if d.get('identity_no'):
+        id_str = str(d['identity_no'])
+        d['identity_no'] = id_str[:3] + '***' + id_str[-3:] if len(id_str) > 6 else '***'
+    else:
+        d['identity_no'] = None
+    if 'tax_code' in d and d['tax_code']:
+        tc = str(d['tax_code'])
+        d['tax_code'] = tc[:3] + '***' if len(tc) > 4 else '***'
+    d['customer_id'] = d.get('id')
+    return d
+
+def find_or_create_customer(conn, phone, full_name, email=None, address=None, identity_no=None, tax_code=None, zalo=None, actor='system'):
+    """
+    Quy tắc quản lý khách hàng trung tâm (Customer Master Profile):
+    - phone là trường nhận diện cốt lõi.
+    - Nếu phone đã tồn tại: không tạo duplicate, dùng customer_id hiện tại và cập nhật thông tin nếu có thay đổi.
+    - Nếu phone chưa tồn tại: tạo mới customer.
+    - Ghi nhận Audit Log mọi hành động tạo mới hoặc cập nhật.
+    """
+    cur = conn.cursor()
+    norm_phone = normalize_vietnam_phone(phone)
+    if not norm_phone or not is_valid_vietnam_phone(norm_phone):
+        raise ValueError("Số điện thoại không hợp lệ (cần 10 số theo chuẩn mạng di động Việt Nam)")
+
+    cur.execute("SELECT * FROM customers WHERE phone = ?;", (norm_phone,))
+    existing = cur.fetchone()
+    if existing:
+        cust = dict(existing)
+        cust_id = cust['id']
+        updates = []
+        params = []
+        old_val = {}
+        new_val = {}
+
+        if full_name and full_name.strip() and full_name.strip() != (cust.get('full_name') or cust.get('name')):
+            old_val['full_name'] = cust.get('full_name') or cust.get('name')
+            new_val['full_name'] = full_name.strip()
+            updates.extend(["full_name = ?", "name = ?"])
+            params.extend([full_name.strip(), full_name.strip()])
+
+        if email and email.strip() and email.strip() != (cust.get('email') or ''):
+            old_val['email'] = cust.get('email')
+            new_val['email'] = email.strip()
+            updates.append("email = ?")
+            params.append(email.strip())
+
+        if address and address.strip() and address.strip() != (cust.get('address') or ''):
+            old_val['address'] = cust.get('address')
+            new_val['address'] = address.strip()
+            updates.append("address = ?")
+            params.append(address.strip())
+
+        if identity_no and identity_no.strip() and identity_no.strip() != (cust.get('identity_no') or ''):
+            old_val['identity_no'] = cust.get('identity_no')
+            new_val['identity_no'] = identity_no.strip()
+            updates.append("identity_no = ?")
+            params.append(identity_no.strip())
+
+        if tax_code and tax_code.strip() and tax_code.strip() != (cust.get('tax_code') or ''):
+            old_val['tax_code'] = cust.get('tax_code')
+            new_val['tax_code'] = tax_code.strip()
+            updates.append("tax_code = ?")
+            params.append(tax_code.strip())
+
+        if zalo and zalo.strip() and zalo.strip() != (cust.get('zalo') or ''):
+            updates.append("zalo = ?")
+            params.append(zalo.strip())
+
+        if updates:
+            updates.append("updated_at = CURRENT_TIMESTAMP")
+            sql = f"UPDATE customers SET {', '.join(updates)} WHERE id = ?;"
+            params.append(cust_id)
+            cur.execute(sql, tuple(params))
+            log_audit(conn, 'customer', cust_id, 'UPDATE', old_val, new_val, actor)
+
+        cur.execute("SELECT * FROM customers WHERE id = ?;", (cust_id,))
+        res = dict(cur.fetchone())
+        res['customer_id'] = res['id']
+        return res, False
+    else:
+        display_name = full_name.strip() if full_name else f"Khách hàng {norm_phone}"
+        cur.execute("""
+            INSERT INTO customers (name, full_name, phone, email, address, identity_no, tax_code, zalo, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+        """, (display_name, display_name, norm_phone, email, address, identity_no, tax_code, zalo or norm_phone))
+        cust_id = cur.lastrowid
+        new_record = {
+            'id': cust_id,
+            'customer_id': cust_id,
+            'name': display_name,
+            'full_name': display_name,
+            'phone': norm_phone,
+            'email': email,
+            'address': address,
+            'identity_no': identity_no,
+            'tax_code': tax_code,
+            'zalo': zalo or norm_phone
+        }
+        log_audit(conn, 'customer', cust_id, 'CREATE', None, new_record, actor)
+        return new_record, True
+
+# =========================================================================
+# KHỞI TẠO VÀ DI TRÚ CƠ SỞ DỮ LIỆU
+# =========================================================================
+
 def init_database():
-    """Khởi tạo các bảng và tài khoản quản trị mặc định"""
+    """Khởi tạo các bảng và tài khoản quản trị mặc định (Có chuẩn hóa toàn bộ Phase 1)"""
     conn = get_db_connection()
     cur = conn.cursor()
     
@@ -95,7 +242,7 @@ def init_database():
     );
     """)
 
-    # 3. Bảng khách hàng
+    # 3. Bảng khách hàng (customers)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS customers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -106,20 +253,170 @@ def init_database():
     );
     """)
 
-    # 4. Bảng đơn hàng
+    # Kiểm tra và thêm các cột mở rộng cho customers nếu chưa có
+    cur.execute("PRAGMA table_info(customers);")
+    cust_cols = [row[1] for row in cur.fetchall()]
+    new_cust_cols = [
+        ('full_name', 'TEXT'),
+        ('email', 'TEXT'),
+        ('address', 'TEXT'),
+        ('identity_no', 'TEXT'),
+        ('tax_code', 'TEXT'),
+        ('created_at', 'TEXT'),
+        ('updated_at', 'TEXT')
+    ]
+    for col_name, col_type in new_cust_cols:
+        if col_name not in cust_cols:
+            cur.execute(f"ALTER TABLE customers ADD COLUMN {col_name} {col_type};")
+
+    cur.execute("UPDATE customers SET full_name = name WHERE full_name IS NULL OR full_name = '';")
+    cur.execute("UPDATE customers SET created_at = registered_at WHERE created_at IS NULL;")
+
+    # 4. Bảng khảo sát (surveys)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS surveys (
+        survey_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        full_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        product_id INTEGER,
+        product_name TEXT,
+        vehicle_type TEXT,
+        plate_number TEXT,
+        purchase_intent TEXT,
+        expected_purchase_time TEXT,
+        note TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+    );
+    """)
+
+    # 5. Bảng giấy yêu cầu bảo hiểm (applications)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS applications (
+        application_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        full_name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        address TEXT,
+        identity_no TEXT,
+        product_id INTEGER,
+        insured_object TEXT,
+        vehicle_type TEXT,
+        plate_number TEXT,
+        vehicle_brand TEXT,
+        vehicle_model TEXT,
+        manufacture_year INTEGER,
+        chassis_number TEXT,
+        engine_number TEXT,
+        beneficiary TEXT,
+        other_required_data TEXT,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+    );
+    """)
+
+    # 6. Bảng báo giá (quotes)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS quotes (
+        quote_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        product_id INTEGER,
+        product_name TEXT NOT NULL,
+        coverage_summary TEXT,
+        premium NUMERIC NOT NULL DEFAULT 0,
+        discount NUMERIC NOT NULL DEFAULT 0,
+        total_amount NUMERIC NOT NULL DEFAULT 0,
+        valid_until TEXT,
+        consultant_id TEXT,
+        status TEXT NOT NULL DEFAULT 'DRAFT'
+            CHECK (status IN ('DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED')),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT,
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+    );
+    """)
+
+    # 7. Bảng đơn hàng (orders)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS orders (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         amount NUMERIC NOT NULL CHECK (amount >= 0),
-        status TEXT NOT NULL DEFAULT 'pending'
-            CHECK (status IN ('pending', 'paid', 'processing', 'completed', 'cancelled')),
+        status TEXT NOT NULL DEFAULT 'pending',
         purchased_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
     );
     """)
+
+    # Kiểm tra và thêm các cột mở rộng cho orders nếu chưa có
+    cur.execute("PRAGMA table_info(orders);")
+    order_cols = [row[1] for row in cur.fetchall()]
+    new_order_cols = [
+        ('order_code', 'TEXT'),
+        ('quote_id', 'INTEGER'),
+        ('product_name', 'TEXT'),
+        ('customer_name', 'TEXT'),
+        ('customer_phone', 'TEXT'),
+        ('customer_address', 'TEXT'),
+        ('insured_object', 'TEXT'),
+        ('vehicle_type', 'TEXT'),
+        ('plate_number', 'TEXT'),
+        ('insurance_start', 'TEXT'),
+        ('insurance_end', 'TEXT'),
+        ('premium', 'NUMERIC'),
+        ('discount', 'NUMERIC DEFAULT 0'),
+        ('total_amount', 'NUMERIC'),
+        ('payment_deadline', 'TEXT'),
+        ('created_at', 'TEXT'),
+        ('updated_at', 'TEXT')
+    ]
+    for col_name, col_type in new_order_cols:
+        if col_name not in order_cols:
+            cur.execute(f"ALTER TABLE orders ADD COLUMN {col_name} {col_type};")
+
+    cur.execute("UPDATE orders SET total_amount = amount WHERE total_amount IS NULL;")
+    cur.execute("UPDATE orders SET created_at = purchased_at WHERE created_at IS NULL;")
+
+    # 8. Bảng thanh toán (payments)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS payments (
+        payment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER NOT NULL,
+        expected_amount NUMERIC NOT NULL,
+        received_amount NUMERIC DEFAULT 0,
+        transaction_id TEXT,
+        transaction_code TEXT,
+        transaction_time TEXT,
+        bank_name TEXT DEFAULT 'VietinBank',
+        account_number TEXT DEFAULT '106006104248',
+        qr_content TEXT,
+        status TEXT NOT NULL DEFAULT 'PENDING'
+            CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'MISMATCH', 'REFUNDED')),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE RESTRICT
+    );
+    """)
+
+    # 9. Bảng kiểm toán thay đổi (audit_logs)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS audit_logs (
+        audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        action TEXT NOT NULL,
+        old_value TEXT,
+        new_value TEXT,
+        actor TEXT DEFAULT 'system',
+        timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
     conn.commit()
 
     # Tạo tài khoản admin mặc định: admin / pjico@2026 nếu chưa có
@@ -151,30 +448,20 @@ def init_database():
     cust_count = cur.execute("SELECT COUNT(*) FROM customers;").fetchone()[0]
     if cust_count == 0:
         sample_custs = [
-            ("Nguyễn Văn Bình", "0987501199", "0987501199"),
-            ("Trần Thị Mai", "0912345678", "0912345678"),
-            ("Hoàng Văn Đức", "0906069368", "0906069368")
+            ("Nguyễn Văn Bình", "Nguyễn Văn Bình", "0987501199", "binh@gmail.com", "TP. Hà Giang", "0987501199"),
+            ("Trần Thị Mai", "Trần Thị Mai", "0912345678", "mai@gmail.com", "Vị Xuyên, Hà Giang", "0912345678"),
+            ("Hoàng Văn Đức", "Hoàng Văn Đức", "0906069368", "duc@gmail.com", "Đồng Văn, Hà Giang", "0906069368")
         ]
-        cur.executemany("INSERT INTO customers (name, phone, zalo) VALUES (?, ?, ?);", sample_custs)
-        conn.commit()
-
-    # Dữ liệu mẫu đơn hàng nếu rỗng
-    order_count = cur.execute("SELECT COUNT(*) FROM orders;").fetchone()[0]
-    if order_count == 0:
-        sample_orders = [
-            (1, 3, 86000, 'paid'),      # Khách 1 mua sản phẩm số
-            (2, 1, 86000, 'completed')  # Khách 2 mua sản phẩm vật lý
-        ]
-        for c_id, p_id, amt, st in sample_orders:
-            p_type, p_stock = cur.execute("SELECT product_type, stock_quantity FROM products WHERE id = ?;", (p_id,)).fetchone()
-            if p_type == 'physical' and p_stock is not None and p_stock > 0:
-                cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
-            cur.execute("INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, ?);", (c_id, p_id, amt, st))
+        cur.executemany("INSERT INTO customers (name, full_name, phone, email, address, zalo) VALUES (?, ?, ?, ?, ?, ?);", sample_custs)
         conn.commit()
 
     conn.close()
     sync_db_copies()
 
+
+# =========================================================================
+# HTTP REQUEST HANDLER VỚI ĐẦY ĐỦ CÁC ENDPOINT PHASE 1
+# =========================================================================
 
 class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -217,6 +504,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urllib.parse.urlparse(self.path)
         path = parsed_url.path.rstrip('/')
+        parts = parsed_url.path.strip('/').split('/')
 
         # 1. Định tuyến giao diện Web
         if path == '/admin':
@@ -247,13 +535,43 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(content)
                 return
 
-        # 2. Public API Endpoints (Khách hàng kiểm tra đơn hàng từ /thanhtoan)
+        # 2. Public API Endpoints (Kiểm tra đơn, tra cứu khách hàng theo SĐT để auto-fill)
         if path == '/api/public/orders/check':
             self.handle_public_check_order(parsed_url.query)
             return
 
-        # 3. API Endpoints bảo mật (Yêu cầu đăng nhập)
-        if path in ('/api/stats', '/api/products', '/api/customers', '/api/orders', '/api/verify-token'):
+        # GET /api/customers/by-phone/:phone
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'customers' and parts[2] == 'by-phone':
+            self.handle_get_customer_by_phone(parts[3])
+            return
+
+        # GET /api/orders/by-phone/:phone
+        if len(parts) == 4 and parts[0] == 'api' and parts[1] == 'orders' and parts[2] == 'by-phone':
+            self.handle_get_orders_by_phone(parts[3])
+            return
+
+        # GET /api/<resource>/:id
+        if len(parts) == 3 and parts[0] == 'api':
+            resource = parts[1]
+            item_id = parts[2]
+            if resource == 'customers':
+                self.handle_get_customer_by_id(item_id)
+                return
+            elif resource == 'surveys':
+                self.handle_get_survey_by_id(item_id)
+                return
+            elif resource == 'applications':
+                self.handle_get_application_by_id(item_id)
+                return
+            elif resource == 'quotes':
+                self.handle_get_quote_by_id(item_id)
+                return
+            elif resource == 'orders':
+                self.handle_get_order_by_id(item_id)
+                return
+
+        # 3. API Endpoints bảo mật (Yêu cầu đăng nhập quản trị viên)
+        if path in ('/api/stats', '/api/products', '/api/customers', '/api/orders', '/api/surveys', '/api/applications', '/api/quotes', '/api/verify-token'):
             if not self.is_authenticated():
                 self.send_error_json("Phiên làm việc hết hạn hoặc chưa đăng nhập", 401)
                 return
@@ -272,6 +590,15 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
             elif path == '/api/orders':
                 self.handle_get_orders()
+                return
+            elif path == '/api/surveys':
+                self.handle_get_all_surveys()
+                return
+            elif path == '/api/applications':
+                self.handle_get_all_applications()
+                return
+            elif path == '/api/quotes':
+                self.handle_get_all_quotes()
                 return
 
         # Mặc định phục vụ static files (Landing page, ảnh...)
@@ -292,17 +619,42 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_login(payload)
             return
 
-        # 2. Tạo đơn hàng từ cổng thanh toán /thanhtoan
+        # 2. Khảo sát nhanh từ website (POST /api/surveys)
+        if path == '/api/surveys':
+            self.handle_create_survey(payload)
+            return
+
+        # 3. Giấy yêu cầu bảo hiểm (POST /api/applications)
+        if path == '/api/applications':
+            self.handle_create_application(payload)
+            return
+
+        # 4. Báo giá (POST /api/quotes)
+        if path == '/api/quotes':
+            self.handle_create_quote(payload)
+            return
+
+        # 5. Đơn hàng (POST /api/orders)
+        if path == '/api/orders':
+            self.handle_create_order(payload)
+            return
+
+        # 6. Khách hàng (POST /api/customers)
+        if path == '/api/customers':
+            self.handle_create_customer(payload)
+            return
+
+        # 7. Tạo đơn hàng từ cổng thanh toán /thanhtoan (Backward compatible)
         if path == '/api/public/orders':
             self.handle_public_create_order(payload)
             return
 
-        # 3. Xác nhận thanh toán từ trang /thanhtoan
+        # 8. Xác nhận thanh toán từ trang /thanhtoan (Backward compatible)
         if path == '/api/public/orders/confirm':
             self.handle_public_confirm_order(payload)
             return
 
-        # 4. Webhook biến động số dư SePay (VietinBank SEVQR)
+        # 9. Webhook biến động số dư SePay (VietinBank SEVQR)
         if path == '/api/sepay/webhook':
             self.handle_sepay_webhook(payload)
             return
@@ -318,18 +670,10 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_logout()
         elif path == '/api/products':
             self.handle_create_product(payload)
-        elif path == '/api/customers':
-            self.handle_create_customer(payload)
-        elif path == '/api/orders':
-            self.handle_create_order(payload)
         else:
             self.send_error_json("Endpoint không tồn tại", 404)
 
     def do_PUT(self):
-        if not self.is_authenticated():
-            self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
-            return
-
         parsed_url = urllib.parse.urlparse(self.path)
         parts = parsed_url.path.strip('/').split('/')
 
@@ -341,18 +685,24 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         if len(parts) == 3 and parts[0] == 'api':
             resource = parts[1]
-            try:
-                item_id = int(parts[2])
-            except ValueError:
-                self.send_error_json("ID phải là số nguyên", 400)
-                return
+            item_id = parts[2]
 
-            if resource == 'products':
-                self.handle_update_product(item_id, payload)
-            elif resource == 'customers':
+            # PUT /api/customers/:id
+            if resource == 'customers':
                 self.handle_update_customer(item_id, payload)
+                return
+            elif resource == 'quotes':
+                self.handle_update_quote(item_id, payload)
+                return
             elif resource == 'orders':
                 self.handle_update_order(item_id, payload)
+                return
+            elif resource == 'products':
+                if not self.is_authenticated():
+                    self.send_error_json("Yêu cầu đăng nhập quản trị viên", 401)
+                    return
+                self.handle_update_product(int(item_id), payload)
+                return
             else:
                 self.send_error_json("Resource không tồn tại", 404)
         else:
@@ -398,11 +748,19 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         conn = get_db_connection()
         cur = conn.cursor()
-        user = cur.execute("SELECT id, username, password_hash FROM admin_users WHERE username = ?;", (username,)).fetchone()
+        user_row = cur.execute(
+            "SELECT * FROM admin_users WHERE username = ?;",
+            (username,)
+        ).fetchone()
         conn.close()
 
-        if not user or user['password_hash'] != hash_password(password):
-            self.send_error_json("Tên đăng nhập hoặc mật khẩu không chính xác!", 401)
+        if not user_row:
+            self.send_error_json("Tên đăng nhập hoặc mật khẩu không chính xác", 401)
+            return
+
+        user = dict(user_row)
+        if user['password_hash'] != hash_password(password):
+            self.send_error_json("Tên đăng nhập hoặc mật khẩu không chính xác", 401)
             return
 
         token = secrets.token_hex(24)
@@ -410,9 +768,10 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         self.send_json({
             "success": True,
-            "message": "Đăng nhập thành công!",
+            "message": "Đăng nhập thành công",
             "token": token,
             "user": {
+                "id": user['id'],
                 "username": user['username']
             }
         })
@@ -422,86 +781,90 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         if auth_header.startswith('Bearer '):
             token = auth_header.split('Bearer ', 1)[1].strip()
             ACTIVE_SESSIONS.discard(token)
-        self.send_json({"success": True, "message": "Đã đăng xuất"})
+        self.send_json({"success": True, "message": "Đăng xuất thành công"})
 
     def handle_change_password(self, data):
         old_pass = data.get('old_password', '').strip()
         new_pass = data.get('new_password', '').strip()
-        username = data.get('username', 'admin').strip()
 
         if not old_pass or not new_pass:
-            self.send_error_json("Vui lòng điền mật khẩu cũ và mật khẩu mới", 400)
+            self.send_error_json("Vui lòng nhập mật khẩu cũ và mới", 400)
             return
+
         if len(new_pass) < 6:
-            self.send_error_json("Mật khẩu mới phải có tối thiểu 6 ký tự", 400)
+            self.send_error_json("Mật khẩu mới phải có ít nhất 6 ký tự", 400)
             return
 
         conn = get_db_connection()
         cur = conn.cursor()
-        user = cur.execute("SELECT id, username, password_hash FROM admin_users WHERE username = ?;", (username,)).fetchone()
+        user_row = cur.execute("SELECT * FROM admin_users LIMIT 1;").fetchone()
 
-        if not user or user['password_hash'] != hash_password(old_pass):
+        if not user_row or dict(user_row)['password_hash'] != hash_password(old_pass):
             conn.close()
-            self.send_error_json("Mật khẩu hiện tại không đúng!", 400)
+            self.send_error_json("Mật khẩu hiện tại không chính xác", 400)
             return
 
-        cur.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?;", (hash_password(new_pass), user['id']))
+        user_id = dict(user_row)['id']
+        cur.execute(
+            "UPDATE admin_users SET password_hash = ? WHERE id = ?;",
+            (hash_password(new_pass), user_id)
+        )
         conn.commit()
         conn.close()
         sync_db_copies()
-
-        self.send_json({"success": True, "message": "Đổi mật khẩu thành công! Vui lòng sử dụng mật khẩu mới trong lần đăng nhập tới."})
+        self.send_json({"success": True, "message": "Đổi mật khẩu thành công!"})
 
     # =========================================================================
-    # CÁC HÀM XỬ LÝ SẢN PHẨM (PRODUCTS)
+    # SẢN PHẨM (PRODUCTS)
     # =========================================================================
     def handle_get_products(self):
         conn = get_db_connection()
-        rows = conn.execute("SELECT * FROM products ORDER BY id DESC;").fetchall()
+        rows = conn.execute("SELECT * FROM products ORDER BY id ASC;").fetchall()
         data = [dict(r) for r in rows]
         conn.close()
         self.send_json({"success": True, "data": data})
 
     def handle_create_product(self, data):
         name = data.get('name', '').strip()
-        product_type = data.get('product_type', 'digital').strip()
-        price = data.get('price', 0)
-        description = data.get('description', '').strip()
-        stock_quantity = data.get('stock_quantity')
+        p_type = data.get('product_type', '').strip()
+        price = data.get('price')
+        desc = data.get('description', '').strip()
+        stock = data.get('stock_quantity')
 
         if not name:
             self.send_error_json("Tên sản phẩm không được để trống")
             return
-        if product_type not in ('physical', 'digital', 'service'):
+        if p_type not in ('physical', 'digital', 'service'):
             self.send_error_json("Loại sản phẩm phải là physical, digital hoặc service")
             return
         try:
             price = float(price)
             if price < 0:
                 raise ValueError()
-        except ValueError:
+        except (ValueError, TypeError):
             self.send_error_json("Giá sản phẩm phải là số không âm")
             return
 
-        if product_type == 'physical':
+        if p_type == 'physical':
             try:
-                stock_quantity = int(stock_quantity) if stock_quantity is not None else 0
-                if stock_quantity < 0:
+                stock = int(stock)
+                if stock < 0:
                     raise ValueError()
             except (ValueError, TypeError):
-                self.send_error_json("Sản phẩm vật lý bắt buộc phải có số lượng tồn kho >= 0")
+                self.send_error_json("Sản phẩm vật lý bắt buộc phải có số lượng tồn kho (>= 0)")
                 return
         else:
-            stock_quantity = None
+            stock = None
 
         conn = get_db_connection()
         cur = conn.cursor()
         try:
             cur.execute(
                 "INSERT INTO products (name, product_type, price, description, stock_quantity) VALUES (?, ?, ?, ?, ?);",
-                (name, product_type, price, description, stock_quantity)
+                (name, p_type, price, desc, stock)
             )
             new_id = cur.lastrowid
+            log_audit(conn, 'product', new_id, 'CREATE', None, {'name': name, 'price': price, 'type': p_type}, actor='admin')
             conn.commit()
             sync_db_copies()
             self.send_json({"success": True, "message": "Đã thêm sản phẩm thành công", "id": new_id})
@@ -512,43 +875,44 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_update_product(self, item_id, data):
         name = data.get('name', '').strip()
-        product_type = data.get('product_type', 'digital').strip()
-        price = data.get('price', 0)
-        description = data.get('description', '').strip()
-        stock_quantity = data.get('stock_quantity')
+        p_type = data.get('product_type', '').strip()
+        price = data.get('price')
+        desc = data.get('description', '').strip()
+        stock = data.get('stock_quantity')
 
         if not name:
             self.send_error_json("Tên sản phẩm không được để trống")
             return
-        if product_type not in ('physical', 'digital', 'service'):
+        if p_type not in ('physical', 'digital', 'service'):
             self.send_error_json("Loại sản phẩm phải là physical, digital hoặc service")
             return
         try:
             price = float(price)
             if price < 0:
                 raise ValueError()
-        except ValueError:
+        except (ValueError, TypeError):
             self.send_error_json("Giá sản phẩm phải là số không âm")
             return
 
-        if product_type == 'physical':
+        if p_type == 'physical':
             try:
-                stock_quantity = int(stock_quantity) if stock_quantity is not None else 0
-                if stock_quantity < 0:
+                stock = int(stock)
+                if stock < 0:
                     raise ValueError()
             except (ValueError, TypeError):
-                self.send_error_json("Sản phẩm vật lý bắt buộc phải có số lượng tồn kho >= 0")
+                self.send_error_json("Sản phẩm vật lý bắt buộc phải có số lượng tồn kho (>= 0)")
                 return
         else:
-            stock_quantity = None
+            stock = None
 
         conn = get_db_connection()
         cur = conn.cursor()
         try:
             cur.execute(
                 "UPDATE products SET name = ?, product_type = ?, price = ?, description = ?, stock_quantity = ? WHERE id = ?;",
-                (name, product_type, price, description, stock_quantity, item_id)
+                (name, p_type, price, desc, stock, item_id)
             )
+            log_audit(conn, 'product', item_id, 'UPDATE', None, {'name': name, 'price': price, 'type': p_type}, actor='admin')
             conn.commit()
             sync_db_copies()
             self.send_json({"success": True, "message": "Đã cập nhật sản phẩm thành công"})
@@ -567,6 +931,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
             cur.execute("DELETE FROM products WHERE id = ?;", (item_id,))
+            log_audit(conn, 'product', item_id, 'DELETE', None, None, actor='admin')
             conn.commit()
             sync_db_copies()
             self.send_json({"success": True, "message": "Đã xóa sản phẩm thành công"})
@@ -576,64 +941,175 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn.close()
 
     # =========================================================================
-    # CÁC HÀM XỬ LÝ KHÁCH HÀNG (CUSTOMERS)
+    # 1. CUSTOMER (HỒ SƠ KHÁCH HÀNG TRUNG TÂM)
     # =========================================================================
     def handle_get_customers(self):
+        """Admin lấy toàn bộ danh sách khách hàng"""
         conn = get_db_connection()
         rows = conn.execute("SELECT * FROM customers ORDER BY id DESC;").fetchall()
-        data = [dict(r) for r in rows]
+        data = []
+        for r in rows:
+            d = dict(r)
+            d['customer_id'] = d.get('id')
+            d['full_name'] = d.get('full_name') or d.get('name')
+            data.append(d)
         conn.close()
         self.send_json({"success": True, "data": data})
 
-    def handle_create_customer(self, data):
-        name = data.get('name', '').strip()
-        phone = data.get('phone', '').strip() or None
-        zalo = data.get('zalo', '').strip() or None
+    def handle_get_customer_by_id(self, item_id):
+        """Lấy thông tin khách hàng theo ID"""
+        conn = get_db_connection()
+        cur = conn.cursor()
+        row = cur.execute("SELECT * FROM customers WHERE id = ?;", (item_id,)).fetchone()
+        conn.close()
+        if not row:
+            self.send_error_json("Không tìm thấy khách hàng", 404)
+            return
 
-        if not name:
-            self.send_error_json("Tên khách hàng không được để trống")
+        cust = dict(row)
+        cust['customer_id'] = cust.get('id')
+        cust['full_name'] = cust.get('full_name') or cust.get('name')
+        if not self.is_authenticated():
+            cust = sanitize_customer_for_public(cust)
+        self.send_json({"success": True, "data": cust})
+
+    def handle_get_customer_by_phone(self, phone):
+        """Tra cứu khách hàng theo SĐT (Phục vụ auto-fill dữ liệu, bảo mật CCCD)"""
+        norm_phone = normalize_vietnam_phone(phone)
+        if not norm_phone:
+            self.send_error_json("Số điện thoại không hợp lệ", 400)
             return
 
         conn = get_db_connection()
         cur = conn.cursor()
+        row = cur.execute("SELECT * FROM customers WHERE phone = ?;", (norm_phone,)).fetchone()
+
+        if not row:
+            conn.close()
+            self.send_json({"success": True, "found": False, "data": None})
+            return
+
+        cust = dict(row)
+        cust_id = cust['id']
+        cust['customer_id'] = cust_id
+        cust['full_name'] = cust.get('full_name') or cust.get('name')
+
+        # Tìm thêm thông tin xe / địa chỉ gần nhất từ application hoặc survey để auto-fill tiện lợi
+        cur.execute("SELECT * FROM applications WHERE customer_id = ? ORDER BY application_id DESC LIMIT 1;", (cust_id,))
+        app_row = cur.fetchone()
+        if app_row:
+            app_dict = dict(app_row)
+            cust['latest_vehicle_type'] = app_dict.get('vehicle_type')
+            cust['latest_plate_number'] = app_dict.get('plate_number')
+            if not cust.get('address'):
+                cust['address'] = app_dict.get('address')
+        else:
+            cur.execute("SELECT * FROM surveys WHERE customer_id = ? ORDER BY survey_id DESC LIMIT 1;", (cust_id,))
+            surv_row = cur.fetchone()
+            if surv_row:
+                surv_dict = dict(surv_row)
+                cust['latest_vehicle_type'] = surv_dict.get('vehicle_type')
+                cust['latest_plate_number'] = surv_dict.get('plate_number')
+
+        conn.close()
+
+        if not self.is_authenticated():
+            cust = sanitize_customer_for_public(cust)
+
+        self.send_json({"success": True, "found": True, "data": cust})
+
+    def handle_create_customer(self, data):
+        """Tạo hoặc lấy thông tin khách hàng (Không tạo duplicate theo SĐT)"""
+        full_name = str(data.get('full_name') or data.get('name') or '').strip()
+        phone = data.get('phone', '').strip()
+        email = data.get('email', '').strip() or None
+        address = data.get('address', '').strip() or None
+        identity_no = data.get('identity_no', '').strip() or None
+        tax_code = data.get('tax_code', '').strip() or None
+        zalo = data.get('zalo', '').strip() or None
+
+        if not full_name:
+            self.send_error_json("Họ và tên khách hàng không được để trống", 400)
+            return
+
+        if not is_valid_vietnam_phone(phone):
+            self.send_error_json("Số điện thoại không hợp lệ (cần 10 số theo chuẩn Việt Nam)", 400)
+            return
+
+        conn = get_db_connection()
         try:
-            cur.execute(
-                "INSERT INTO customers (name, phone, zalo) VALUES (?, ?, ?);",
-                (name, phone, zalo)
+            actor = 'admin' if self.is_authenticated() else 'customer'
+            cust, is_new = find_or_create_customer(
+                conn, phone, full_name,
+                email=email, address=address, identity_no=identity_no,
+                tax_code=tax_code, zalo=zalo, actor=actor
             )
-            new_id = cur.lastrowid
             conn.commit()
             sync_db_copies()
-            self.send_json({"success": True, "message": "Đã thêm khách hàng thành công", "id": new_id})
-        except sqlite3.IntegrityError:
-            self.send_error_json("Số điện thoại này đã tồn tại trong danh sách khách hàng")
+
+            msg = "Đã thêm khách hàng mới thành công" if is_new else "Đã nhận diện khách hàng hiện tại (Không tạo duplicate)"
+            self.send_json({
+                "success": True,
+                "message": msg,
+                "is_new": is_new,
+                "customer_id": cust['id'],
+                "data": sanitize_customer_for_public(cust) if not self.is_authenticated() else cust
+            }, 201 if is_new else 200)
         except Exception as e:
-            self.send_error_json("Lỗi khi thêm khách hàng: " + str(e))
+            conn.rollback()
+            self.send_error_json("Lỗi lưu khách hàng: " + str(e))
         finally:
             conn.close()
 
     def handle_update_customer(self, item_id, data):
-        name = data.get('name', '').strip()
+        """Cập nhật thông tin khách hàng"""
+        full_name = str(data.get('full_name') or data.get('name') or '').strip()
         phone = data.get('phone', '').strip() or None
+        email = data.get('email', '').strip() or None
+        address = data.get('address', '').strip() or None
+        identity_no = data.get('identity_no', '').strip() or None
+        tax_code = data.get('tax_code', '').strip() or None
         zalo = data.get('zalo', '').strip() or None
 
-        if not name:
-            self.send_error_json("Tên khách hàng không được để trống")
+        if not full_name:
+            self.send_error_json("Họ và tên khách hàng không được để trống", 400)
             return
+
+        if phone and not is_valid_vietnam_phone(phone):
+            self.send_error_json("Số điện thoại không hợp lệ", 400)
+            return
+
+        norm_phone = normalize_vietnam_phone(phone) if phone else None
 
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            cur.execute(
-                "UPDATE customers SET name = ?, phone = ?, zalo = ? WHERE id = ?;",
-                (name, phone, zalo, item_id)
-            )
+            old_row = cur.execute("SELECT * FROM customers WHERE id = ?;", (item_id,)).fetchone()
+            if not old_row:
+                self.send_error_json("Không tìm thấy khách hàng", 404)
+                return
+
+            old_dict = dict(old_row)
+            actor = 'admin' if self.is_authenticated() else 'customer'
+
+            cur.execute("""
+                UPDATE customers
+                SET name = ?, full_name = ?, phone = COALESCE(?, phone),
+                    email = ?, address = ?, identity_no = COALESCE(?, identity_no),
+                    tax_code = COALESCE(?, tax_code), zalo = COALESCE(?, zalo),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?;
+            """, (full_name, full_name, norm_phone, email, address, identity_no, tax_code, zalo, item_id))
+
+            log_audit(conn, 'customer', item_id, 'UPDATE', old_dict, data, actor)
             conn.commit()
             sync_db_copies()
-            self.send_json({"success": True, "message": "Đã cập nhật khách hàng thành công"})
+            self.send_json({"success": True, "message": "Đã cập nhật thông tin khách hàng thành công"})
         except sqlite3.IntegrityError:
-            self.send_error_json("Số điện thoại này đã được dùng cho khách hàng khác")
+            conn.rollback()
+            self.send_error_json("Số điện thoại này đã được sử dụng cho khách hàng khác")
         except Exception as e:
+            conn.rollback()
             self.send_error_json("Lỗi khi cập nhật khách hàng: " + str(e))
         finally:
             conn.close()
@@ -648,6 +1124,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
             cur.execute("DELETE FROM customers WHERE id = ?;", (item_id,))
+            log_audit(conn, 'customer', item_id, 'DELETE', None, None, actor='admin')
             conn.commit()
             sync_db_copies()
             self.send_json({"success": True, "message": "Đã xóa khách hàng thành công"})
@@ -657,26 +1134,296 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn.close()
 
     # =========================================================================
-    # CÁC HÀM XỬ LÝ ĐƠN HÀNG (ORDERS) & LOGIC TRỪ KHO VẬT LÝ
+    # 2. SURVEY (KHẢO SÁT NHANH)
+    # =========================================================================
+    def handle_create_survey(self, data):
+        """Khách hàng nộp khảo sát -> Liên kết customer_id (Tạo mới hoặc dùng customer cũ)"""
+        full_name = str(data.get('full_name') or data.get('name') or '').strip()
+        phone = str(data.get('phone') or '').strip()
+
+        if not full_name:
+            self.send_error_json("Vui lòng điền họ và tên", 400)
+            return
+
+        if not is_valid_vietnam_phone(phone):
+            self.send_error_json("Số điện thoại không hợp lệ", 400)
+            return
+
+        product_id = data.get('product_id')
+        product_name = data.get('product_name') or "Bảo hiểm Xe cơ giới"
+        vehicle_type = data.get('vehicle_type') or data.get('vehicle')
+        plate_number = data.get('plate_number')
+        purchase_intent = data.get('purchase_intent') or data.get('status')
+        expected_purchase_time = data.get('expected_purchase_time')
+        note = data.get('note') or data.get('buyerNote')
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # 1. Tìm hoặc tạo khách hàng trung tâm
+            cust, is_new_cust = find_or_create_customer(conn, phone, full_name, actor='customer')
+            cust_id = cust['id']
+
+            # 2. Tạo SURVEY mới liên kết customer_id
+            cur.execute("""
+                INSERT INTO surveys (customer_id, full_name, phone, product_id, product_name, vehicle_type, plate_number, purchase_intent, expected_purchase_time, note, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+            """, (cust_id, full_name, normalize_vietnam_phone(phone), product_id, product_name, vehicle_type, plate_number, purchase_intent, expected_purchase_time, note))
+
+            survey_id = cur.lastrowid
+            log_audit(conn, 'survey', survey_id, 'CREATE', None, data, actor='customer')
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": "Đã lưu kết quả khảo sát thành công",
+                "survey_id": survey_id,
+                "customer_id": cust_id,
+                "customer": sanitize_customer_for_public(cust)
+            }, 201)
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi lưu khảo sát: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_get_survey_by_id(self, survey_id):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        row = cur.execute("SELECT * FROM surveys WHERE survey_id = ?;", (survey_id,)).fetchone()
+        conn.close()
+        if not row:
+            self.send_error_json("Không tìm thấy khảo sát", 404)
+            return
+        self.send_json({"success": True, "data": dict(row)})
+
+    def handle_get_all_surveys(self):
+        conn = get_db_connection()
+        rows = conn.execute("SELECT s.*, c.email as customer_email FROM surveys s JOIN customers c ON s.customer_id = c.id ORDER BY s.survey_id DESC;").fetchall()
+        data = [dict(r) for r in rows]
+        conn.close()
+        self.send_json({"success": True, "data": data})
+
+    # =========================================================================
+    # 3. APPLICATION (GIẤY YÊU CẦU BẢO HIỂM)
+    # =========================================================================
+    def handle_create_application(self, data):
+        """Khách nộp giấy yêu cầu -> Kết nối và cập nhật CUSTOMER, tạo APPLICATION"""
+        full_name = str(data.get('full_name') or data.get('buyerName') or '').strip()
+        phone = str(data.get('phone') or data.get('buyerPhone') or '').strip()
+
+        if not full_name:
+            self.send_error_json("Họ và tên người yêu cầu không được để trống", 400)
+            return
+
+        if not is_valid_vietnam_phone(phone):
+            self.send_error_json("Số điện thoại không hợp lệ", 400)
+            return
+
+        address = data.get('address') or data.get('buyerAddress')
+        identity_no = data.get('identity_no') or data.get('buyerIdNumber')
+        product_id = data.get('product_id')
+        insured_object = data.get('insured_object') or data.get('insuredName')
+        vehicle_type = data.get('vehicle_type')
+        plate_number = data.get('plate_number') or data.get('vehiclePlate')
+        vehicle_brand = data.get('vehicle_brand') or data.get('vehicleBrandModel')
+        vehicle_model = data.get('vehicle_model')
+        manufacture_year = data.get('manufacture_year') or data.get('vehicleYear')
+        chassis_number = data.get('chassis_number') or data.get('vehicleChassis')
+        engine_number = data.get('engine_number')
+        beneficiary = data.get('beneficiary') or data.get('beneficiaryName')
+        other_data = data.get('other_required_data')
+        other_str = json.dumps(other_data, ensure_ascii=False) if isinstance(other_data, (dict, list)) else (str(other_data) if other_data else None)
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            # Tìm hoặc cập nhật khách hàng trung tâm
+            cust, _ = find_or_create_customer(
+                conn, phone, full_name,
+                address=address, identity_no=identity_no,
+                email=data.get('email') or data.get('buyerEmail'),
+                actor='customer'
+            )
+            cust_id = cust['id']
+
+            cur.execute("""
+                INSERT INTO applications (
+                    customer_id, full_name, phone, address, identity_no,
+                    product_id, insured_object, vehicle_type, plate_number,
+                    vehicle_brand, vehicle_model, manufacture_year,
+                    chassis_number, engine_number, beneficiary, other_required_data,
+                    created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+            """, (
+                cust_id, full_name, normalize_vietnam_phone(phone), address, identity_no,
+                product_id, insured_object, vehicle_type, plate_number,
+                vehicle_brand, vehicle_model, manufacture_year,
+                chassis_number, engine_number, beneficiary, other_str
+            ))
+
+            app_id = cur.lastrowid
+            log_audit(conn, 'application', app_id, 'CREATE', None, data, actor='customer')
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": "Đã lưu giấy yêu cầu bảo hiểm thành công",
+                "application_id": app_id,
+                "customer_id": cust_id,
+                "customer": sanitize_customer_for_public(cust)
+            }, 201)
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi lưu giấy yêu cầu: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_get_application_by_id(self, app_id):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        row = cur.execute("SELECT * FROM applications WHERE application_id = ?;", (app_id,)).fetchone()
+        conn.close()
+        if not row:
+            self.send_error_json("Không tìm thấy giấy yêu cầu", 404)
+            return
+
+        d = dict(row)
+        if not self.is_authenticated():
+            if d.get('identity_no'):
+                d['identity_no'] = d['identity_no'][:3] + '***' if len(d['identity_no']) > 4 else '***'
+        self.send_json({"success": True, "data": d})
+
+    def handle_get_all_applications(self):
+        conn = get_db_connection()
+        rows = conn.execute("SELECT * FROM applications ORDER BY application_id DESC;").fetchall()
+        data = [dict(r) for r in rows]
+        conn.close()
+        self.send_json({"success": True, "data": data})
+
+    # =========================================================================
+    # 4. QUOTE (BÁO GIÁ)
+    # =========================================================================
+    def handle_create_quote(self, data):
+        customer_id = data.get('customer_id')
+        phone = data.get('phone')
+        full_name = data.get('full_name') or data.get('customer_name')
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            if not customer_id and phone:
+                cust, _ = find_or_create_customer(conn, phone, full_name or f"Khách {phone}", actor='consultant')
+                customer_id = cust['id']
+            elif not customer_id:
+                self.send_error_json("Thiếu customer_id hoặc phone", 400)
+                return
+
+            product_id = data.get('product_id')
+            product_name = data.get('product_name') or "Bảo hiểm PJICO"
+            coverage_summary = data.get('coverage_summary')
+            premium = float(data.get('premium') or 0)
+            discount = float(data.get('discount') or 0)
+            total_amount = float(data.get('total_amount') or (premium - discount))
+            valid_until = data.get('valid_until')
+            consultant_id = data.get('consultant_id')
+            status = data.get('status', 'DRAFT').upper()
+            if status not in ('DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'):
+                status = 'DRAFT'
+
+            cur.execute("""
+                INSERT INTO quotes (
+                    customer_id, product_id, product_name, coverage_summary,
+                    premium, discount, total_amount, valid_until,
+                    consultant_id, status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
+            """, (customer_id, product_id, product_name, coverage_summary, premium, discount, total_amount, valid_until, consultant_id, status))
+
+            quote_id = cur.lastrowid
+            log_audit(conn, 'quote', quote_id, 'CREATE', None, data, actor='consultant')
+            conn.commit()
+            sync_db_copies()
+
+            self.send_json({
+                "success": True,
+                "message": "Đã tạo bảng báo giá thành công",
+                "quote_id": quote_id,
+                "customer_id": customer_id,
+                "total_amount": total_amount,
+                "status": status
+            }, 201)
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi tạo báo giá: " + str(e))
+        finally:
+            conn.close()
+
+    def handle_get_quote_by_id(self, quote_id):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        row = cur.execute("SELECT * FROM quotes WHERE quote_id = ?;", (quote_id,)).fetchone()
+        conn.close()
+        if not row:
+            self.send_error_json("Không tìm thấy báo giá", 404)
+            return
+        self.send_json({"success": True, "data": dict(row)})
+
+    def handle_get_all_quotes(self):
+        conn = get_db_connection()
+        rows = conn.execute("SELECT q.*, c.name as customer_name, c.phone as customer_phone FROM quotes q JOIN customers c ON q.customer_id = c.id ORDER BY q.quote_id DESC;").fetchall()
+        data = [dict(r) for r in rows]
+        conn.close()
+        self.send_json({"success": True, "data": data})
+
+    def handle_update_quote(self, quote_id, data):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            old = cur.execute("SELECT * FROM quotes WHERE quote_id = ?;", (quote_id,)).fetchone()
+            if not old:
+                self.send_error_json("Không tìm thấy báo giá", 404)
+                return
+
+            status = data.get('status', '').upper()
+            if status and status in ('DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'EXPIRED'):
+                cur.execute("UPDATE quotes SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE quote_id = ?;", (status, quote_id))
+                log_audit(conn, 'quote', quote_id, 'STATUS_UPDATE', dict(old).get('status'), status, actor='consultant')
+                conn.commit()
+                sync_db_copies()
+
+            self.send_json({"success": True, "message": "Đã cập nhật trạng thái báo giá"})
+        except Exception as e:
+            conn.rollback()
+            self.send_error_json("Lỗi cập nhật báo giá: " + str(e))
+        finally:
+            conn.close()
+
+    # =========================================================================
+    # 5. ORDER & 6. PAYMENT (CHUẨN HÓA DỮ LIỆU ĐƠN HÀNG VÀ THANH TOÁN)
     # =========================================================================
     def handle_get_orders(self):
+        """Admin lấy danh sách đơn hàng kèm thanh toán liên kết"""
         conn = get_db_connection()
         query = """
         SELECT 
-            o.id,
-            o.customer_id,
+            o.*,
             c.name as customer_name,
             c.phone as customer_phone,
-            o.product_id,
+            c.email as customer_email,
+            c.address as customer_address,
             p.name as product_name,
             p.product_type,
             p.stock_quantity as remaining_stock,
-            o.amount,
-            o.status,
-            o.purchased_at
+            pm.payment_id,
+            pm.status as payment_status,
+            pm.qr_content,
+            pm.received_amount
         FROM orders o
         JOIN customers c ON o.customer_id = c.id
-        JOIN products p ON o.product_id = p.id
+        LEFT JOIN products p ON o.product_id = p.id
+        LEFT JOIN payments pm ON o.id = pm.order_id
         ORDER BY o.id DESC;
         """
         rows = conn.execute(query).fetchall()
@@ -684,84 +1431,213 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         conn.close()
         self.send_json({"success": True, "data": data})
 
-    def handle_create_order(self, data):
+    def handle_get_order_by_id(self, order_id):
+        conn = get_db_connection()
+        cur = conn.cursor()
+        query = """
+        SELECT 
+            o.*,
+            c.name as customer_name,
+            c.phone as customer_phone,
+            c.email as customer_email,
+            c.address as customer_address,
+            p.name as product_name,
+            p.product_type,
+            pm.payment_id,
+            pm.status as payment_status,
+            pm.qr_content,
+            pm.received_amount,
+            pm.transaction_code
+        FROM orders o
+        JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN products p ON o.product_id = p.id
+        LEFT JOIN payments pm ON o.id = pm.order_id
+        WHERE o.id = ? OR o.order_code = ?;
         """
-        LOGIC TRỪ TỒN KHO:
-        - Sản phẩm vật lý ('physical') -> Tự động trừ 1 vào stock_quantity.
-        - Sản phẩm số ('digital') / dịch vụ ('service') -> Giữ nguyên tồn kho.
-        """
-        try:
-            customer_id = int(data.get('customer_id'))
-            product_id = int(data.get('product_id'))
-        except (ValueError, TypeError):
-            self.send_error_json("Vui lòng chọn khách hàng và sản phẩm hợp lệ")
+        row = cur.execute(query, (order_id, order_id)).fetchone()
+        conn.close()
+        if not row:
+            self.send_error_json("Không tìm thấy đơn hàng", 404)
             return
 
-        status = data.get('status', 'pending')
-        if status not in ('pending', 'paid', 'processing', 'completed', 'cancelled'):
-            status = 'pending'
+        order_data = dict(row)
+        self.send_json({"success": True, "data": order_data})
+
+    def handle_get_orders_by_phone(self, phone):
+        """Khách hàng tra cứu lịch sử đơn hàng theo số điện thoại"""
+        norm_phone = normalize_vietnam_phone(phone)
+        if not norm_phone:
+            self.send_error_json("Số điện thoại không hợp lệ", 400)
+            return
 
         conn = get_db_connection()
         cur = conn.cursor()
+        query = """
+        SELECT 
+            o.id as order_id,
+            o.order_code,
+            o.amount,
+            o.total_amount,
+            o.status,
+            o.created_at,
+            o.purchased_at,
+            p.name as product_name,
+            p.product_type,
+            c.name as customer_name,
+            c.phone as customer_phone,
+            pm.status as payment_status,
+            pm.qr_content
+        FROM orders o
+        JOIN customers c ON o.customer_id = c.id
+        LEFT JOIN products p ON o.product_id = p.id
+        LEFT JOIN payments pm ON o.id = pm.order_id
+        WHERE c.phone = ?
+        ORDER BY o.id DESC;
+        """
+        rows = cur.execute(query, (norm_phone,)).fetchall()
+        data = [dict(r) for r in rows]
+        conn.close()
+        self.send_json({"success": True, "data": data})
 
+    def handle_create_order(self, data):
+        """
+        Tạo đơn hàng chuẩn kiến trúc:
+        CUSTOMER -> QUOTE (tùy chọn) -> ORDER -> PAYMENT (tự động liên kết).
+        Tự động liên kết Customer, sinh mã order_code, tạo Payment PENDING.
+        """
+        customer_name = str(data.get('customer_name') or data.get('full_name') or data.get('name') or '').strip()
+        customer_phone = str(data.get('customer_phone') or data.get('phone') or '').strip()
+
+        conn = get_db_connection()
+        cur = conn.cursor()
         try:
-            cust = cur.execute("SELECT id, name FROM customers WHERE id = ?;", (customer_id,)).fetchone()
-            if not cust:
-                self.send_error_json("Khách hàng không tồn tại")
+            # 1. Tìm hoặc tạo khách hàng trung tâm
+            cust_id = data.get('customer_id')
+            if customer_phone and is_valid_vietnam_phone(customer_phone):
+                cust, _ = find_or_create_customer(
+                    conn, customer_phone, customer_name or f"Khách {customer_phone}",
+                    email=data.get('customer_email') or data.get('email'),
+                    address=data.get('customer_address') or data.get('address'),
+                    actor='customer'
+                )
+                cust_id = cust['id']
+            elif not cust_id:
+                self.send_error_json("Thiếu thông tin khách hàng (customer_id hoặc customer_phone hợp lệ)", 400)
                 return
 
-            prod = cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products WHERE id = ?;", (product_id,)).fetchone()
-            if not prod:
-                self.send_error_json("Sản phẩm không tồn tại")
+            # Lấy thông tin khách hàng đầy đủ
+            cust_row = cur.execute("SELECT * FROM customers WHERE id = ?;", (cust_id,)).fetchone()
+            if not cust_row:
+                self.send_error_json("Khách hàng không tồn tại", 400)
                 return
+            cust_info = dict(cust_row)
 
-            prod_dict = dict(prod)
+            # 2. Xác định sản phẩm & mức phí
+            product_id = data.get('product_id')
+            prod_row = None
+            if product_id:
+                prod_row = cur.execute("SELECT * FROM products WHERE id = ?;", (product_id,)).fetchone()
+            if not prod_row:
+                prod_name = str(data.get('product_name') or '').strip()
+                if prod_name:
+                    prod_row = cur.execute("SELECT * FROM products WHERE name LIKE ?;", (f"%{prod_name[:15]}%",)).fetchone()
+            if not prod_row:
+                prod_row = cur.execute("SELECT * FROM products LIMIT 1;").fetchone()
+
+            prod_dict = dict(prod_row)
+            p_id = prod_dict['id']
+            p_name = prod_dict['name']
             p_type = prod_dict['product_type']
-            stock = prod_dict['stock_quantity']
+            p_stock = prod_dict['stock_quantity']
 
-            amount = data.get('amount')
+            amount = data.get('total_amount') or data.get('amount')
             if amount is None or amount == '':
                 amount = prod_dict['price']
-            else:
-                amount = float(amount)
-                if amount < 0:
-                    raise ValueError()
+            amount = float(amount)
+            if amount < 0:
+                self.send_error_json("Số tiền đơn hàng không được âm", 400)
+                return
 
+            status = str(data.get('status') or 'pending').lower()
+            if status not in ('pending', 'paid', 'processing', 'completed', 'cancelled', 'waiting_confirm', 'pending_payment'):
+                status = 'pending'
+
+            # 3. Sinh mã đơn hàng chuẩn (order_code)
+            order_code = data.get('order_code')
+            if not order_code:
+                date_str = datetime.now().strftime('%y%m%d')
+                cur.execute("SELECT COUNT(*) FROM orders;")
+                order_seq = cur.fetchone()[0] + 1
+                order_code = f"PJ{date_str}{str(order_seq).padStart(3, '0') if hasattr(str, 'padStart') else str(order_seq).zfill(3)}"
+
+            # 4. Trừ kho nếu là sản phẩm vật lý và đơn đã thanh toán
             stock_deducted = False
-            remaining_stock = stock
+            if status in ('paid', 'completed') and p_type == 'physical':
+                if p_stock is not None and p_stock > 0:
+                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+                    stock_deducted = True
 
-            if p_type == 'physical':
-                if stock is None or stock <= 0:
-                    self.send_error_json(f"Sản phẩm vật lý '{prod_dict['name']}' đã hết hàng trong kho (Tồn kho: 0)!")
-                    return
-                cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (product_id,))
-                stock_deducted = True
-                remaining_stock = stock - 1
-            else:
-                stock_deducted = False
-
-            cur.execute(
-                "INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, ?);",
-                (customer_id, product_id, amount, status)
-            )
+            # 5. Lưu đơn hàng (orders)
+            cur.execute("""
+                INSERT INTO orders (
+                    customer_id, product_id, amount, status, purchased_at,
+                    order_code, quote_id, product_name, customer_name,
+                    customer_phone, customer_address, insured_object,
+                    vehicle_type, plate_number, insurance_start, insurance_end,
+                    premium, discount, total_amount, payment_deadline, created_at
+                ) VALUES (
+                    ?, ?, ?, ?, CURRENT_TIMESTAMP,
+                    ?, ?, ?, ?,
+                    ?, ?, ?,
+                    ?, ?, ?, ?,
+                    ?, ?, ?, ?, CURRENT_TIMESTAMP
+                );
+            """, (
+                cust_id, p_id, amount, status,
+                order_code, data.get('quote_id'), p_name, cust_info.get('full_name') or customer_name,
+                cust_info.get('phone'), cust_info.get('address'), data.get('insured_object'),
+                data.get('vehicle_type'), data.get('plate_number'), data.get('insurance_start'), data.get('insurance_end'),
+                data.get('premium') or amount, data.get('discount') or 0, amount, data.get('payment_deadline')
+            ))
             order_id = cur.lastrowid
+
+            # 6. Tự động khởi tạo bản ghi Thanh Toán liên kết (payments)
+            qr_content = f"SEVQR PJICO {order_code}"
+            pm_status = 'SUCCESS' if status in ('paid', 'completed') else 'PENDING'
+            cur.execute("""
+                INSERT INTO payments (
+                    order_id, expected_amount, received_amount, qr_content,
+                    bank_name, account_number, status, created_at
+                ) VALUES (?, ?, ?, ?, 'VietinBank', '106006104248', ?, CURRENT_TIMESTAMP);
+            """, (order_id, amount, amount if pm_status == 'SUCCESS' else 0, qr_content, pm_status))
+            payment_id = cur.lastrowid
+
+            # Ghi vết kiểm toán
+            log_audit(conn, 'order', order_id, 'CREATE', None, {'order_code': order_code, 'amount': amount, 'status': status}, actor='customer')
+            log_audit(conn, 'payment', payment_id, 'CREATE', None, {'expected_amount': amount, 'status': pm_status}, actor='system')
+
             conn.commit()
             sync_db_copies()
 
-            message = f"Đã tạo đơn hàng #{order_id} thành công!"
-            if stock_deducted:
-                message += f" Đã tự động trừ tồn kho (Tồn kho còn lại: {remaining_stock})."
-            else:
-                message += f" Sản phẩm dạng {p_type.upper()} không trừ tồn kho."
-
             self.send_json({
                 "success": True,
-                "message": message,
+                "message": f"Đã khởi tạo đơn hàng #{order_code} thành công",
                 "order_id": order_id,
+                "order_code": order_code,
+                "customer_id": cust_id,
+                "amount": amount,
+                "status": status,
                 "stock_deducted": stock_deducted,
-                "remaining_stock": remaining_stock
-            })
-
+                "payment": {
+                    "payment_id": payment_id,
+                    "bank": "VietinBank",
+                    "account": "106006104248",
+                    "holder": "NGUYEN HUY VINH",
+                    "qr_content": qr_content,
+                    "expected_amount": amount,
+                    "status": pm_status
+                }
+            }, 201)
         except Exception as e:
             conn.rollback()
             self.send_error_json("Lỗi khi tạo đơn hàng: " + str(e))
@@ -770,43 +1646,59 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_update_order(self, item_id, data):
         status = data.get('status')
-        amount = data.get('amount')
-
-        if not status or status not in ('pending', 'paid', 'processing', 'completed', 'cancelled'):
-            self.send_error_json("Trạng thái đơn hàng không hợp lệ")
-            return
+        amount = data.get('amount') or data.get('total_amount')
 
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            # Lấy thông tin đơn hàng hiện tại
             row = cur.execute("""
-                SELECT o.status, o.product_id, p.product_type, p.stock_quantity
+                SELECT o.status, o.product_id, p.product_type, p.stock_quantity, o.amount
                 FROM orders o
-                JOIN products p ON o.product_id = p.id
-                WHERE o.id = ?;
-            """, (item_id,)).fetchone()
+                LEFT JOIN products p ON o.product_id = p.id
+                WHERE o.id = ? OR o.order_code = ?;
+            """, (item_id, item_id)).fetchone()
 
             if not row:
-                self.send_error_json("Không tìm thấy đơn hàng")
+                self.send_error_json("Không tìm thấy đơn hàng", 404)
                 return
 
-            old_status, prod_id, p_type, p_stock = row
+            old_status, prod_id, p_type, p_stock, old_amount = row
+            target_id = item_id
 
             # Nếu đơn chuyển từ pending sang paid và là sản phẩm vật lý -> Trừ tồn kho 1
-            if old_status != 'paid' and status == 'paid' and p_type == 'physical':
+            if old_status != 'paid' and status in ('paid', 'completed') and p_type == 'physical':
                 if p_stock is not None and p_stock > 0:
                     cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (prod_id,))
 
+            updates = []
+            params = []
+            if status:
+                updates.append("status = ?")
+                params.append(status)
             if amount is not None:
-                amount = float(amount)
-                cur.execute("UPDATE orders SET status = ?, amount = ? WHERE id = ?;", (status, amount, item_id))
-            else:
-                cur.execute("UPDATE orders SET status = ? WHERE id = ?;", (status, item_id))
+                updates.extend(["amount = ?", "total_amount = ?"])
+                params.extend([float(amount), float(amount)])
+
+            if updates:
+                updates.append("updated_at = CURRENT_TIMESTAMP")
+                sql = f"UPDATE orders SET {', '.join(updates)} WHERE id = ? OR order_code = ?;"
+                params.extend([item_id, item_id])
+                cur.execute(sql, tuple(params))
+
+                # Đồng bộ trạng thái payment nếu có
+                if status in ('paid', 'completed'):
+                    cur.execute("""
+                        UPDATE payments
+                        SET status = 'SUCCESS', received_amount = expected_amount, updated_at = CURRENT_TIMESTAMP
+                        WHERE order_id = ? OR order_id = (SELECT id FROM orders WHERE order_code = ?);
+                    """, (item_id, item_id))
+
+            log_audit(conn, 'order', item_id, 'STATUS_UPDATE', old_status, status, actor='admin')
             conn.commit()
             sync_db_copies()
             self.send_json({"success": True, "message": "Đã cập nhật đơn hàng thành công", "status": status})
         except Exception as e:
+            conn.rollback()
             self.send_error_json("Lỗi khi cập nhật đơn hàng: " + str(e))
         finally:
             conn.close()
@@ -815,79 +1707,23 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         conn = get_db_connection()
         cur = conn.cursor()
         try:
+            cur.execute("DELETE FROM payments WHERE order_id = ?;", (item_id,))
             cur.execute("DELETE FROM orders WHERE id = ?;", (item_id,))
+            log_audit(conn, 'order', item_id, 'DELETE', None, None, actor='admin')
             conn.commit()
             sync_db_copies()
             self.send_json({"success": True, "message": "Đã xóa đơn hàng thành công"})
         except Exception as e:
             self.send_error_json("Lỗi khi xóa đơn hàng: " + str(e))
-
-    def handle_public_create_order(self, payload):
-        """Khách hàng thanh toán từ cổng /thanhtoan -> Tự động lưu khách hàng, khởi tạo đơn hàng (mặc định pending)"""
-        cust_name = str(payload.get('customer_name') or 'Khách vãng lai').strip()
-        cust_phone = str(payload.get('customer_phone') or '').strip() or None
-        prod_id = payload.get('product_id')
-        prod_name = str(payload.get('product_name') or '').strip()
-        amount = payload.get('amount')
-        status = payload.get('status') or 'pending'
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-        try:
-            # 1. Tìm hoặc tạo khách hàng
-            cust_id = None
-            if cust_phone:
-                cur.execute("SELECT id FROM customers WHERE phone = ?;", (cust_phone,))
-                row = cur.fetchone()
-                if row:
-                    cust_id = row[0]
-            if not cust_id:
-                cur.execute("INSERT INTO customers (name, phone, zalo) VALUES (?, ?, ?);",
-                            (cust_name, cust_phone, cust_phone))
-                cust_id = cur.lastrowid
-
-            # 2. Tìm sản phẩm
-            prod = None
-            if prod_id:
-                cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products WHERE id = ?;", (prod_id,))
-                prod = cur.fetchone()
-            if not prod and prod_name:
-                cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products WHERE name LIKE ?;", (f"%{prod_name[:15]}%",))
-                prod = cur.fetchone()
-            if not prod:
-                cur.execute("SELECT id, name, product_type, price, stock_quantity FROM products LIMIT 1;")
-                prod = cur.fetchone()
-
-            p_id, p_name, p_type, p_price, p_stock = prod
-            order_amount = amount if amount is not None else p_price
-
-            # 3. QUY TẮC: Chỉ trừ tồn kho nếu là sản phẩm vật lý VÀ trạng thái là 'paid'
-            stock_deducted = False
-            if status == 'paid' and p_type == 'physical':
-                if p_stock is not None and p_stock > 0:
-                    cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
-                    stock_deducted = True
-
-            # 4. Tạo đơn hàng với trạng thái (pending hoặc paid)
-            cur.execute("INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, ?);",
-                        (cust_id, p_id, order_amount, status))
-            order_id = cur.lastrowid
-            conn.commit()
-            sync_db_copies()
-
-            self.send_json({
-                "success": True,
-                "message": f"Đã ghi nhận đơn hàng #{order_id} thành công",
-                "order_id": order_id,
-                "customer_id": cust_id,
-                "status": status,
-                "stock_deducted": stock_deducted
-            }, 201)
-        except Exception as e:
-            conn.rollback()
-            self.send_error_json("Lỗi tạo đơn thanh toán: " + str(e))
         finally:
             conn.close()
+
+    # =========================================================================
+    # BACKWARD COMPATIBILITY: PUBLIC CHECKOUT & SEPAY WEBHOOK
+    # =========================================================================
+    def handle_public_create_order(self, payload):
+        """Hỗ trợ tương thích ngược cho form đặt mua /thanhtoan"""
+        self.handle_create_order(payload)
 
     def handle_public_check_order(self, query_string):
         """Khách hàng kiểm tra trạng thái đơn hàng thời gian thực từ /thanhtoan"""
@@ -900,21 +1736,30 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         try:
             if order_id:
                 cur.execute("""
-                    SELECT o.id, o.amount, o.status, o.purchased_at, c.name as customer_name, c.phone as customer_phone, p.name as product_name, p.product_type
+                    SELECT o.id, o.order_code, o.amount, o.status, o.purchased_at,
+                           c.name as customer_name, c.phone as customer_phone,
+                           p.name as product_name, p.product_type,
+                           pm.status as payment_status
                     FROM orders o
                     JOIN customers c ON o.customer_id = c.id
-                    JOIN products p ON o.product_id = p.id
-                    WHERE o.id = ?;
-                """, (order_id,))
+                    LEFT JOIN products p ON o.product_id = p.id
+                    LEFT JOIN payments pm ON o.id = pm.order_id
+                    WHERE o.id = ? OR o.order_code = ?;
+                """, (order_id, order_id))
             elif phone:
+                norm_phone = normalize_vietnam_phone(phone)
                 cur.execute("""
-                    SELECT o.id, o.amount, o.status, o.purchased_at, c.name as customer_name, c.phone as customer_phone, p.name as product_name, p.product_type
+                    SELECT o.id, o.order_code, o.amount, o.status, o.purchased_at,
+                           c.name as customer_name, c.phone as customer_phone,
+                           p.name as product_name, p.product_type,
+                           pm.status as payment_status
                     FROM orders o
                     JOIN customers c ON o.customer_id = c.id
-                    JOIN products p ON o.product_id = p.id
+                    LEFT JOIN products p ON o.product_id = p.id
+                    LEFT JOIN payments pm ON o.id = pm.order_id
                     WHERE c.phone = ?
                     ORDER BY o.id DESC LIMIT 1;
-                """, (phone,))
+                """, (norm_phone,))
             else:
                 self.send_error_json("Thiếu tham số tra cứu (id hoặc phone)")
                 return
@@ -924,18 +1769,15 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"success": False, "message": "Không tìm thấy đơn hàng"})
                 return
 
-            self.send_json({
-                "success": True,
-                "data": dict(row)
-            })
+            self.send_json({"success": True, "data": dict(row)})
         except Exception as e:
             self.send_error_json("Lỗi tra cứu đơn: " + str(e))
         finally:
             conn.close()
 
     def handle_public_confirm_order(self, payload):
-        """Xác nhận khách hàng đã chuyển tiền -> Cập nhật trạng thái 'paid' và trừ tồn kho vật lý"""
-        order_id = payload.get('id') or payload.get('order_id')
+        """Xác nhận khách hàng đã chuyển tiền -> Cập nhật trạng thái 'paid' và payments sang 'SUCCESS'"""
+        order_id = payload.get('id') or payload.get('order_id') or payload.get('order_code')
         phone = payload.get('phone') or payload.get('customer_phone')
 
         conn = get_db_connection()
@@ -944,34 +1786,47 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             target_order = None
             if order_id:
                 cur.execute("""
-                    SELECT o.id, o.status, o.product_id, p.product_type, p.stock_quantity, p.name as product_name, o.amount, c.name as customer_name, c.phone as customer_phone
+                    SELECT o.id, o.status, o.product_id, p.product_type, p.stock_quantity,
+                           p.name as product_name, o.amount, c.name as customer_name, c.phone as customer_phone, o.order_code
                     FROM orders o
-                    JOIN products p ON o.product_id = p.id
+                    LEFT JOIN products p ON o.product_id = p.id
                     JOIN customers c ON o.customer_id = c.id
-                    WHERE o.id = ?;
-                """, (order_id,))
+                    WHERE o.id = ? OR o.order_code = ?;
+                """, (order_id, order_id))
                 target_order = cur.fetchone()
             elif phone:
+                norm_phone = normalize_vietnam_phone(phone)
                 cur.execute("""
-                    SELECT o.id, o.status, o.product_id, p.product_type, p.stock_quantity, p.name as product_name, o.amount, c.name as customer_name, c.phone as customer_phone
+                    SELECT o.id, o.status, o.product_id, p.product_type, p.stock_quantity,
+                           p.name as product_name, o.amount, c.name as customer_name, c.phone as customer_phone, o.order_code
                     FROM orders o
-                    JOIN products p ON o.product_id = p.id
+                    LEFT JOIN products p ON o.product_id = p.id
                     JOIN customers c ON o.customer_id = c.id
                     WHERE c.phone = ?
                     ORDER BY o.id DESC LIMIT 1;
-                """, (phone,))
+                """, (norm_phone,))
                 target_order = cur.fetchone()
 
             if not target_order:
                 self.send_error_json("Không tìm thấy đơn hàng để xác nhận")
                 return
 
-            o_id, cur_status, p_id, p_type, p_stock, p_name, o_amount, c_name, c_phone = target_order
+            o_id, cur_status, p_id, p_type, p_stock, p_name, o_amount, c_name, c_phone, o_code = target_order
 
             if cur_status != 'paid':
-                cur.execute("UPDATE orders SET status = 'paid' WHERE id = ?;", (o_id,))
+                cur.execute("UPDATE orders SET status = 'paid', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
                 if p_type == 'physical' and p_stock is not None and p_stock > 0:
                     cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
+
+                # Cập nhật payments
+                cur.execute("""
+                    UPDATE payments
+                    SET status = 'SUCCESS', received_amount = expected_amount, updated_at = CURRENT_TIMESTAMP
+                    WHERE order_id = ?;
+                """, (o_id,))
+
+                log_audit(conn, 'order', o_id, 'STATUS_UPDATE', cur_status, 'paid', actor='customer')
+                log_audit(conn, 'payment', o_id, 'PAYMENT_SUCCESS', None, o_amount, actor='customer')
                 conn.commit()
                 sync_db_copies()
 
@@ -979,6 +1834,7 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "success": True,
                 "message": "Xác nhận nhận tiền thành công",
                 "order_id": o_id,
+                "order_code": o_code,
                 "status": "paid",
                 "customer_name": c_name,
                 "customer_phone": c_phone,
@@ -992,52 +1848,76 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn.close()
 
     def handle_sepay_webhook(self, payload):
-        """Xử lý webhook biến động số dư SePay (VietinBank SEVQR)"""
+        """Xử lý webhook biến động số dư SePay (VietinBank SEVQR) - Tuyệt đối không thay đổi cú pháp"""
         content = str(payload.get('content') or payload.get('description') or '').strip()
         amount = payload.get('transferAmount') or payload.get('amount') or 0
+        transaction_id = str(payload.get('id') or payload.get('transaction_id') or '').strip()
+        transaction_code = str(payload.get('code') or payload.get('referenceCode') or '').strip()
+        transaction_date = payload.get('transactionDate') or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         conn = get_db_connection()
         cur = conn.cursor()
         try:
-            import re
-            phone_match = re.search(r'0\d{9}', content)
-            order_updated = False
+            # 1. Kiểm tra idempotency (giao dịch đã xử lý chưa)
+            if transaction_id:
+                existing_tx = cur.execute("SELECT * FROM payments WHERE transaction_id = ?;", (transaction_id,)).fetchone()
+                if existing_tx:
+                    self.send_json({"success": True, "message": "Giao dịch này đã được ghi nhận trước đó (Idempotent)"})
+                    return
 
-            if phone_match:
-                phone = phone_match.group(0)
+            # 2. Tìm mã đơn hàng hoặc số điện thoại trong nội dung chuyển khoản
+            order_codes = [m.upper() for m in re.findall(r'\bPJ[A-Za-z0-9_-]+\b', content, re.IGNORECASE) if m.upper() != 'PJICO']
+            phone_match = re.search(r'0[35789]\d{8}', content)
+            target_order = None
+
+            matched_code = None
+            if order_codes:
+                matched_code = order_codes[0]
                 cur.execute("""
-                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity
+                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity, o.amount, o.status
+                    FROM orders o
+                    LEFT JOIN products p ON o.product_id = p.id
+                    WHERE o.order_code = ?
+                    ORDER BY o.id DESC LIMIT 1;
+                """, (matched_code,))
+                target_order = cur.fetchone()
+
+            if not target_order and phone_match:
+                matched_phone = phone_match.group(0)
+                cur.execute("""
+                    SELECT o.id, o.product_id, p.product_type, p.stock_quantity, o.amount, o.status
                     FROM orders o
                     JOIN customers c ON o.customer_id = c.id
-                    JOIN products p ON o.product_id = p.id
-                    WHERE c.phone = ? AND o.status = 'pending'
+                    LEFT JOIN products p ON o.product_id = p.id
+                    WHERE c.phone = ?
                     ORDER BY o.id DESC LIMIT 1;
-                """, (phone,))
-                pending_order = cur.fetchone()
+                """, (matched_phone,))
+                target_order = cur.fetchone()
 
-                if pending_order:
-                    o_id, p_id, p_type, p_stock = pending_order
-                    cur.execute("UPDATE orders SET status = 'paid' WHERE id = ?;", (o_id,))
+            order_updated = False
+            print(f"DEBUG SePay: transaction_id={transaction_id}, content={content}, matched_code={matched_code}, target_order={target_order}")
+            if target_order:
+                o_id, p_id, p_type, p_stock, exp_amount, o_status = target_order
+                if o_status != 'paid':
+                    cur.execute("UPDATE orders SET status = 'paid', updated_at = CURRENT_TIMESTAMP WHERE id = ?;", (o_id,))
                     if p_type == 'physical' and p_stock is not None and p_stock > 0:
                         cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
                     order_updated = True
-                else:
-                    cur.execute("SELECT id FROM customers WHERE phone = ?;", (phone,))
-                    c_row = cur.fetchone()
-                    if c_row:
-                        c_id = c_row[0]
-                    else:
-                        cur.execute("INSERT INTO customers (name, phone, zalo) VALUES (?, ?, ?);",
-                                    (f"Khách hàng SePay {phone}", phone, phone))
-                        c_id = cur.lastrowid
-                    
-                    cur.execute("SELECT id, product_type, stock_quantity FROM products LIMIT 1;")
-                    p_id, p_type, p_stock = cur.fetchone()
-                    if p_type == 'physical' and p_stock is not None and p_stock > 0:
-                        cur.execute("UPDATE products SET stock_quantity = stock_quantity - 1 WHERE id = ?;", (p_id,))
-                    cur.execute("INSERT INTO orders (customer_id, product_id, amount, status) VALUES (?, ?, ?, 'paid');",
-                                (c_id, p_id, amount))
-                    order_updated = True
+
+                # Cập nhật payments với transaction_id
+                cur.execute("""
+                    UPDATE payments
+                    SET status = 'SUCCESS', received_amount = ?, transaction_id = ?,
+                        transaction_code = ?, transaction_time = ?, updated_at = CURRENT_TIMESTAMP
+                    WHERE order_id = ?;
+                """, (amount, transaction_id if transaction_id else None, transaction_code if transaction_code else None, transaction_date, o_id))
+                print(f"DEBUG SePay updated payments rowcount={cur.rowcount} for order_id={o_id}")
+
+                log_audit(conn, 'order', o_id, 'STATUS_UPDATE', o_status, 'paid', actor='sepay')
+                log_audit(conn, 'payment', o_id, 'SEPAY_WEBHOOK_SUCCESS', None, {'amount': amount, 'tx': transaction_id}, actor='sepay')
+            else:
+                # Ghi log giao dịch chưa khớp đơn để admin đối soát
+                log_audit(conn, 'sepay', 'unmatched', 'PAYMENT_RECEIVED', None, {'content': content, 'amount': amount, 'tx': transaction_id}, actor='sepay')
 
             conn.commit()
             sync_db_copies()
@@ -1054,6 +1934,9 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
         prods = cur.execute("SELECT COUNT(*) FROM products;").fetchone()[0]
         custs = cur.execute("SELECT COUNT(*) FROM customers;").fetchone()[0]
         orders = cur.execute("SELECT COUNT(*) FROM orders;").fetchone()[0]
+        survs = cur.execute("SELECT COUNT(*) FROM surveys;").fetchone()[0] if cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='surveys';").fetchone() else 0
+        apps = cur.execute("SELECT COUNT(*) FROM applications;").fetchone()[0] if cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='applications';").fetchone() else 0
+        quotes = cur.execute("SELECT COUNT(*) FROM quotes;").fetchone()[0] if cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='quotes';").fetchone() else 0
         revenue = cur.execute("SELECT COALESCE(SUM(amount), 0) FROM orders WHERE status IN ('paid', 'completed');").fetchone()[0]
         conn.close()
         self.send_json({
@@ -1062,6 +1945,9 @@ class AdminRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "products_count": prods,
                 "customers_count": custs,
                 "orders_count": orders,
+                "surveys_count": survs,
+                "applications_count": apps,
+                "quotes_count": quotes,
                 "revenue": float(revenue)
             }
         })

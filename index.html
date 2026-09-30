@@ -812,9 +812,13 @@
                                     </div>
 
                                     <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
+                                        <a id="survey-checkout-link" href="/thanhtoan/" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm shadow-md transition">
+                                            <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                            <span>Đặt Mua & Thanh Toán Ngay</span>
+                                        </a>
                                         <a id="survey-zalo-link" href="https://zalo.me/0906069368" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0068FF] hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md transition">
                                             <i data-lucide="message-circle" class="w-4 h-4"></i>
-                                            <span>Mở Khung Chat Zalo Nhận Báo Giá</span>
+                                            <span>Mở Khung Chat Zalo</span>
                                         </a>
                                         <button type="button" onclick="resetSurvey()" class="w-full sm:w-auto px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-semibold text-xs transition cursor-pointer">
                                             <span>Khảo sát lại</span>
@@ -1420,7 +1424,7 @@
                                                 <label class="block font-bold text-slate-700 mb-1">
                                                     Số điện thoại liên hệ <span class="text-red-500">*</span>:
                                                 </label>
-                                                <input type="tel" id="buyerPhone" required placeholder="Ví dụ: 0912345678" 
+                                                <input type="tel" id="buyerPhone" required placeholder="Ví dụ: 0912345678" oninput="handleBuyerPhoneLookup(this.value)"
                                                        class="w-full p-2.5 rounded-xl border border-slate-300 bg-white focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] outline-none font-mono">
                                             </div>
 
@@ -3353,9 +3357,51 @@
                     dropdown.value = preSelectProd;
                     onProductSelectChange(preSelectProd);
                 }
-            }
+            // Tự động điền dữ liệu nếu khách hàng đã có hồ sơ trung tâm
+            try {
+                const centralCust = JSON.parse(localStorage.getItem('pjico_central_customer') || '{}');
+                const nameEl = document.getElementById('buyerName');
+                const phoneEl = document.getElementById('buyerPhone');
+                const emailEl = document.getElementById('buyerEmail');
+                const addrEl = document.getElementById('buyerAddress');
+                const plateEl = document.getElementById('vehiclePlate');
+                if (nameEl && !nameEl.value && centralCust.name) nameEl.value = centralCust.name;
+                if (phoneEl && !phoneEl.value && centralCust.phone) phoneEl.value = centralCust.phone;
+                if (emailEl && !emailEl.value && centralCust.email) emailEl.value = centralCust.email;
+                if (addrEl && !addrEl.value && centralCust.address) addrEl.value = centralCust.address;
+                if (plateEl && !plateEl.value && centralCust.plate_number) plateEl.value = centralCust.plate_number;
+            } catch(e) {}
+
             actionBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
             setTimeout(() => { initSignatureCanvas(); lucide.createIcons(); }, 300);
+        }
+
+        let buyerPhoneLookupTimeout = null;
+        function handleBuyerPhoneLookup(phoneVal) {
+            clearTimeout(buyerPhoneLookupTimeout);
+            buyerPhoneLookupTimeout = setTimeout(async () => {
+                const clean = (phoneVal || '').replace(/\D/g, '');
+                if (clean.length >= 10) {
+                    try {
+                        const res = await fetch(`/api/customers/by-phone/${clean}`);
+                        if (res.ok) {
+                            const json = await res.json();
+                            if (json.success && json.found && json.data) {
+                                const d = json.data;
+                                const nameEl = document.getElementById('buyerName');
+                                const emailEl = document.getElementById('buyerEmail');
+                                const addrEl = document.getElementById('buyerAddress');
+                                const plateEl = document.getElementById('vehiclePlate');
+                                if (nameEl && (!nameEl.value || nameEl.value.trim() === '')) nameEl.value = d.full_name || d.name || '';
+                                if (emailEl && (!emailEl.value || emailEl.value.trim() === '')) emailEl.value = d.email || '';
+                                if (addrEl && (!addrEl.value || addrEl.value.trim() === '')) addrEl.value = d.address || '';
+                                if (plateEl && (!plateEl.value || plateEl.value.trim() === '') && d.latest_plate_number) plateEl.value = d.latest_plate_number;
+                                showToast(`✓ Nhận diện khách hàng: ${d.full_name || d.name}`);
+                            }
+                        }
+                    } catch(e) {}
+                }
+            }, 400);
         }
 
         // 7. XỬ LÝ NỘP FORM & TỰ ĐỘNG THỐNG KÊ GOOGLE SHEET + GỬI ZALO / MESSENGER / ĐIỆN THOẠI
@@ -3440,7 +3486,47 @@
                 hasSignature: hasSigned
             };
 
-            // 1. TỰ ĐỘNG GỬI LÊN GOOGLE SHEET (NẾU ĐÃ CẤU HÌNH WEBHOOK HOẶC LƯU LOCALSTORAGE)
+            // 1. TỰ ĐỘNG GỬI LÊN BACKEND CENTRAL CUSTOMER APPLICATIONS API
+            try {
+                await fetch('/api/applications', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: buyerName,
+                        phone: buyerPhone,
+                        email: buyerEmail !== "Chưa cung cấp" ? buyerEmail : "",
+                        address: document.getElementById('buyerAddress')?.value || "",
+                        identity_no: document.getElementById('buyerIdNumber')?.value || "",
+                        product_name: selectedProductText,
+                        vehicle_type: selectedProductVal === 'xe_cogioi' ? (document.getElementById('vehicleType')?.value || "") : "",
+                        plate_number: selectedProductVal === 'xe_cogioi' ? (document.getElementById('vehiclePlate')?.value || "") : "",
+                        coverage_amount: document.getElementById('coverageAmount')?.value || "",
+                        insurance_period: document.getElementById('insurancePeriod')?.value || "",
+                        payment_frequency: paymentMethod,
+                        form_data: postPayload
+                    })
+                });
+            } catch (appErr) {
+                console.warn('API /api/applications notice:', appErr);
+            }
+
+            // Đồng bộ hồ sơ khách hàng trung tâm trên localStorage
+            try {
+                const centralCust = JSON.parse(localStorage.getItem('pjico_central_customer') || '{}');
+                centralCust.name = buyerName;
+                centralCust.phone = buyerPhone;
+                if (buyerEmail && buyerEmail !== "Chưa cung cấp") centralCust.email = buyerEmail;
+                const bAddr = document.getElementById('buyerAddress')?.value;
+                if (bAddr) centralCust.address = bAddr;
+                if (selectedProductVal === 'xe_cogioi') {
+                    centralCust.vehicle_type = document.getElementById('vehicleType')?.value || centralCust.vehicle_type;
+                    centralCust.plate_number = document.getElementById('vehiclePlate')?.value || centralCust.plate_number;
+                }
+                centralCust.updated_at = new Date().toISOString();
+                localStorage.setItem('pjico_central_customer', JSON.stringify(centralCust));
+            } catch(e) {}
+
+            // GỬI LÊN GOOGLE SHEET (NẾU ĐÃ CẤU HÌNH WEBHOOK HOẶC LƯU LOCALSTORAGE)
             try {
                 if (GOOGLE_SHEET_WEBHOOK_URL && GOOGLE_SHEET_WEBHOOK_URL.startsWith('http')) {
                     await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
@@ -3623,7 +3709,36 @@
                 hasSignature: false
             };
             
-            // 1. Tự động gửi lên Webhook Google Sheet
+            // 1. Tự động gửi lên Backend Central Customer Survey API
+            try {
+                await fetch('/api/surveys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: surveyData.name,
+                        phone: surveyData.phone,
+                        product_name: surveyData.vehicle || "Bảo hiểm xe cơ giới",
+                        vehicle_type: surveyData.vehicle,
+                        survey_data: surveyData,
+                        note: noteSummary
+                    })
+                });
+            } catch(apiErr) {
+                console.warn('API /api/surveys notice:', apiErr);
+            }
+
+            // Đồng bộ hồ sơ khách hàng trung tâm trên localStorage
+            try {
+                const centralCust = JSON.parse(localStorage.getItem('pjico_central_customer') || '{}');
+                centralCust.name = surveyData.name || centralCust.name;
+                centralCust.phone = surveyData.phone || centralCust.phone;
+                centralCust.vehicle_type = surveyData.vehicle || centralCust.vehicle_type;
+                centralCust.survey_status = surveyData.status;
+                centralCust.updated_at = new Date().toISOString();
+                localStorage.setItem('pjico_central_customer', JSON.stringify(centralCust));
+            } catch(e) {}
+
+            // Gửi lên Webhook Google Sheet (nếu có cấu hình)
             try {
                 if (typeof GOOGLE_SHEET_WEBHOOK_URL !== 'undefined' && GOOGLE_SHEET_WEBHOOK_URL.startsWith('http')) {
                     await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
@@ -3664,6 +3779,15 @@
             document.getElementById('survey-res-vehicle-val').innerText = surveyData.vehicle || "Xe cơ giới";
             document.getElementById('survey-res-status-val').innerText = surveyData.status || "Chưa rõ";
             document.getElementById('survey-res-passenger-val').innerText = surveyData.passenger || "Chưa rõ";
+            
+            // Cập nhật đường link sang trang thanh toán tự điền thông tin
+            const chkLink = document.getElementById('survey-checkout-link');
+            if (chkLink) {
+                const isCar = (surveyData.vehicle || '').toLowerCase().includes('ô tô') || (surveyData.vehicle || '').toLowerCase().includes('oto');
+                const pCode = isCar ? 'oto' : 'xemay';
+                const pAmt = isCar ? '480700' : '86000';
+                chkLink.href = `/thanhtoan/?phone=${encodeURIComponent(surveyData.phone)}&name=${encodeURIComponent(surveyData.name)}&product=${pCode}&amount=${pAmt}&note=${encodeURIComponent(surveyData.vehicle || '')}`;
+            }
             
             btn.disabled = false;
             btn.innerHTML = originalText;

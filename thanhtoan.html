@@ -269,7 +269,10 @@
                                 <label class="block text-xs font-bold text-slate-700 mb-1">Số Điện Thoại / Zalo Nhận GCN *</label>
                                 <div class="relative">
                                     <i data-lucide="phone" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    <input type="tel" id="buyerPhone" required placeholder="Ví dụ: 0987501199" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] text-xs sm:text-sm outline-hidden font-mono font-bold text-[#002D62]">
+                                    <input type="tel" id="buyerPhone" required placeholder="Ví dụ: 0987501199" oninput="handleCheckoutPhoneLookup(this.value)" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#0B7CFF] focus:ring-1 focus:ring-[#0B7CFF] text-xs sm:text-sm outline-hidden font-mono font-bold text-[#002D62]">
+                                </div>
+                                <div id="custRecognizeBadge" class="hidden mt-1 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                    <span>✓ Đã nhận diện: </span><strong id="custRecognizeName"></strong>
                                 </div>
                                 <span class="text-[10px] text-slate-400 mt-0.5 block">Dùng làm mã định danh đơn & gửi file Zalo</span>
                             </div>
@@ -703,7 +706,7 @@
             }
         }
 
-        // Đọc tham số URL từ Landing Page
+        // Đọc tham số URL từ Landing Page & Hồ sơ khách hàng trung tâm
         function parseUrlParameters() {
             const params = new URLSearchParams(window.location.search);
             const amountParam = params.get('amount');
@@ -716,6 +719,23 @@
             if (nameParam) document.getElementById('buyerName').value = nameParam;
             if (phoneParam) document.getElementById('buyerPhone').value = phoneParam;
             if (noteParam) document.getElementById('buyerNote').value = noteParam;
+
+            // Đọc thêm từ LocalStorage pjico_central_customer nếu các trường chưa có
+            try {
+                const centralCust = JSON.parse(localStorage.getItem('pjico_central_customer') || '{}');
+                if (!document.getElementById('buyerName').value && centralCust.name) {
+                    document.getElementById('buyerName').value = centralCust.name;
+                }
+                if (!document.getElementById('buyerPhone').value && centralCust.phone) {
+                    document.getElementById('buyerPhone').value = centralCust.phone;
+                }
+                if (!document.getElementById('buyerEmail').value && centralCust.email) {
+                    document.getElementById('buyerEmail').value = centralCust.email;
+                }
+                if (!document.getElementById('buyerNote').value && (centralCust.plate_number || centralCust.address)) {
+                    document.getElementById('buyerNote').value = centralCust.plate_number || centralCust.address;
+                }
+            } catch(e) {}
 
             if (productParam === 'oto' || (amountParam && parseInt(amountParam) === 480700)) {
                 selectPackage(480700, 'Bảo hiểm Ô Tô TNDS 5 Chỗ Điện Tử', 'digital', 'oto');
@@ -734,7 +754,62 @@
                 switchTab('lookup');
                 document.getElementById('lookupQuery').value = lookupParam;
                 performOrderLookup();
+            } else {
+                // Tự động nhận diện khách hàng nếu đã có số điện thoại
+                const curPhone = document.getElementById('buyerPhone').value;
+                if (curPhone) handleCheckoutPhoneLookup(curPhone);
             }
+        }
+
+        let checkoutPhoneLookupTimeout = null;
+        function handleCheckoutPhoneLookup(phoneVal) {
+            clearTimeout(checkoutPhoneLookupTimeout);
+            checkoutPhoneLookupTimeout = setTimeout(async () => {
+                const clean = (phoneVal || '').replace(/\D/g, '');
+                if (clean.length >= 10) {
+                    try {
+                        const res = await fetch(`${API_BASE}/api/customers/by-phone/${clean}`);
+                        if (res.ok) {
+                            const json = await res.json();
+                            if (json.success && json.found && json.data) {
+                                const d = json.data;
+                                const nameEl = document.getElementById('buyerName');
+                                const emailEl = document.getElementById('buyerEmail');
+                                const noteEl = document.getElementById('buyerNote');
+                                if (nameEl && (!nameEl.value || nameEl.value.trim() === '')) nameEl.value = d.full_name || d.name || '';
+                                if (emailEl && (!emailEl.value || emailEl.value.trim() === '')) emailEl.value = d.email || '';
+                                if (noteEl && (!noteEl.value || noteEl.value.trim() === '')) {
+                                    noteEl.value = d.latest_plate_number || d.address || '';
+                                }
+                                const badge = document.getElementById('custRecognizeBadge');
+                                const badgeName = document.getElementById('custRecognizeName');
+                                if (badge && badgeName) {
+                                    badgeName.innerText = d.full_name || d.name;
+                                    badge.classList.remove('hidden');
+                                }
+                                return;
+                            }
+                        }
+                    } catch(e) {}
+
+                    // Fallback LocalStorage
+                    const customers = JSON.parse(localStorage.getItem('pjico_db_customers') || '[]');
+                    const localCust = customers.find(c => (c.phone || '').replace(/\D/g, '') === clean);
+                    if (localCust) {
+                        const nameEl = document.getElementById('buyerName');
+                        if (nameEl && !nameEl.value) nameEl.value = localCust.name;
+                        const badge = document.getElementById('custRecognizeBadge');
+                        const badgeName = document.getElementById('custRecognizeName');
+                        if (badge && badgeName) {
+                            badgeName.innerText = localCust.name;
+                            badge.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    const badge = document.getElementById('custRecognizeBadge');
+                    if (badge) badge.classList.add('hidden');
+                }
+            }, 350);
         }
 
         function switchTab(tabId) {
@@ -860,6 +935,10 @@
                         body: JSON.stringify({
                             customer_name: buyerName,
                             customer_phone: buyerPhone,
+                            customer_email: buyerEmail,
+                            customer_address: buyerNote,
+                            plate_number: buyerNote,
+                            order_code: orderCodeStr,
                             product_id: matchedProduct.id,
                             product_name: selectedProduct.name,
                             amount: amount,
@@ -873,6 +952,19 @@
                         }
                     }
                 } catch(netErr) {}
+
+                // Cập nhật hồ sơ khách hàng trung tâm trên localStorage
+                try {
+                    const centralCust = {
+                        name: buyerName,
+                        phone: buyerPhone,
+                        email: buyerEmail,
+                        address: buyerNote,
+                        plate_number: buyerNote,
+                        updated_at: nowStr
+                    };
+                    localStorage.setItem('pjico_central_customer', JSON.stringify(centralCust));
+                } catch(e) {}
 
                 currentOrderData = newOrder;
 
